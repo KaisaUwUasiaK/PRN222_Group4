@@ -40,7 +40,11 @@
                 <p class="auth-subtitle">Join us and start reading comics today</p>
             </div>
 
-            <form action="@Url.Action("Register", "Account")" method="post">
+            <form action="@Url.Action("Register", "Authentication")" method="post">
+                @Html.AntiForgeryToken()
+
+                @Html.ValidationSummary(false, "", new { @class = "validation-summary-errors" })
+
                 <div class="form-group">
                     <label for="fullname" class="form-label">Full Name</label>
                     <div class="input-wrapper">
@@ -85,7 +89,7 @@
 
             <div class="auth-footer">
                 Already have an account? 
-                <a href="@Url.Action("Login", "Account")" class="auth-link">Sign in</a>
+                <a href="@Url.Action("Login", "Authentication")" class="auth-link">Sign in</a>
             </div>
         </div>
     </div>

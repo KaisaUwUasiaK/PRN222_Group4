@@ -1,3 +1,8 @@
+using System;
+using PRN222_Group4.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Session;
+
 namespace Group4_ReadingComicWeb
 {
     public class Program
@@ -8,6 +13,17 @@ namespace Group4_ReadingComicWeb
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(30);
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
+            builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("MyCnn")
+    ));
 
             var app = builder.Build();
 
@@ -19,10 +35,12 @@ namespace Group4_ReadingComicWeb
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseSession();
 
             app.UseAuthorization();
 
