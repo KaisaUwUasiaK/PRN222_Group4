@@ -1,0 +1,43 @@
+# Visual Studio temporary files
+.vs/
+*.user
+*.suo
+*.userosscache
+*.csproj.user
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+
+# Rider / IDE
+.idea/
+.vscode/
+
+# Others
+*.log
+Logs/
+appsettings*.json
+!appsettings.json
+Properties/launchSettings.json
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+
+# Test results
+TestResults/
+
+# Publish
+publish/
+
+# Database files
+*.mdf
+*.ldf
