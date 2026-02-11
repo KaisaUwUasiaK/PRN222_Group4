@@ -40,7 +40,11 @@
                 <p class="auth-subtitle">Enter your credentials to access your account</p>
             </div>
 
-            <form action="@Url.Action("Login", "Account")" method="post">
+            <form action="@Url.Action("Login", "Authentication")" method="post">
+                @Html.AntiForgeryToken()
+
+                @Html.ValidationSummary(false, "", new { @class = "validation-summary-errors" })
+
                 <div class="form-group">
                     <label for="email" class="form-label">Email Address</label>
                     <div class="input-wrapper">
@@ -70,7 +74,7 @@
 
             <div class="auth-footer">
                 Don't have an account? 
-                <a href="@Url.Action("Register", "Account")" class="auth-link">Sign up</a>
+                <a href="@Url.Action("Register", "Authentication")" class="auth-link">Sign up</a>
             </div>
         </div>
     </div>
