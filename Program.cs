@@ -1,3 +1,7 @@
+using System;
+using PRN222_Group4.Models;
+using Microsoft.EntityFrameworkCore;
+
 namespace Group4_ReadingComicWeb
 {
     public class Program
@@ -8,6 +12,10 @@ namespace Group4_ReadingComicWeb
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("MyCnn")
+    ));
 
             var app = builder.Build();
 
@@ -19,7 +27,7 @@ namespace Group4_ReadingComicWeb
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
@@ -28,7 +36,7 @@ namespace Group4_ReadingComicWeb
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Authentication}/{action=Login}");
+                pattern: "{controller=Home}/{action=Index}");
 
             app.Run();
         }
