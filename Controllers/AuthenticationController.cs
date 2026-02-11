@@ -106,6 +106,7 @@ public class AuthenticationController : Controller
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
+        TempData["Success"] = "Đăng ký thành công! Vui lòng đăng nhập.";
         return RedirectToAction("Login");
     }
 
@@ -113,6 +114,7 @@ public class AuthenticationController : Controller
     public IActionResult Logout()
     {
         HttpContext.Session.Clear();
+        TempData["Success"] = "Đã đăng xuất.";
         return RedirectToAction("Login");
     }
 }

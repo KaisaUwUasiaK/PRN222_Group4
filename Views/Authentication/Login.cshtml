@@ -22,62 +22,108 @@
     <link rel="stylesheet" href="~/css/variables.css">
     <link rel="stylesheet" href="~/css/style.css">
     <link rel="stylesheet" href="~/css/auth.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
+    <style>
+        .validation-summary-errors {
+            display: none;
+        }
+    </style>
 </head>
 <body>
 
-    <div class="auth-container">
-        <!-- Decorative Background Elements -->
-        <div class="auth-bg-circle top-left"></div>
-        <div class="auth-bg-circle bottom-right"></div>
+<div class="auth-container">
+    <!-- Decorative Background Elements -->
+    <div class="auth-bg-circle top-left"></div>
+    <div class="auth-bg-circle bottom-right"></div>
 
-        <div class="auth-card">
-            <div class="auth-header">
-                <a href="@Url.Action("Index", "Home")" class="auth-logo">
-                    <i class="ph-fill ph-book-open-text"></i>
-                    <span>ComicVerse</span>
-                </a>
-                <h1 class="auth-title">Welcome Back</h1>
-                <p class="auth-subtitle">Enter your credentials to access your account</p>
+    <div class="auth-card">
+        <div class="auth-header">
+            <a href="@Url.Action("Index", "Home")" class="auth-logo">
+                <i class="ph-fill ph-book-open-text"></i>
+                <span>ComicVerse</span>
+            </a>
+            <h1 class="auth-title">Welcome Back</h1>
+            <p class="auth-subtitle">Enter your credentials to access your account</p>
+        </div>
+
+        <form action="@Url.Action("Login", "Authentication")" method="post">
+            @Html.AntiForgeryToken()
+
+            @Html.ValidationSummary(false, "", new { @class = "validation-summary-errors" })
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <div class="input-wrapper">
+                    <input type="email" id="email" name="email" class="form-input" placeholder="name@example.com" required>
+                    <i class="ph ph-envelope-simple input-icon"></i>
+                </div>
             </div>
 
-            <form action="@Url.Action("Login", "Authentication")" method="post">
-                @Html.AntiForgeryToken()
-
-                @Html.ValidationSummary(false, "", new { @class = "validation-summary-errors" })
-
-                <div class="form-group">
-                    <label for="email" class="form-label">Email Address</label>
-                    <div class="input-wrapper">
-                        <input type="email" id="email" name="email" class="form-input" placeholder="name@example.com" required>
-                        <i class="ph ph-envelope-simple input-icon"></i>
-                    </div>
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required>
+                    <i class="ph ph-lock-key input-icon"></i>
                 </div>
-
-                <div class="form-group">
-                    <label for="password" class="form-label">Password</label>
-                    <div class="input-wrapper">
-                        <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required>
-                        <i class="ph ph-lock-key input-icon"></i>
-                    </div>
-                </div>
-
-                <div class="form-options">
-                    <label class="checkbox-wrapper">
-                        <input type="checkbox" name="rememberMe">
-                        <span>Remember me</span>
-                    </label>
-                    <a href="#" class="forgot-password">Forgot password?</a>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-block">Sign In</button>
-            </form>
-
-            <div class="auth-footer">
-                Don't have an account? 
-                <a href="@Url.Action("Register", "Authentication")" class="auth-link">Sign up</a>
             </div>
+
+            <div class="form-options">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" name="rememberMe">
+                    <span>Remember me</span>
+                </label>
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        </form>
+
+        <div class="auth-footer">
+            Don't have an account?
+            <a href="@Url.Action("Register", "Authentication")" class="auth-link">Sign up</a>
         </div>
     </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const notyf = new Notyf({
+            duration: 4000,
+            position: { x: 'right', y: 'top' },
+            dismissible: true
+        });
+
+        // TempData-like notifications
+        @if (TempData["Success"] != null)
+        {
+            <text>notyf.success("@TempData["Success"]");</text>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <text>notyf.error("@TempData["Error"]");</text>
+        }
+        @if (TempData["Warning"] != null)
+        {
+            <text>notyf.open({ type: 'warning', message: "@TempData["Warning"]" });</text>
+        }
+        @if (TempData["Info"] != null)
+        {
+            <text>notyf.open({ type: 'info', message: "@TempData["Info"]" });</text>
+        }
+
+        // Model validation errors
+        var errorItems = document.querySelectorAll('.validation-summary-errors li');
+        if (errorItems.length) {
+            errorItems.forEach(function (item) {
+                var msg = item.textContent.trim();
+                if (msg) {
+                    notyf.error(msg);
+                }
+            });
+        }
+    });
+</script>
 
 </body>
 </html>

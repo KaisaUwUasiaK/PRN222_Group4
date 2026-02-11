@@ -22,6 +22,12 @@
     <link rel="stylesheet" href="~/css/variables.css">
     <link rel="stylesheet" href="~/css/style.css">
     <link rel="stylesheet" href="~/css/auth.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
+    <style>
+        .validation-summary-errors {
+            display: none;
+        }
+    </style>
 </head>
 <body>
 
@@ -93,6 +99,46 @@
             </div>
         </div>
     </div>
+
+<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const notyf = new Notyf({
+            duration: 4000,
+            position: { x: 'right', y: 'top' },
+            dismissible: true
+        });
+
+        // TempData-like notifications
+        @if (TempData["Success"] != null)
+        {
+            <text>notyf.success("@TempData["Success"]");</text>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <text>notyf.error("@TempData["Error"]");</text>
+        }
+        @if (TempData["Warning"] != null)
+        {
+            <text>notyf.open({ type: 'warning', message: "@TempData["Warning"]" });</text>
+        }
+        @if (TempData["Info"] != null)
+        {
+            <text>notyf.open({ type: 'info', message: "@TempData["Info"]" });</text>
+        }
+
+        // Model validation errors
+        var errorItems = document.querySelectorAll('.validation-summary-errors li');
+        if (errorItems.length) {
+            errorItems.forEach(function (item) {
+                var msg = item.textContent.trim();
+                if (msg) {
+                    notyf.error(msg);
+                }
+            });
+        }
+    });
+</script>
 
 </body>
 </html>
