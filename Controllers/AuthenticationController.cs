@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PRN222_Group4.Models;
-using PRN222_Group4.Services;
+using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Services;
 
-namespace PRN222_Group4.Controllers;
+namespace Group4_ReadingComicWeb.Controllers;
 
 public class AuthenticationController : Controller
 {
@@ -56,6 +56,12 @@ public class AuthenticationController : Controller
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Role, user.Role.RoleName)
         };
+
+        // Include avatar URL in claims so header can use it
+        if (!string.IsNullOrEmpty(user.AvatarUrl))
+        {
+            claims.Add(new Claim("AvatarUrl", user.AvatarUrl));
+        }
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);
 

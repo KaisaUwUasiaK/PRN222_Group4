@@ -1,5 +1,5 @@
-using PRN222_Group4.Models;
-using PRN222_Group4.Services;
+using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
