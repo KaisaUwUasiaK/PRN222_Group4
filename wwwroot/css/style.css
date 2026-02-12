@@ -85,6 +85,12 @@ h6 {
     gap: 24px;
 }
 
+.text-danger {
+    color: var(--color-danger);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
 .text-primary {
     color: var(--color-primary);
 }

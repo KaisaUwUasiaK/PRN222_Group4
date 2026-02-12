@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Utils;
 
@@ -6,15 +7,17 @@ namespace Group4_ReadingComicWeb.ViewModels;
 
 public class ProfileUpdateViewModel : IValidatableObject
 {
-    // Current user data for display
+    [ValidateNever]
     public User User { get; set; } = null!;
 
-    [Required(ErrorMessage = "Vui lòng nhập tên.")]
-    [MinLength(ValidationRules.UsernameMinLength, ErrorMessage = "Tên phải có ít nhất 6 ký tự.")]
-    [RegularExpression(@"^[\p{L}\p{Nd} ]+$", ErrorMessage = "Tên chỉ được chứa chữ (có dấu), số và khoảng trắng.")]
+    [Required(ErrorMessage = "Username is required.")]
+    [MinLength(ValidationRules.UsernameMinLength, 
+        ErrorMessage = "Username must be at least 6 characters.")]
+    [RegularExpression(@"^.{6,}$", 
+        ErrorMessage = "Username must be at least 6 characters.")]
     public string Username { get; set; } = string.Empty;
 
-    [MaxLength(500, ErrorMessage = "Bio tối đa 500 ký tự.")]
+    [MaxLength(500, ErrorMessage = "Bio must be less than 500 characters.")]
     public string? Bio { get; set; }
 
     public string? NewPassword { get; set; }
@@ -22,36 +25,44 @@ public class ProfileUpdateViewModel : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        // Conditional password validation: only when user enters a new password.
-        if (!string.IsNullOrWhiteSpace(NewPassword) || !string.IsNullOrWhiteSpace(ConfirmPassword))
+        // Only validate password if user enters it
+        if (!string.IsNullOrWhiteSpace(NewPassword) || 
+            !string.IsNullOrWhiteSpace(ConfirmPassword))
         {
             if (string.IsNullOrWhiteSpace(NewPassword))
             {
-                yield return new ValidationResult("Vui lòng nhập mật khẩu mới.", new[] { nameof(NewPassword) });
+                yield return new ValidationResult(
+                    "New password is required.", 
+                    new[] { nameof(NewPassword) });
                 yield break;
             }
 
-            var pwd = NewPassword;
-            if (pwd.Length < ValidationRules.PasswordMinLength || !ValidationRules.PasswordRegex.IsMatch(pwd))
+            if (NewPassword.Length < ValidationRules.PasswordMinLength)
             {
-                yield return new ValidationResult("Mật khẩu phải có ít nhất 6 ký tự và gồm ít nhất 1 chữ + 1 số.", new[] { nameof(NewPassword) });
+                yield return new ValidationResult(
+                    "Password must be at least 6 characters.", 
+                    new[] { nameof(NewPassword) });
             }
 
-            if (!string.Equals(NewPassword, ConfirmPassword, StringComparison.Ordinal))
+            if (!string.Equals(NewPassword, ConfirmPassword, 
+                StringComparison.Ordinal))
             {
-                yield return new ValidationResult("Mật khẩu xác nhận không khớp.", new[] { nameof(ConfirmPassword) });
+                yield return new ValidationResult(
+                    "Password confirmation does not match.", 
+                    new[] { nameof(ConfirmPassword) });
             }
         }
 
-        // Normalize: guard against username that is only spaces
+        // Extra guard after normalization
         if (!string.IsNullOrWhiteSpace(Username))
         {
             var normalized = ValidationRules.NormalizeSpaces(Username);
             if (normalized.Length < ValidationRules.UsernameMinLength)
             {
-                yield return new ValidationResult("Tên phải có ít nhất 6 ký tự.", new[] { nameof(Username) });
+                yield return new ValidationResult(
+                    "Username must be at least 6 characters.",
+                    new[] { nameof(Username) });
             }
         }
     }
 }
-

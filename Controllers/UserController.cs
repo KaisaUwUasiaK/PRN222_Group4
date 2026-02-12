@@ -111,11 +111,11 @@ public class UserController : Controller
         // Check if username is already taken by another user
         var existingUser = await _context.Users
             .FirstOrDefaultAsync(u => u.Username == username && u.UserId != userId);
-        if (existingUser != null)
-        {
-            ModelState.AddModelError("Username", "Username is already taken.");
-            return View(model);
-        }
+        // if (existingUser != null)
+        // {
+        //     ModelState.AddModelError("Username", "Username is already taken.");
+        //     return View(model);
+        // }
 
         // Handle password change if provided (validated in view model)
         if (!string.IsNullOrWhiteSpace(model.NewPassword))
