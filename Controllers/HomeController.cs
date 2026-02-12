@@ -1,5 +1,3 @@
-using System.Diagnostics;
-using Group4_ReadingComicWeb.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Group4_ReadingComicWeb.Controllers
@@ -18,15 +16,15 @@ namespace Group4_ReadingComicWeb.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+        // public IActionResult Privacy()
+        // {
+        //     return View();
+        // }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+        // [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        // public IActionResult Error()
+        // {
+        //     return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        // }
     }
 }

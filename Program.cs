@@ -1,7 +1,6 @@
-using System;
 using PRN222_Group4.Models;
+using PRN222_Group4.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Session;
 
 namespace Group4_ReadingComicWeb
 {
@@ -24,6 +23,8 @@ namespace Group4_ReadingComicWeb
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("MyCnn")
     ));
+            builder.Services.AddScoped<IEmailSender, EmailSender>();
+            builder.Services.AddHttpContextAccessor();
 
             var app = builder.Build();
 
