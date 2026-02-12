@@ -1,6 +1,8 @@
 using System;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using PRN222_Group4.Models;
 using PRN222_Group4.Services;
@@ -43,24 +45,25 @@ public class AuthenticationController : Controller
             return View();
         }
 
-        HttpContext.Session.SetInt32("UserId", user.UserId);
-        HttpContext.Session.SetString("Username", user.Username);
-        HttpContext.Session.SetString("Role", user.Role.RoleName);
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Role, user.Role.RoleName)
+        };
+        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var principal = new ClaimsPrincipal(identity);
 
-        var roleName = user.Role.RoleName;
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = rememberMe,
+            ExpiresUtc = rememberMe ? DateTimeOffset.UtcNow.AddDays(7) : null
+        };
 
-        if (string.Equals(roleName, "Admin", StringComparison.OrdinalIgnoreCase))
-        {
-            return RedirectToAction("Index", "Home");
-        }
-        else if (string.Equals(roleName, "Moderator", StringComparison.OrdinalIgnoreCase))
-        {
-            return RedirectToAction("Index", "Home");
-        }
-        else
-        {
-            return RedirectToAction("Index", "Home");
-        }
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
+
+        return RedirectToAction("Index", "Home");
     }
 
     [HttpGet]
@@ -114,9 +117,9 @@ public class AuthenticationController : Controller
     }
 
     [HttpGet]
-    public IActionResult Logout()
+    public async Task<IActionResult> Logout()
     {
-        HttpContext.Session.Clear();
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         TempData["Success"] = "Đã đăng xuất.";
         return RedirectToAction("Login");
     }
