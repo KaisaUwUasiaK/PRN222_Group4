@@ -1,4 +1,4 @@
-@model Group4_ReadingComicWeb.Models.User
+@model Group4_ReadingComicWeb.ViewModels.ProfileUpdateViewModel
 @{
     ViewData["Title"] = "Edit Profile";
 }
@@ -34,6 +34,12 @@
             align-items: center;
         }
 
+        .profile-avatar-frame {
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }
+
         .profile-avatar-lg {
             width: 120px;
             height: 120px;
@@ -44,8 +50,9 @@
         }
 
         .avatar-upload-btn {
-            position: relative;
-            margin-left: -40px;
+            position: absolute;
+            right: 6px;
+            bottom: 6px;
             width: 38px;
             height: 38px;
             border-radius: 50%;
@@ -58,6 +65,7 @@
             cursor: pointer;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
             transition: all 0.2s ease;
+            outline: 3px solid var(--bg-surface);
         }
 
         .avatar-upload-btn:hover {
@@ -149,11 +157,13 @@
     <div class="profile-card">
         <div class="profile-header">
             <div class="profile-avatar-wrapper">
-                <img id="avatarImage" src="@(Model.AvatarUrl ?? "https://ui-avatars.com/api/?name=" + Uri.EscapeDataString(Model.Username ?? "U") + "&background=6366f1&color=fff&size=120")" alt="Profile" class="profile-avatar-lg">
-                <label for="avatarFile" class="avatar-upload-btn">
-                    <i class="ph ph-camera"></i>
-                </label>
-                <input type="file" id="avatarFile" class="avatar-upload-input" accept="image/jpeg,image/jpg,image/png,image/gif">
+                <div class="profile-avatar-frame">
+                    <img id="avatarImage" src="@(string.IsNullOrWhiteSpace(Model.User.AvatarUrl) ? "https://ui-avatars.com/api/?name=" + Uri.EscapeDataString(Model.User.Username) + "&background=6366f1&color=fff&size=120" : Model.User.AvatarUrl)" alt="Profile" class="profile-avatar-lg">
+                    <label for="avatarFile" class="avatar-upload-btn" title="Change avatar">
+                        <i class="ph ph-camera"></i>
+                    </label>
+                    <input type="file" id="avatarFile" class="avatar-upload-input" accept="image/jpeg,image/jpg,image/png,image/gif">
+                </div>
             </div>
         </div>
 
@@ -163,28 +173,26 @@
                 <p class="text-muted">Update your personal information</p>
             </div>
 
-            <form asp-action="Profile" method="post" id="profileForm">
+            <form asp-action="Profile" method="post" id="profileForm" novalidate>
                 @Html.AntiForgeryToken()
+                @Html.ValidationSummary(false, "", new { @class = "validation-summary-errors" })
                 
                 <div class="grid grid-cols-2 gap-6">
                     <div class="form-group">
-                        <label class="form-label" for="username">Display Name</label>
-                        <input type="text" id="username" name="username" class="form-input" value="@Model.Username" required>
-                        @if (ViewData.ModelState["Username"]?.Errors?.Count > 0)
-                        {
-                            <span class="text-danger">@ViewData.ModelState["Username"]!.Errors[0].ErrorMessage</span>
-                        }
+                        <label class="form-label" asp-for="Username">Display Name</label>
+                        <input asp-for="Username" class="form-input" />
+                        <span asp-validation-for="Username" class="text-danger"></span>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Email Address</label>
-                        <input type="email" class="form-input" value="@Model.Email" disabled
+                        <input type="email" class="form-input" value="@Model.User.Email" disabled
                                style="opacity: 0.7; cursor: not-allowed;">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="bio">Bio</label>
-                    <textarea id="bio" name="bio" class="form-textarea">@(Model.Bio ?? "")</textarea>
+                    <label class="form-label" asp-for="Bio">Bio</label>
+                    <textarea asp-for="Bio" class="form-textarea"></textarea>
                 </div>
 
                 <h3 style="margin: 2rem 0 1rem; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
@@ -193,20 +201,14 @@
 
                 <div class="grid grid-cols-2 gap-6">
                     <div class="form-group">
-                        <label class="form-label" for="newPassword">New Password</label>
-                        <input type="password" id="newPassword" name="newPassword" class="form-input" placeholder="Leave blank to keep current">
-                        @if (ViewData.ModelState["NewPassword"]?.Errors?.Count > 0)
-                        {
-                            <span class="text-danger">@ViewData.ModelState["NewPassword"]!.Errors[0].ErrorMessage</span>
-                        }
+                        <label class="form-label" asp-for="NewPassword">New Password</label>
+                        <input asp-for="NewPassword" class="form-input" placeholder="Leave blank to keep current" autocomplete="new-password">
+                        <span asp-validation-for="NewPassword" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="confirmPassword">Confirm Password</label>
-                        <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" placeholder="Confirm new password">
-                        @if (ViewData.ModelState["ConfirmPassword"]?.Errors?.Count > 0)
-                        {
-                            <span class="text-danger">@ViewData.ModelState["ConfirmPassword"]!.Errors[0].ErrorMessage</span>
-                        }
+                        <label class="form-label" asp-for="ConfirmPassword">Confirm Password</label>
+                        <input asp-for="ConfirmPassword" class="form-input" placeholder="Confirm new password" autocomplete="new-password">
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                     </div>
                 </div>
 
@@ -238,6 +240,7 @@
 </main>
 
 @section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
     <script>
         // Initialize Notyf for toast notifications
         const notyf = new Notyf({

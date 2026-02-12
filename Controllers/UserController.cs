@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Utils;
+using Group4_ReadingComicWeb.ViewModels;
 
 namespace Group4_ReadingComicWeb.Controllers;
 
@@ -66,12 +68,19 @@ public class UserController : Controller
             return RedirectToAction("Login", "Authentication");
         }
 
-        return View(user);
+        var vm = new ProfileUpdateViewModel
+        {
+            User = user,
+            Username = user.Username,
+            Bio = user.Bio
+        };
+
+        return View(vm);
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Profile(string username, string bio, string newPassword, string confirmPassword)
+    public async Task<IActionResult> Profile(ProfileUpdateViewModel model)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
@@ -79,18 +88,25 @@ public class UserController : Controller
             return RedirectToAction("Login", "Authentication");
         }
 
-        var user = await _context.Users.FindAsync(userId);
+        var user = await _context.Users
+            .Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.UserId == userId);
         if (user == null)
         {
             TempData["Error"] = "User not found.";
             return RedirectToAction("Profile");
         }
 
-        if (string.IsNullOrWhiteSpace(username))
+        // Ensure view can render even if invalid
+        model.User = user;
+
+        if (!ModelState.IsValid)
         {
-            ModelState.AddModelError("Username", "Username is required.");
-            return View(user);
+            return View(model);
         }
+
+        var username = ValidationRules.NormalizeSpaces(model.Username);
+        var bio = string.IsNullOrWhiteSpace(model.Bio) ? null : model.Bio.Trim();
 
         // Check if username is already taken by another user
         var existingUser = await _context.Users
@@ -98,29 +114,17 @@ public class UserController : Controller
         if (existingUser != null)
         {
             ModelState.AddModelError("Username", "Username is already taken.");
-            return View(user);
+            return View(model);
         }
 
-        // Handle password change if provided
-        if (!string.IsNullOrWhiteSpace(newPassword))
+        // Handle password change if provided (validated in view model)
+        if (!string.IsNullOrWhiteSpace(model.NewPassword))
         {
-            if (newPassword != confirmPassword)
-            {
-                ModelState.AddModelError("ConfirmPassword", "Passwords do not match.");
-                return View(user);
-            }
-
-            if (newPassword.Length < 6)
-            {
-                ModelState.AddModelError("NewPassword", "Password must be at least 6 characters.");
-                return View(user);
-            }
-
-            user.PasswordHash = newPassword;
+            user.PasswordHash = model.NewPassword;
         }
 
-        user.Username = username.Trim();
-        user.Bio = string.IsNullOrWhiteSpace(bio) ? null : bio.Trim();
+        user.Username = username;
+        user.Bio = bio;
 
         await _context.SaveChangesAsync();
 
@@ -199,7 +203,7 @@ public class UserController : Controller
             return Json(new { success = false, message = "User not authenticated." });
         }
 
-        if (avatarFile == null || avatarFile.Length == 0)
+        if (avatarFile.Length == 0)
         {
             return Json(new { success = false, message = "No file uploaded." });
         }
