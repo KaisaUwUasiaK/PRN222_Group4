@@ -21,9 +21,9 @@ namespace Group4_ReadingComicWeb
                 options.Cookie.IsEssential = true;
             });
             builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("MyCnn")
-    ));
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("MyCnn")
+                ));
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddHttpContextAccessor();
 

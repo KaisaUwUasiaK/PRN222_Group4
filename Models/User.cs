@@ -13,5 +13,7 @@ namespace PRN222_Group4.Models
 
         public string? ResetPasswordToken { get; set; }
         public DateTime? ResetTokenExpiry { get; set; }
+
+        public AccountStatus Status { get; set; } = AccountStatus.Offline;
     }
 }

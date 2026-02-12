@@ -45,6 +45,10 @@ public class AuthenticationController : Controller
             return View();
         }
 
+        // Update user status to Online
+        user.Status = AccountStatus.Online;
+        await _context.SaveChangesAsync();
+
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
@@ -106,7 +110,8 @@ public class AuthenticationController : Controller
             Username = fullname,
             Email = email,
             PasswordHash = password,
-            RoleId = userRole.RoleId
+            RoleId = userRole.RoleId,
+            Status = AccountStatus.Offline // New users start as Offline
         };
 
         _context.Users.Add(user);
@@ -119,6 +124,18 @@ public class AuthenticationController : Controller
     [HttpGet]
     public async Task<IActionResult> Logout()
     {
+        // Update user status to Offline before signing out
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                user.Status = AccountStatus.Offline;
+                await _context.SaveChangesAsync();
+            }
+        }
+
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         TempData["Success"] = "Đã đăng xuất.";
         return RedirectToAction("Login");
