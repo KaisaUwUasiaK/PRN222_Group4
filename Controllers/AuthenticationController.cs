@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PRN222_Group4.Models;
-using PRN222_Group4.Services;
+using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Services;
 
-namespace PRN222_Group4.Controllers;
+namespace Group4_ReadingComicWeb.Controllers;
 
 public class AuthenticationController : Controller
 {
@@ -45,6 +45,10 @@ public class AuthenticationController : Controller
             return View();
         }
 
+        // Update user status to Online
+        user.Status = AccountStatus.Online;
+        await _context.SaveChangesAsync();
+
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
@@ -52,6 +56,12 @@ public class AuthenticationController : Controller
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Role, user.Role.RoleName)
         };
+
+        // Include avatar URL in claims so header can use it
+        if (!string.IsNullOrEmpty(user.AvatarUrl))
+        {
+            claims.Add(new Claim("AvatarUrl", user.AvatarUrl));
+        }
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);
 
@@ -106,7 +116,8 @@ public class AuthenticationController : Controller
             Username = fullname,
             Email = email,
             PasswordHash = password,
-            RoleId = userRole.RoleId
+            RoleId = userRole.RoleId,
+            Status = AccountStatus.Offline // New users start as Offline
         };
 
         _context.Users.Add(user);
@@ -119,6 +130,18 @@ public class AuthenticationController : Controller
     [HttpGet]
     public async Task<IActionResult> Logout()
     {
+        // Update user status to Offline before signing out
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                user.Status = AccountStatus.Offline;
+                await _context.SaveChangesAsync();
+            }
+        }
+
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         TempData["Success"] = "Đã đăng xuất.";
         return RedirectToAction("Login");

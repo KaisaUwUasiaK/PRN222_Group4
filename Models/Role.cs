@@ -1,4 +1,4 @@
-namespace PRN222_Group4.Models
+namespace Group4_ReadingComicWeb.Models
 {
     public class Role
     {
