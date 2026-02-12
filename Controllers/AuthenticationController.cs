@@ -27,6 +27,12 @@ public class AuthenticationController : Controller
         return View();
     }
 
+    [HttpGet]
+    public IActionResult AccessDenied()
+    {
+        return View();
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(string email, string password, bool rememberMe)

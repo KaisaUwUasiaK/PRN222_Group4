@@ -32,6 +32,7 @@ namespace Group4_ReadingComicWeb
                 {
                     options.LoginPath = "/Authentication/Login";
                     options.LogoutPath = "/Authentication/Logout";
+                    options.AccessDeniedPath = "/Authentication/AccessDenied";
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
                     options.SlidingExpiration = true;
                     options.Cookie.HttpOnly = true;
