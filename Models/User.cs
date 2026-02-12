@@ -10,5 +10,8 @@ namespace PRN222_Group4.Models
 
         public int RoleId { get; set; }
         public Role Role { get; set; } = null!;
+
+        public string? ResetPasswordToken { get; set; }
+        public DateTime? ResetTokenExpiry { get; set; }
     }
 }
