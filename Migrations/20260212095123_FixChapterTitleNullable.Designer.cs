@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PRN222_Group4.Models;
 
@@ -11,9 +12,11 @@ using PRN222_Group4.Models;
 namespace Group4_ReadingComicWeb.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260212095123_FixChapterTitleNullable")]
+    partial class FixChapterTitleNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -93,42 +96,6 @@ namespace Group4_ReadingComicWeb.Migrations
                     b.ToTable("Comic");
                 });
 
-            modelBuilder.Entity("Group4_ReadingComicWeb.Models.ComicModeration", b =>
-                {
-                    b.Property<int>("ComicModerationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ComicModerationId"));
-
-                    b.Property<int>("ComicId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ModerationStatus")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasDefaultValue("Pending");
-
-                    b.Property<int?>("ModeratorId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("ntext");
-
-                    b.Property<DateTime?>("ProcessedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("ComicModerationId");
-
-                    b.HasIndex("ComicId");
-
-                    b.HasIndex("ModeratorId");
-
-                    b.ToTable("ComicModeration");
-                });
-
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.ComicTag", b =>
                 {
                     b.Property<int>("ComicId")
@@ -189,9 +156,6 @@ namespace Group4_ReadingComicWeb.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
-                    b.Property<string>("BanReason")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -208,12 +172,6 @@ namespace Group4_ReadingComicWeb.Migrations
 
                     b.Property<int>("RoleId")
                         .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("SuspendedUntil")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -235,24 +193,6 @@ namespace Group4_ReadingComicWeb.Migrations
                         .IsRequired();
 
                     b.Navigation("Comic");
-                });
-
-            modelBuilder.Entity("Group4_ReadingComicWeb.Models.ComicModeration", b =>
-                {
-                    b.HasOne("Group4_ReadingComicWeb.Models.Comic", "Comic")
-                        .WithMany()
-                        .HasForeignKey("ComicId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PRN222_Group4.Models.User", "Moderator")
-                        .WithMany()
-                        .HasForeignKey("ModeratorId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Comic");
-
-                    b.Navigation("Moderator");
                 });
 
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.ComicTag", b =>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - ComicVerse Moderator</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/@@phosphor-icons/web"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="~/css/variables.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
+
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 3rem;
+            text-decoration: none;
+            color: inherit;
+            font-family: var(--font-heading);
+        }
+
+        .sidebar-logo span {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .nav-group {
+            margin-bottom: 2rem;
+        }
+
+        .nav-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            color: var(--text-secondary);
+            border-radius: var(--radius-sm);
+            margin-bottom: 4px;
+            transition: all 0.2s;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--color-primary);
+        }
+
+        .sidebar-spacer {
+            flex: 1;
+        }
+
+        .admin-main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            background: var(--bg-main);
+        }
+    </style>
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <a href="@Url.Action("Dashboard", "Moderation")" class="sidebar-logo">
+            <i class="ph-fill ph-book-open-text text-primary" style="font-size: 1.75rem;"></i>
+            <span>CvMod</span>
+        </a>
+
+        <div class="nav-group">
+            <div class="nav-label">Moderation</div>
+            <a href="@Url.Action("Dashboard", "Moderation")" class="nav-item">
+                <i class="ph ph-squares-four"></i> Dashboard
+            </a>
+            <a href="@Url.Action("Pending", "Moderation")" class="nav-item">
+                <i class="ph ph-hourglass"></i> Pending Comics
+            </a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-label">Account</div>
+            <a href="@Url.Action("Index", "Home")" class="nav-item">
+                <i class="ph ph-house"></i> Back to Home
+            </a>
+        </div>
+
+        <div class="sidebar-spacer"></div>
+
+        <div class="nav-group">
+            <a href="@Url.Action("Logout", "Authentication")" class="nav-item" style="color: var(--color-danger);">
+                <i class="ph ph-sign-out"></i> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        @RenderBody()
+    </main>
+
+    <script src="~/js/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const notyf = new Notyf({
+                duration: 4000,
+                position: { x: 'right', y: 'top' },
+                dismissible: true
+            });
+
+            @if (TempData["Success"] != null)
+            {
+                <text>notyf.success("@TempData["Success"]");</text>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <text>notyf.error("@TempData["Error"]");</text>
+            }
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+
+</html>

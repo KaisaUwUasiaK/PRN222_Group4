@@ -1,5 +1,7 @@
 using PRN222_Group4.Models;
 using PRN222_Group4.Services;
+using Group4_ReadingComicWeb.Services.Contracts;
+using Group4_ReadingComicWeb.Services.Implementations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
@@ -13,6 +15,7 @@ namespace Group4_ReadingComicWeb
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession(options =>
             {
@@ -20,11 +23,14 @@ namespace Group4_ReadingComicWeb
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
             });
+            
             builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("MyCnn")
-    ));
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("MyCnn")
+                ));
+            
             builder.Services.AddScoped<IEmailSender, EmailSender>();
+            builder.Services.AddScoped<IModerationService, ModerationService>();
             builder.Services.AddHttpContextAccessor();
 
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -36,6 +42,7 @@ namespace Group4_ReadingComicWeb
                     options.SlidingExpiration = true;
                     options.Cookie.HttpOnly = true;
                     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                    options.AccessDeniedPath = "/Authentication/AccessDenied";
                 });
 
             var app = builder.Build();
@@ -44,18 +51,14 @@ namespace Group4_ReadingComicWeb
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
 
-            //app.UseHttpsRedirection();
             app.UseStaticFiles();
-
             app.UseRouting();
 
             app.UseAuthentication();
             app.UseSession();
-
             app.UseAuthorization();
 
             app.MapControllerRoute(
