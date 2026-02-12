@@ -1,6 +1,7 @@
 using PRN222_Group4.Models;
 using PRN222_Group4.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace Group4_ReadingComicWeb
 {
@@ -26,6 +27,17 @@ namespace Group4_ReadingComicWeb
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddHttpContextAccessor();
 
+            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Authentication/Login";
+                    options.LogoutPath = "/Authentication/Logout";
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                    options.SlidingExpiration = true;
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                });
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -41,6 +53,7 @@ namespace Group4_ReadingComicWeb
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseSession();
 
             app.UseAuthorization();

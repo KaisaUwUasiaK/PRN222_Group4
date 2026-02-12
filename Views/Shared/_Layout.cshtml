@@ -46,37 +46,45 @@
     
             <!-- Header Actions -->
             <div class="flex items-center gap-4">
-                <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-ghost text-muted" style="font-size: 0.9rem;">
-                    <i class="ph ph-squares-four" style="margin-right: 4px;"></i> Admin
-                </a>
-                <button class="btn btn-primary">
-                    <i class="ph ph-upload-simple" style="margin-right: 8px;"></i> Upload
-                </button>
-                <button class="btn btn-ghost" style="padding: 8px;">
-                    <i class="ph ph-bell" style="font-size: 1.25rem;"></i>
-                </button>
-                <div class="dropdown">
-                    <div class="dropdown-trigger">
-                        <div class="profile-avatar"
-                            style="width: 40px; height: 40px; border-radius: 50%; background: var(--bg-surface); overflow: hidden;">
-                            <img src="https://i.pravatar.cc/150?img=11" alt="Profile">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <button class="btn btn-primary">
+                        <i class="ph ph-upload-simple" style="margin-right: 8px;"></i> Upload
+                    </button>
+                    <button class="btn btn-ghost" style="padding: 8px;">
+                        <i class="ph ph-bell" style="font-size: 1.25rem;"></i>
+                    </button>
+                    <div class="dropdown">
+                        <div class="dropdown-trigger">
+                            <div class="profile-avatar flex items-center justify-center gap-2" style="min-width: 40px; height: 40px;">
+                                <img src="https://ui-avatars.com/api/?name=@(Uri.EscapeDataString(User.Identity.Name ?? "U"))&background=6366f1&color=fff&size=40" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; border: none; box-shadow: none;">
+                                <span class="text-muted" style="font-size: 0.9rem; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@User.Identity.Name</span>
+                            </div>
+                            <i class="ph-bold ph-caret-down dropdown-arrow"></i>
                         </div>
-                        <i class="ph-bold ph-caret-down dropdown-arrow"></i>
+                        <div class="dropdown-content">
+                            <a href="#" class="dropdown-item">
+                                <i class="ph ph-user"></i> My Profile
+                            </a>
+                            <a href="#" class="dropdown-item">
+                                <i class="ph ph-books"></i> My Comics
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="@Url.Action("Logout", "Authentication")" class="dropdown-item" style="color: var(--color-danger);">
+                                <i class="ph ph-sign-out"></i> Logout
+                            </a>
+                        </div>
                     </div>
-    
-                    <div class="dropdown-content">
-                        <a href="@Url.Action("Profile", "User")" class="dropdown-item">
-                            <i class="ph ph-user"></i> My Profile
-                        </a>
-                        <a href="#" class="dropdown-item">
-                            <i class="ph ph-books"></i> My Library
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a href="@Url.Action("Logout", "Authentication")" class="dropdown-item" style="color: var(--color-danger);">
-                            <i class="ph ph-sign-out"></i> Logout
-                        </a>
-                    </div>
-                </div>
+                }
+                else
+                {
+                    <a href="@Url.Action("Register", "Authentication")" class="btn btn-ghost text-muted" style="font-size: 0.9rem;">
+                        Đăng ký
+                    </a>
+                    <a href="@Url.Action("Login", "Authentication")" class="btn btn-primary">
+                        Đăng nhập
+                    </a>
+                }
             </div>
         </div>
     </header>
