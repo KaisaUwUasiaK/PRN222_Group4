@@ -1,3 +1,4 @@
+@model Group4_ReadingComicWeb.ViewModels.RegisterViewModel
 @{
     ViewData["Title"] = "Register";
     Layout = null; // Using standalone layout for auth pages
@@ -46,41 +47,45 @@
                 <p class="auth-subtitle">Join us and start reading comics today</p>
             </div>
 
-            <form action="@Url.Action("Register", "Authentication")" method="post">
+            <form asp-action="Register" asp-controller="Authentication" method="post" novalidate>
                 @Html.AntiForgeryToken()
 
                 @Html.ValidationSummary(false, "", new { @class = "validation-summary-errors" })
 
                 <div class="form-group">
-                    <label for="fullname" class="form-label">Full Name</label>
+                    <label asp-for="Fullname" class="form-label">Full Name</label>
                     <div class="input-wrapper">
-                        <input type="text" id="fullname" name="fullname" class="form-input" placeholder="John Doe" required>
+                        <input asp-for="Fullname" class="form-input" placeholder="John Doe" autocomplete="name">
                         <i class="ph ph-user input-icon"></i>
                     </div>
+                    <span asp-validation-for="Fullname" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label for="email" class="form-label">Email Address</label>
+                    <label asp-for="Email" class="form-label">Email Address</label>
                     <div class="input-wrapper">
-                        <input type="email" id="email" name="email" class="form-input" placeholder="name@example.com" required>
+                        <input asp-for="Email" class="form-input" placeholder="name@example.com" autocomplete="email">
                         <i class="ph ph-envelope-simple input-icon"></i>
                     </div>
+                    <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label for="password" class="form-label">Password</label>
+                    <label asp-for="Password" class="form-label">Password</label>
                     <div class="input-wrapper">
-                        <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required>
+                        <input asp-for="Password" class="form-input" placeholder="••••••••" autocomplete="new-password">
                         <i class="ph ph-lock-key input-icon"></i>
                     </div>
+                    <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
                     <div class="input-wrapper">
-                        <input type="password" id="confirmPassword" name="confirmPassword" class="form-input" placeholder="••••••••" required>
+                        <input asp-for="ConfirmPassword" class="form-input" placeholder="••••••••" autocomplete="new-password">
                         <i class="ph ph-lock-key-open input-icon"></i>
                     </div>
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                 </div>
 
                 <div class="form-options">
@@ -101,6 +106,7 @@
     </div>
 
 <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+@await Html.PartialAsync("_ValidationScriptsPartial")
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const notyf = new Notyf({

@@ -1,4 +1,3 @@
-using System;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -6,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Services;
+using Group4_ReadingComicWeb.Utils;
+using Group4_ReadingComicWeb.ViewModels;
 
 namespace Group4_ReadingComicWeb.Controllers;
 
@@ -79,36 +80,34 @@ public class AuthenticationController : Controller
     [HttpGet]
     public IActionResult Register()
     {
-        return View();
+        return View(new RegisterViewModel());
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(string fullname, string email, string password, string confirmPassword)
+    public async Task<IActionResult> Register(RegisterViewModel model)
     {
         if (!ModelState.IsValid)
         {
-            return View();
+            return View(model);
         }
 
-        if (!string.Equals(password, confirmPassword, StringComparison.Ordinal))
-        {
-            ModelState.AddModelError(string.Empty, "Mật khẩu xác nhận không khớp.");
-            return View();
-        }
+        var fullname = ValidationRules.NormalizeSpaces(model.Fullname);
+        var email = model.Email.Trim();
+        var password = model.Password;
 
         var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (existingUser != null)
         {
-            ModelState.AddModelError(string.Empty, "Email đã được sử dụng.");
-            return View();
+            ModelState.AddModelError(nameof(RegisterViewModel.Email), "Email đã được sử dụng.");
+            return View(model);
         }
 
         var userRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "User");
         if (userRole == null)
         {
             ModelState.AddModelError(string.Empty, "Không tìm thấy role mặc định 'User'.");
-            return View();
+            return View(model);
         }
 
         var user = new User
