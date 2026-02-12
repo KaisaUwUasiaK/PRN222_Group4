@@ -5,22 +5,26 @@ namespace Group4_ReadingComicWeb.ViewModels;
 
 public class RegisterViewModel
 {
-    [Required(ErrorMessage = "Vui lòng nhập tên.")]
-    [MinLength(ValidationRules.UsernameMinLength, ErrorMessage = "Tên phải có ít nhất 6 ký tự.")]
-    [RegularExpression(@"^[\p{L}\p{Nd} ]+$", ErrorMessage = "Tên chỉ được chứa chữ (có dấu), số và khoảng trắng.")]
+    [Required(ErrorMessage = "Username is required.")]
+    [MinLength(ValidationRules.UsernameMinLength, 
+        ErrorMessage = "Username must be at least 6 characters.")]
+    [RegularExpression(@"^.{6,}$", 
+        ErrorMessage = "Username must be at least 6 characters.")]
     public string Fullname { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Vui lòng nhập email.")]
-    [EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+    [Required(ErrorMessage = "Email is required.")]
+    [EmailAddress(ErrorMessage = "Invalid email address.")]
     public string Email { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Vui lòng nhập mật khẩu.")]
-    [MinLength(ValidationRules.PasswordMinLength, ErrorMessage = "Mật khẩu phải có ít nhất 6 ký tự.")]
-    [RegularExpression(@"^(?=.*[\p{L}])(?=.*\d).{6,}$", ErrorMessage = "Mật khẩu phải có ít nhất 1 chữ và 1 số.")]
+    [Required(ErrorMessage = "Password is required.")]
+    [MinLength(ValidationRules.PasswordMinLength, 
+        ErrorMessage = "Password must be at least 6 characters.")]
+    [RegularExpression(@"^.{6,}$", 
+        ErrorMessage = "Password must be at least 6 characters.")]
     public string Password { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Vui lòng xác nhận mật khẩu.")]
-    [Compare(nameof(Password), ErrorMessage = "Mật khẩu xác nhận không khớp.")]
+    [Required(ErrorMessage = "Password confirmation is required.")]
+    [Compare(nameof(Password), 
+        ErrorMessage = "Password confirmation does not match.")]
     public string ConfirmPassword { get; set; } = string.Empty;
 }
-
