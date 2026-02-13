@@ -63,6 +63,17 @@ public class AuthenticationController : Controller
 
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
 
+        // ✅ THÊM: Kiểm tra role và redirect đúng trang
+        if (user.Role.RoleName == "Moderator")
+        {
+            return RedirectToAction("Dashboard", "Moderation");
+        }
+        else if (user.Role.RoleName == "Admin")
+        {
+            return RedirectToAction("Dashboard", "Admin");  // Nếu có Admin page
+        }
+        
+        // Mặc định: User thường vào Home
         return RedirectToAction("Index", "Home");
     }
 
