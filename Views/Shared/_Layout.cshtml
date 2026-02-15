@@ -56,9 +56,9 @@
             <div class="flex items-center gap-4">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <button class="btn btn-primary">
+                    <a href="@Url.Action("Create", "PersonalComic")" class="btn btn-primary" style="text-decoration: none; color: white;">
                         <i class="ph ph-upload-simple" style="margin-right: 8px;"></i> Upload
-                    </button>
+                    </a>
                     <button class="btn btn-ghost" style="padding: 8px;">
                         <i class="ph ph-bell" style="font-size: 1.25rem;"></i>
                     </button>
@@ -74,7 +74,7 @@
                             <a href="@Url.Action("Profile", "User")" class="dropdown-item">
                                 <i class="ph ph-user"></i> My Profile
                             </a>
-                            <a href="#" class="dropdown-item">
+                            <a href="@Url.Action("Index", "PersonalComic")" class="dropdown-item">
                                 <i class="ph ph-books"></i> My Comics
                             </a>
                             <div class="dropdown-divider"></div>
