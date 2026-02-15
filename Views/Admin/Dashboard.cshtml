@@ -1,0 +1,138 @@
+﻿@model Group4_ReadingComicWeb.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/css/variables.css" />
+    <link rel="stylesheet" href="~/css/style.css" />
+    <link rel="stylesheet" href="~/css/admin.css" />
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <a href="@Url.Action("Dashboard", "Admin")" class="sidebar-logo flex items-center gap-2">
+            <span style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700;">📚 CvAdmin</span>
+        </a>
+
+        <div class="nav-group">
+            <div class="nav-label">Overview</div>
+            <a href="@Url.Action("Dashboard", "Admin")" class="nav-item active">
+                Dashboard
+            </a>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-label">Management</div>
+            <a href="@Url.Action("ManageMod", "Admin")" class="nav-item">   
+                Moderators
+            </a>
+        </div>
+
+        <div class="nav-group" style="margin-top: auto;">
+            <a href="@Url.Action("Logout", "Account")" class="nav-item" style="color: var(--color-danger);">
+                Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <div class="flex justify-between items-center" style="margin-bottom: 2rem;">
+            <h1 style="margin-bottom: 0;">Dashboard</h1>
+            <div class="flex items-center gap-4">
+                <span style="font-weight: 600;">@(User.Identity?.Name ?? "Admin")</span>
+            </div>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div style="margin-bottom: 1.5rem; padding: 12px 16px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; color: #34D399;">
+                @TempData["Success"]
+            </div>
+        }
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            @* <div class="stat-card">
+                <div class="stat-label">Total Comics</div>
+                <div class="stat-value">@Model.TotalComics.ToString("N0")</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Total Views</div>
+                <div class="stat-value">@Model.TotalViews.ToString("N0")</div>
+                <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">All comics</div>
+            </div> *@
+
+            <div class="stat-card">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value">@Model.TotalUsers.ToString("N0")</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Moderators</div>
+                <div style="display: flex; gap: 16px; margin-top: 8px;">
+                    <div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-accent);">@Model.ActiveModerators</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Active</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-danger);">@Model.BannedModerators</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">Banned</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Logs Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <h3>Recent Admin Actions (Logs)</h3>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Admin</th>
+                        <th>Action</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.RecentLogs.Any())
+                    {
+                        @foreach (var log in Model.RecentLogs)
+                        {
+                            <tr>
+                                <td>@log.LogId</td>
+                                <td style="font-weight: 500;">@log.AdminUsername</td>
+                                <td>@log.Action</td>
+                                <td>@log.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 2rem;">No logs yet</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </main>
+</body>
+</html>

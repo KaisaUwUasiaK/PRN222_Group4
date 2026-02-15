@@ -1,13 +1,14 @@
-using System;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PRN222_Group4.Models;
-using PRN222_Group4.Services;
+using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Services;
+using Group4_ReadingComicWeb.Utils;
+using Group4_ReadingComicWeb.ViewModels;
 
-namespace PRN222_Group4.Controllers;
+namespace Group4_ReadingComicWeb.Controllers;
 
 public class AuthenticationController : Controller
 {
@@ -41,9 +42,12 @@ public class AuthenticationController : Controller
 
         if (user == null)
         {
-            ModelState.AddModelError(string.Empty, "Email hoặc mật khẩu không chính xác.");
+            ModelState.AddModelError(string.Empty, "Invalid email or password.");
             return View();
         }
+
+        user.Status = AccountStatus.Online;
+        await _context.SaveChangesAsync();
 
         var claims = new List<Claim>
         {
@@ -52,6 +56,12 @@ public class AuthenticationController : Controller
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Role, user.Role.RoleName)
         };
+
+        if (!string.IsNullOrEmpty(user.AvatarUrl))
+        {
+            claims.Add(new Claim("AvatarUrl", user.AvatarUrl));
+        }
+
         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
         var principal = new ClaimsPrincipal(identity);
 
@@ -69,36 +79,34 @@ public class AuthenticationController : Controller
     [HttpGet]
     public IActionResult Register()
     {
-        return View();
+        return View(new RegisterViewModel());
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Register(string fullname, string email, string password, string confirmPassword)
+    public async Task<IActionResult> Register(RegisterViewModel model)
     {
         if (!ModelState.IsValid)
         {
-            return View();
+            return View(model);
         }
 
-        if (!string.Equals(password, confirmPassword, StringComparison.Ordinal))
-        {
-            ModelState.AddModelError(string.Empty, "Mật khẩu xác nhận không khớp.");
-            return View();
-        }
+        var fullname = ValidationRules.NormalizeSpaces(model.Fullname);
+        var email = model.Email.Trim();
+        var password = model.Password;
 
         var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         if (existingUser != null)
         {
-            ModelState.AddModelError(string.Empty, "Email đã được sử dụng.");
-            return View();
+            ModelState.AddModelError(nameof(RegisterViewModel.Email), "Email is already in use.");
+            return View(model);
         }
 
         var userRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "User");
         if (userRole == null)
         {
-            ModelState.AddModelError(string.Empty, "Không tìm thấy role mặc định 'User'.");
-            return View();
+            ModelState.AddModelError(string.Empty, "Default role 'User' not found.");
+            return View(model);
         }
 
         var user = new User
@@ -106,21 +114,33 @@ public class AuthenticationController : Controller
             Username = fullname,
             Email = email,
             PasswordHash = password,
-            RoleId = userRole.RoleId
+            RoleId = userRole.RoleId,
+            Status = AccountStatus.Offline
         };
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        TempData["Success"] = "Đăng ký thành công! Vui lòng đăng nhập.";
+        TempData["Success"] = "Registration successful! Please log in.";
         return RedirectToAction("Login");
     }
 
     [HttpGet]
     public async Task<IActionResult> Logout()
     {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                user.Status = AccountStatus.Offline;
+                await _context.SaveChangesAsync();
+            }
+        }
+
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        TempData["Success"] = "Đã đăng xuất.";
+        TempData["Success"] = "Logged out successfully.";
         return RedirectToAction("Login");
     }
 
@@ -136,7 +156,7 @@ public class AuthenticationController : Controller
     {
         if (string.IsNullOrWhiteSpace(email))
         {
-            ModelState.AddModelError(string.Empty, "Vui lòng nhập email.");
+            ModelState.AddModelError(string.Empty, "Please enter your email.");
             return View();
         }
 
@@ -148,23 +168,24 @@ public class AuthenticationController : Controller
             user.ResetTokenExpiry = DateTime.UtcNow.AddMinutes(15);
             await _context.SaveChangesAsync();
 
-            var link = $"{Request.Scheme}://{Request.Host}{Url.Action("ResetPassword", "Authentication", new { token })}";
-            var subject = "Đặt lại mật khẩu - ComicVerse";
-            var body = $@"<p>Bạn đã yêu cầu đặt lại mật khẩu.</p>
-<p>Bấm vào link sau để đặt lại mật khẩu:</p>
-<p><a href=""{link}"">Đặt lại mật khẩu</a></p>
-<p>Link hết hạn sau 15 phút. Nếu bạn không yêu cầu, hãy bỏ qua email này.</p>";
+            var link =
+                $"{Request.Scheme}://{Request.Host}{Url.Action("ResetPassword", "Authentication", new { token })}";
+            var subject = "Reset Your Password - ComicVerse";
+            var body = $@"<p>You requested to reset your password.</p>
+<p>Click the link below to reset your password:</p>
+<p><a href=""{link}"">Reset Password</a></p>
+<p>This link will expire in 15 minutes. If you did not request this, please ignore this email.</p>";
+
             try
             {
                 await _emailSender.SendEmailAsync(user.Email, subject, body);
             }
             catch
             {
-                // Don't reveal failure; user still sees same success message
             }
         }
 
-        TempData["Success"] = "Nếu email tồn tại, vui lòng kiểm tra hộp thư (và thư mục spam) để đặt lại mật khẩu.";
+        TempData["Success"] = "If the email exists, please check your inbox (and spam folder) to reset your password.";
         return RedirectToAction("Login");
     }
 
@@ -173,15 +194,18 @@ public class AuthenticationController : Controller
     {
         if (string.IsNullOrEmpty(token))
         {
-            TempData["Error"] = "Link không hợp lệ.";
+            TempData["Error"] = "Invalid link.";
             return RedirectToAction("ForgotPassword");
         }
 
         var user = await _context.Users.FirstOrDefaultAsync(u =>
-            u.ResetPasswordToken == token && u.ResetTokenExpiry.HasValue && u.ResetTokenExpiry > DateTime.UtcNow);
+            u.ResetPasswordToken == token &&
+            u.ResetTokenExpiry.HasValue &&
+            u.ResetTokenExpiry > DateTime.UtcNow);
+
         if (user == null)
         {
-            TempData["Error"] = "Link không hợp lệ hoặc đã hết hạn.";
+            TempData["Error"] = "Invalid or expired link.";
             return RedirectToAction("ForgotPassword");
         }
 
@@ -191,35 +215,38 @@ public class AuthenticationController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ResetPassword(string? token, string password, string confirmPassword)
+    public async Task<IActionResult> ResetPassword(string? token, ResetPasswordViewModel model)
     {
         if (string.IsNullOrEmpty(token))
         {
-            TempData["Error"] = "Link không hợp lệ.";
+            TempData["Error"] = "Invalid link.";
             return RedirectToAction("ForgotPassword");
         }
 
         var user = await _context.Users.FirstOrDefaultAsync(u =>
-            u.ResetPasswordToken == token && u.ResetTokenExpiry.HasValue && u.ResetTokenExpiry > DateTime.UtcNow);
+            u.ResetPasswordToken == token &&
+            u.ResetTokenExpiry.HasValue &&
+            u.ResetTokenExpiry > DateTime.UtcNow);
+
         if (user == null)
         {
-            TempData["Error"] = "Link không hợp lệ hoặc đã hết hạn.";
+            TempData["Error"] = "Invalid or expired link.";
             return RedirectToAction("ForgotPassword");
         }
 
-        if (!string.Equals(password, confirmPassword, StringComparison.Ordinal))
+        if (!ModelState.IsValid)
         {
-            ModelState.AddModelError(string.Empty, "Mật khẩu xác nhận không khớp.");
             ViewBag.Token = token;
-            return View();
+            return View(model);
         }
 
-        user.PasswordHash = password;
+        user.PasswordHash = model.Password;
         user.ResetPasswordToken = null;
         user.ResetTokenExpiry = null;
+
         await _context.SaveChangesAsync();
 
-        TempData["Success"] = "Đặt lại mật khẩu thành công. Vui lòng đăng nhập.";
+        TempData["Success"] = "Password reset successful. Please log in.";
         return RedirectToAction("Login");
     }
 }

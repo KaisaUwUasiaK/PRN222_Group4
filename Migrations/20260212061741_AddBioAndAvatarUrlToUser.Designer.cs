@@ -12,8 +12,8 @@ using Group4_ReadingComicWeb.Models;
 namespace Group4_ReadingComicWeb.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260212013631_AddResetPasswordTokenToUser")]
-    partial class AddResetPasswordTokenToUser
+    [Migration("20260212061741_AddBioAndAvatarUrlToUser")]
+    partial class AddBioAndAvatarUrlToUser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -50,6 +50,12 @@ namespace Group4_ReadingComicWeb.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
 
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Bio")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -65,6 +71,9 @@ namespace Group4_ReadingComicWeb.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<string>("Username")

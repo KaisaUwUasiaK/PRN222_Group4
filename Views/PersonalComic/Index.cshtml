@@ -66,6 +66,9 @@
                         <div class="text-muted" style="margin-top: auto; font-size: 0.85rem; margin-bottom: 1rem;">
                             <span style="margin-right: 15px;"><i class="ph-fill ph-calendar-blank"></i> @item.CreatedAt.ToString("dd/MM/yyyy")</span>
                             <span><i class="ph-fill ph-files"></i> @(item.Chapters?.Count ?? 0) Chapter</span>
+                            <span style="color: var(--color-primary); font-weight: 600; background: rgba(99, 102, 241, 0.1); padding: 2px 8px; border-radius: 4px;">
+                                <i class="ph-fill ph-eye"></i> @item.ViewCount.ToString("N0")
+                            </span>
                         </div>
 
                         <div class="flex gap-2">
