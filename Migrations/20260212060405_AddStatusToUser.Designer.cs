@@ -12,8 +12,8 @@ using Group4_ReadingComicWeb.Models;
 namespace Group4_ReadingComicWeb.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260212013631_AddResetPasswordTokenToUser")]
-    partial class AddResetPasswordTokenToUser
+    [Migration("20260212060405_AddStatusToUser")]
+    partial class AddStatusToUser
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -65,6 +65,9 @@ namespace Group4_ReadingComicWeb.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<string>("Username")

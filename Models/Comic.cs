@@ -1,5 +1,5 @@
 ﻿using Group4_ReadingComicWeb.Models.Enum;
-using PRN222_Group4.Models;
+using Group4_ReadingComicWeb.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -20,6 +20,7 @@ namespace Group4_ReadingComicWeb.Models
 
         public string CoverImage { get; set; }
 
+        public int ViewCount { get; set; }
         public int AuthorId { get; set; } // FK tới User
 
         [Required]
@@ -28,7 +29,9 @@ namespace Group4_ReadingComicWeb.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-      
+        [ForeignKey("AuthorId")]
+        public virtual User Author { get; set; }
+
         public virtual ICollection<Chapter> Chapters { get; set; }
 
         public virtual ICollection<ComicTag> ComicTags { get; set; }

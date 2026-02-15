@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PRN222_Group4.Models;
 using System.Security.Claims;
 
 namespace Group4_ReadingComicWeb.Controllers
