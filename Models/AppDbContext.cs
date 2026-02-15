@@ -10,8 +10,8 @@ namespace Group4_ReadingComicWeb.Models
         public DbSet<User> Users => Set<User>();
         public DbSet<Role> Roles => Set<Role>();
 
-        public DbSet<Comic> Comics => Set<Comic>();
-        public DbSet<Chapter> Chapters => Set<Chapter>();
+        //public DbSet<Comic> Comics => Set<Comic>();
+        //public DbSet<Chapter> Chapters => Set<Chapter>();
         public DbSet<Log> Logs => Set<Log>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -26,19 +26,19 @@ namespace Group4_ReadingComicWeb.Models
                 .HasForeignKey(u => u.RoleId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Comic -> User (Author)
-            modelBuilder.Entity<Comic>()
-                .HasOne(c => c.Author)
-                .WithMany(u => u.Comics)
-                .HasForeignKey(c => c.AuthorId)
-                .OnDelete(DeleteBehavior.Restrict);
+            //// Comic -> User (Author)
+            //modelBuilder.Entity<Comic>()
+            //    .HasOne(c => c.Author)
+            //    .WithMany(u => u.Comics)
+            //    .HasForeignKey(c => c.AuthorId)
+            //    .OnDelete(DeleteBehavior.Restrict);
 
-            // Chapter -> Comic
-            modelBuilder.Entity<Chapter>()
-                .HasOne(ch => ch.Comic)
-                .WithMany(c => c.Chapters)
-                .HasForeignKey(ch => ch.ComicId)
-                .OnDelete(DeleteBehavior.Cascade);
+            //// Chapter -> Comic
+            //modelBuilder.Entity<Chapter>()
+            //    .HasOne(ch => ch.Comic)
+            //    .WithMany(c => c.Chapters)
+            //    .HasForeignKey(ch => ch.ComicId)
+            //    .OnDelete(DeleteBehavior.Cascade);
 
             // Log -> User
             modelBuilder.Entity<Log>()
@@ -50,8 +50,8 @@ namespace Group4_ReadingComicWeb.Models
             // Table
             modelBuilder.Entity<Role>().ToTable("Role");
             modelBuilder.Entity<User>().ToTable("Users");
-            modelBuilder.Entity<Comic>().ToTable("Comic");
-            modelBuilder.Entity<Chapter>().ToTable("Chapter");
+            //modelBuilder.Entity<Comic>().ToTable("Comic");
+            //modelBuilder.Entity<Chapter>().ToTable("Chapter");
             modelBuilder.Entity<Log>().ToTable("Log");
 
             // build role

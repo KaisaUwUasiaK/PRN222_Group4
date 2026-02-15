@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Group4_ReadingComicWeb.Controllers
 {
-    // [Authorize(Roles = "Admin")] // Uncomment khi deploy
+    // [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly AppDbContext _context;
@@ -23,7 +23,6 @@ namespace Group4_ReadingComicWeb.Controllers
             _context = context;
         }
 
-        // ===== DEV LOGIN =====
         [AllowAnonymous]
         public async Task<IActionResult> DevLogin()
         {
@@ -45,42 +44,33 @@ namespace Group4_ReadingComicWeb.Controllers
             return RedirectToAction("Dashboard");
         }
 
-        // ===== DASHBOARD =====
         public async Task<IActionResult> Dashboard()
         {
-            var viewModel = new DashboardViewModel();
-
-            // Comics
-            try
+            var viewModel = new DashboardViewModel
             {
-                viewModel.TotalComics = await _context.Comics.CountAsync();
-                viewModel.TotalViews = await _context.Comics.SumAsync(c => (long)c.ViewCount);
-            }
-            catch
-            {
-                viewModel.TotalComics = 0;
-                viewModel.TotalViews = 0;
-            }
+                TotalComics = 0,
+                TotalViews = 0,
 
-            // Users
-            viewModel.TotalUsers = await _context.Users
-                .Where(u => u.RoleId == 3)
-                .CountAsync();
+                // user
+                TotalUsers = await _context.Users
+                    .Where(u => u.RoleId == 3)
+                    .CountAsync(),
 
-            // Moderators (DÙNG Status)
-            viewModel.TotalModerators = await _context.Users
-                .Where(u => u.RoleId == 2)
-                .CountAsync();
+                // mod
+                TotalModerators = await _context.Users
+                    .Where(u => u.RoleId == 2)
+                    .CountAsync(),
 
-            viewModel.ActiveModerators = await _context.Users
-                .Where(u => u.RoleId == 2 && u.Status != AccountStatus.Banned)
-                .CountAsync();
+                ActiveModerators = await _context.Users
+                    .Where(u => u.RoleId == 2 && u.Status != AccountStatus.Banned)
+                    .CountAsync(),
 
-            viewModel.BannedModerators = await _context.Users
-                .Where(u => u.RoleId == 2 && u.Status == AccountStatus.Banned)
-                .CountAsync();
+                BannedModerators = await _context.Users
+                    .Where(u => u.RoleId == 2 && u.Status == AccountStatus.Banned)
+                    .CountAsync()
+            };
 
-            // Logs
+            // log
             try
             {
                 viewModel.RecentLogs = await _context.Logs
@@ -138,7 +128,6 @@ namespace Group4_ReadingComicWeb.Controllers
             return View(viewModel);
         }
 
-        // ===== BAN MODERATOR =====
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> BanModerator(int userId)
@@ -158,10 +147,8 @@ namespace Group4_ReadingComicWeb.Controllers
                 return RedirectToAction(nameof(ManageMod));
             }
 
-            // Update Status
             moderator.Status = AccountStatus.Banned;
 
-            // Log action
             try
             {
                 var log = new Log
@@ -172,10 +159,7 @@ namespace Group4_ReadingComicWeb.Controllers
                 };
                 _context.Logs.Add(log);
             }
-            catch
-            {
-                // Ignore if Log table not exists
-            }
+            catch { }
 
             await _context.SaveChangesAsync();
 
@@ -183,7 +167,6 @@ namespace Group4_ReadingComicWeb.Controllers
             return RedirectToAction(nameof(ManageMod));
         }
 
-        // ===== UNBAN MODERATOR =====
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UnbanModerator(int userId)
@@ -203,10 +186,8 @@ namespace Group4_ReadingComicWeb.Controllers
                 return RedirectToAction(nameof(ManageMod));
             }
 
-            // Update Status
             moderator.Status = AccountStatus.Offline;
 
-            // Log action
             try
             {
                 var log = new Log
@@ -217,10 +198,7 @@ namespace Group4_ReadingComicWeb.Controllers
                 };
                 _context.Logs.Add(log);
             }
-            catch
-            {
-                // Ignore
-            }
+            catch { }
 
             await _context.SaveChangesAsync();
 
