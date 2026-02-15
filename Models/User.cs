@@ -1,3 +1,5 @@
+using Org.BouncyCastle.Crypto.Macs;
+
 namespace Group4_ReadingComicWeb.Models
 {
     public class User
@@ -18,5 +20,8 @@ namespace Group4_ReadingComicWeb.Models
 
         public string? Bio { get; set; }
         public string? AvatarUrl { get; set; }
+
+        public ICollection<Comic> Comics { get; set; } = new List<Comic>();
+        public ICollection<Log> Logs { get; set; } = new List<Log>();
     }
 }
