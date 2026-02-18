@@ -21,6 +21,11 @@ namespace Group4_ReadingComicWeb.Hubs
             _scopeFactory = scopeFactory;
         }
 
+        /// <summary>
+        /// Fired when a client establishes a SignalR connection.
+        /// Uses a lock to prevent race conditions when the same user opens multiple tabs.
+        /// DB status and admin notification are only triggered on the FIRST connection of a user.
+        /// </summary>
         public override async Task OnConnectedAsync()
         {
             var userId = GetUserId();
@@ -37,11 +42,11 @@ namespace Group4_ReadingComicWeb.Hubs
                     _userConnections[userId.Value].Add(Context.ConnectionId);
                 }
 
-                // Join admin group to receive status updates
+                // Add admin connections to the "admins" group for targeted broadcasts
                 if (Context.User?.IsInRole("Admin") == true)
                     await Groups.AddToGroupAsync(Context.ConnectionId, "admins");
 
-                // Only on first connection: update DB + notify admins
+                // Only update DB and notify admins on the first tab/connection
                 if (isFirstConnection)
                 {
                     await SetUserStatusInDb(userId.Value, AccountStatus.Online);
@@ -52,6 +57,10 @@ namespace Group4_ReadingComicWeb.Hubs
             await base.OnConnectedAsync();
         }
 
+        /// <summary>
+        /// Fired when a client disconnects from SignalR.
+        /// DB status is only set to Offline when ALL connections (tabs) of the user are closed.
+        /// </summary>
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             var userId = GetUserId();
@@ -71,7 +80,7 @@ namespace Group4_ReadingComicWeb.Hubs
                     }
                 }
 
-                // Only when ALL tabs are closed: update DB + notify admins
+                // Only update DB and notify admins when the last tab is closed
                 if (isLastConnection)
                 {
                     await SetUserStatusInDb(userId.Value, AccountStatus.Offline);
@@ -82,6 +91,11 @@ namespace Group4_ReadingComicWeb.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
+        /// <summary>
+        /// Updates the user's status in the database.
+        /// Skips the update if the user is Banned to prevent overriding the ban status.
+        /// Uses a scoped DbContext since Hub instances are transient.
+        /// </summary>
         private async Task SetUserStatusInDb(int userId, AccountStatus status)
         {
             using var scope = _scopeFactory.CreateScope();
@@ -94,6 +108,10 @@ namespace Group4_ReadingComicWeb.Hubs
             }
         }
 
+        /// <summary>
+        /// Extracts the authenticated user's ID from the JWT/cookie claims.
+        /// Returns null if the claim is missing or cannot be parsed.
+        /// </summary>
         private int? GetUserId()
         {
             var claim = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);

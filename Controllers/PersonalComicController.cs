@@ -17,15 +17,15 @@ namespace Group4_ReadingComicWeb.Controllers
             _context = context;
             _environment = environment;
         }
+        /// <summary>
+        /// Extracts the current authenticated user's ID from cookie claims.
+        /// Returns 0 if the claim is missing (should not happen for [Authorize] routes).
+        /// </summary>
         private int GetCurrentUserId()
         {
             var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
-
             if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
-            {
                 return userId;
-            }
-
             return 0;
         }
 
@@ -66,14 +66,13 @@ namespace Group4_ReadingComicWeb.Controllers
                 ModelState.AddModelError("coverImage", "Please choose cover image!");
             }
 
-            // 3. Kiểm tra lại ModelState (Lúc này nếu thiếu ảnh, IsValid sẽ là false)
             if (ModelState.IsValid)
             {
                 comic.AuthorId = GetCurrentUserId();
                 comic.CreatedAt = DateTime.Now;
                 comic.Status = "Pending";
 
-                // Logic lưu ảnh (Chắc chắn chạy được vì đã check null ở trên)
+                // Save cover image with a unique GUID filename to avoid collisions
                 var fileName = Guid.NewGuid().ToString() + Path.GetExtension(coverImage!.FileName);
                 var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "covers");
 
@@ -89,7 +88,7 @@ namespace Group4_ReadingComicWeb.Controllers
                 _context.Comics.Add(comic);
                 await _context.SaveChangesAsync();
 
-                // Lưu Tags...
+                // Save selected tags as ComicTag join records
                 if (selectedTags != null)
                 {
                     foreach (var tagId in selectedTags)
@@ -118,6 +117,10 @@ namespace Group4_ReadingComicWeb.Controllers
             return View(comic);
         }
 
+        /// <summary>
+        /// Creates a new chapter for a comic. Saves uploaded page images to disk,
+        /// sorted by filename to preserve page order. Folder structure: /uploads/comic-{id}/chap-{n}/
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> CreateChapter(int comicId, int chapterNumber, string title, List<IFormFile> pages)
         {
@@ -252,6 +255,10 @@ namespace Group4_ReadingComicWeb.Controllers
         }
 
 
+        /// <summary>
+        /// Soft-deletes a comic if it is in Pending status (sets to "Canceled").
+        /// Hard-deletes otherwise: removes cover image file, chapter folder, and DB record.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -286,10 +293,11 @@ namespace Group4_ReadingComicWeb.Controllers
                 }
 
               
+                // Delete all chapter image folders for this comic
                 var comicFolderPath = Path.Combine(_environment.WebRootPath, "uploads", $"comic-{id}");
                 if (Directory.Exists(comicFolderPath))
                 {
-                    Directory.Delete(comicFolderPath, true); // true = xóa đệ quy cả file bên trong
+                    Directory.Delete(comicFolderPath, recursive: true);
                 }
 
                 _context.Comics.Remove(comic);
@@ -407,15 +415,15 @@ namespace Group4_ReadingComicWeb.Controllers
 
             if (chapter == null) return NotFound();
 
-            int comicId = chapter.ComicId; // Lưu lại ID để redirect
+            int comicId = chapter.ComicId; // Store before removal for redirect
 
-            // 1. Xóa Folder ảnh trên server
+            // Delete the chapter's image folder from disk (recursive)
             if (!string.IsNullOrEmpty(chapter.Path))
             {
                 string physicalPath = Path.Combine(_environment.WebRootPath, chapter.Path.TrimStart('/'));
                 if (Directory.Exists(physicalPath))
                 {
-                    Directory.Delete(physicalPath, true); // true = Xóa cả file bên trong
+                    Directory.Delete(physicalPath, recursive: true);
                 }
             }
 

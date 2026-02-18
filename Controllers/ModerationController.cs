@@ -52,7 +52,10 @@ namespace Group4_ReadingComicWeb.Controllers
             return View(moderation);
         }
 
-        // POST: Moderation/Approve/5
+        /// <summary>
+        /// Approves a pending comic moderation request.
+        /// Extracts the moderator's ID from claims and delegates to ModerationService.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Approve(int id)
@@ -69,7 +72,10 @@ namespace Group4_ReadingComicWeb.Controllers
             return RedirectToAction("Pending");
         }
 
-        // POST: Moderation/Reject/5
+        /// <summary>
+        /// Rejects a pending comic moderation request with a mandatory reason.
+        /// If reason is empty, re-renders the Review page with a validation error.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reject(int id, string reason)
@@ -96,7 +102,10 @@ namespace Group4_ReadingComicWeb.Controllers
             return RedirectToAction("Pending");
         }
 
-        // POST: Moderation/Hide/5
+        /// <summary>
+        /// Hides a previously approved comic (e.g., due to a policy violation).
+        /// Requires a mandatory reason. Re-renders Review page if reason is missing.
+        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Hide(int id, string reason)

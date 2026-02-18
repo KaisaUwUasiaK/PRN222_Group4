@@ -40,6 +40,11 @@ public class AuthenticationController : Controller
         return View();
     }
 
+    /// <summary>
+    /// Handles user login. Validates credentials, checks ban status,
+    /// builds cookie claims, and redirects based on role:
+    /// Admin → Admin Dashboard, Moderator → Moderation Dashboard, User → Home.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(string email, string password, bool rememberMe)
@@ -53,13 +58,14 @@ public class AuthenticationController : Controller
             .Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.Email == email);
 
+        // Verify credentials — use BCrypt to compare hashed password
         if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
         {
             ModelState.AddModelError(string.Empty, "Invalid email or password.");
             return View();
         }
 
-        // Check if account is banned
+        // Prevent banned accounts from logging in
         if (user.Status == AccountStatus.Banned)
         {
             return RedirectToAction("AccountLocked");
@@ -68,6 +74,7 @@ public class AuthenticationController : Controller
         user.Status = AccountStatus.Online;
         await _context.SaveChangesAsync();
 
+        // Build claims for the authentication cookie
         var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
@@ -76,6 +83,7 @@ public class AuthenticationController : Controller
             new Claim(ClaimTypes.Role, user.Role.RoleName)
         };
 
+        // Include avatar URL in claims so layouts can display it without a DB query
         if (!string.IsNullOrEmpty(user.AvatarUrl))
         {
             claims.Add(new Claim("AvatarUrl", user.AvatarUrl));
@@ -92,17 +100,13 @@ public class AuthenticationController : Controller
 
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
 
-        // ✅ THÊM: Kiểm tra role và redirect đúng trang
+        // Redirect to role-specific landing page
+        if (user.Role.RoleName == "Admin")
+            return RedirectToAction("Dashboard", "Admin");
+
         if (user.Role.RoleName == "Moderator")
-        {
             return RedirectToAction("Dashboard", "Moderation");
-        }
-        else if (user.Role.RoleName == "Admin")
-        {
-            return RedirectToAction("Dashboard", "Admin");  // Nếu có Admin page
-        }
-        
-        // Mặc định: User thường vào Home
+
         return RedirectToAction("Index", "Home");
     }
 
@@ -180,6 +184,11 @@ public class AuthenticationController : Controller
         return View();
     }
 
+    /// <summary>
+    /// Generates a password reset token and emails a reset link to the user.
+    /// Always returns a success message regardless of whether the email exists
+    /// to prevent user enumeration attacks.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ForgotPassword(string email)
@@ -193,6 +202,7 @@ public class AuthenticationController : Controller
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email.Trim());
         if (user != null)
         {
+            // Generate a secure one-time token valid for 15 minutes
             var token = Guid.NewGuid().ToString("N");
             user.ResetPasswordToken = token;
             user.ResetTokenExpiry = DateTime.UtcNow.AddMinutes(15);
