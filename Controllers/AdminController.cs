@@ -1,219 +1,154 @@
-﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Group4_ReadingComicWeb.Hubs;
 using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
-namespace Group4_ReadingComicWeb.Controllers
+namespace Group4_ReadingComicWeb.Controllers;
+
+[Authorize(Roles = "Admin")]
+public class AdminController : Controller
 {
-    // [Authorize(Roles = "Admin")]
-    public class AdminController : Controller
+    private readonly AppDbContext _context;
+    private readonly IHubContext<UserStatusHub> _hubContext;
+
+    public AdminController(AppDbContext context, IHubContext<UserStatusHub> hubContext)
     {
-        private readonly AppDbContext _context;
+        _context = context;
+        _hubContext = hubContext;
+    }
 
-        public AdminController(AppDbContext context)
+    // GET: /Admin/Dashboard
+    public IActionResult Dashboard()
+    {
+        return View();
+    }
+
+    // GET: /Admin/Users — list all Moderators only
+    public async Task<IActionResult> Users()
+    {
+        // Find the Moderator role
+        var ModeratorRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Moderator");
+        if (ModeratorRole == null)
         {
-            _context = context;
+            TempData["Error"] = "Moderator role not found in database.";
+            return View(new List<User>());
         }
 
-        [AllowAnonymous]
-        public async Task<IActionResult> DevLogin()
+        var Moderators = await _context.Users
+            .Include(u => u.Role)
+            .Where(u => u.RoleId == ModeratorRole.RoleId)
+            .ToListAsync();
+
+        ViewBag.CreateModViewModel = new CreateModViewModel();
+        return View(Moderators);
+    }
+
+    // POST: /Admin/CreateMod — create a new Moderator account
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateMod(CreateModViewModel model)
+    {
+        if (!ModelState.IsValid)
         {
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, "1"),
-                new Claim(ClaimTypes.Name, "DevAdmin"),
-                new Claim(ClaimTypes.Role, "Admin")
-            };
-
-            var claimsIdentity = new ClaimsIdentity(
-                claims,
-                CookieAuthenticationDefaults.AuthenticationScheme);
-
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity));
-
-            return RedirectToAction("Dashboard");
+            var modRole2 = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Moderator");
+            var mods2 = modRole2 != null
+                ? await _context.Users.Include(u => u.Role).Where(u => u.RoleId == modRole2.RoleId).ToListAsync()
+                : new List<User>();
+            ViewBag.CreateModViewModel = model;
+            return View("Users", mods2);
         }
 
-        public async Task<IActionResult> Dashboard()
+        // Check duplicate username
+        if (await _context.Users.AnyAsync(u => u.Username == model.Username))
         {
-            var viewModel = new DashboardViewModel
-            {
-                TotalComics = 0,
-                TotalViews = 0,
-
-                // user
-                TotalUsers = await _context.Users
-                    .Where(u => u.RoleId == 3)
-                    .CountAsync(),
-
-                // mod
-                TotalModerators = await _context.Users
-                    .Where(u => u.RoleId == 2)
-                    .CountAsync(),
-
-                ActiveModerators = await _context.Users
-                    .Where(u => u.RoleId == 2 && u.Status != AccountStatus.Banned)
-                    .CountAsync(),
-
-                BannedModerators = await _context.Users
-                    .Where(u => u.RoleId == 2 && u.Status == AccountStatus.Banned)
-                    .CountAsync()
-            };
-
-            // log
-            try
-            {
-                viewModel.RecentLogs = await _context.Logs
-                    .Include(l => l.User)
-                    .OrderByDescending(l => l.CreatedAt)
-                    .Take(10)
-                    .Select(l => new LogViewModel
-                    {
-                        LogId = l.LogId,
-                        AdminUsername = l.User.Username,
-                        Action = l.Action,
-                        CreatedAt = l.CreatedAt
-                    })
-                    .ToListAsync();
-            }
-            catch
-            {
-                viewModel.RecentLogs = new List<LogViewModel>();
-            }
-
-            return View(viewModel);
+            ModelState.AddModelError(nameof(model.Username), "Username is already taken.");
+            var modRole2 = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Moderator");
+            var mods2 = modRole2 != null
+                ? await _context.Users.Include(u => u.Role).Where(u => u.RoleId == modRole2.RoleId).ToListAsync()
+                : new List<User>();
+            ViewBag.CreateModViewModel = model;
+            return View("Users", mods2);
         }
 
-        public async Task<IActionResult> ManageMod()
+        // Check duplicate email
+        if (await _context.Users.AnyAsync(u => u.Email == model.Email))
         {
-            var viewModel = new ManageModViewModel
-            {
-                TotalModerators = await _context.Users
-                    .Where(u => u.RoleId == 2)
-                    .CountAsync(),
-
-                ActiveModerators = await _context.Users
-                    .Where(u => u.RoleId == 2 && u.Status != AccountStatus.Banned)
-                    .CountAsync(),
-
-                BannedModerators = await _context.Users
-                    .Where(u => u.RoleId == 2 && u.Status == AccountStatus.Banned)
-                    .CountAsync(),
-
-                Moderators = await _context.Users
-                    .Where(u => u.RoleId == 2)
-                    .OrderByDescending(u => u.UserId)
-                    .Select(u => new ModeratorDetailViewModel
-                    {
-                        UserId = u.UserId,
-                        Username = u.Username,
-                        Email = u.Email,
-                        PasswordHash = u.PasswordHash,
-                        CreatedAt = DateTime.Now,
-                        Status = u.Status
-                    })
-                    .ToListAsync()
-            };
-
-            return View(viewModel);
+            ModelState.AddModelError(nameof(model.Email), "Email is already registered.");
+            var modRole2 = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Moderator");
+            var mods2 = modRole2 != null
+                ? await _context.Users.Include(u => u.Role).Where(u => u.RoleId == modRole2.RoleId).ToListAsync()
+                : new List<User>();
+            ViewBag.CreateModViewModel = model;
+            return View("Users", mods2);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> BanModerator(int userId)
+        var ModeratorRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Moderator");
+        if (ModeratorRole == null)
         {
-            var moderator = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserId == userId && u.RoleId == 2);
-
-            if (moderator == null)
-            {
-                TempData["Error"] = "Moderator not found.";
-                return RedirectToAction(nameof(ManageMod));
-            }
-
-            if (moderator.Status == AccountStatus.Banned)
-            {
-                TempData["Error"] = $"{moderator.Username} is already banned.";
-                return RedirectToAction(nameof(ManageMod));
-            }
-
-            moderator.Status = AccountStatus.Banned;
-
-            try
-            {
-                var log = new Log
-                {
-                    UserId = GetCurrentUserId(),
-                    Action = $"Banned moderator '{moderator.Username}' (ID: {moderator.UserId})",
-                    CreatedAt = DateTime.Now
-                };
-                _context.Logs.Add(log);
-            }
-            catch { }
-
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"Successfully banned {moderator.Username}!";
-            return RedirectToAction(nameof(ManageMod));
+            TempData["Error"] = "Moderator role not found in database.";
+            return RedirectToAction(nameof(Users));
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UnbanModerator(int userId)
+        var newModerator = new User
         {
-            var moderator = await _context.Users
-                .FirstOrDefaultAsync(u => u.UserId == userId && u.RoleId == 2);
+            Username = model.Username.Trim(),
+            Email = model.Email.Trim().ToLower(),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
+            RoleId = ModeratorRole.RoleId,
+            Status = AccountStatus.Offline
+        };
 
-            if (moderator == null)
-            {
-                TempData["Error"] = "Moderator not found.";
-                return RedirectToAction(nameof(ManageMod));
-            }
+        _context.Users.Add(newModerator);
+        await _context.SaveChangesAsync();
 
-            if (moderator.Status != AccountStatus.Banned)
-            {
-                TempData["Error"] = $"{moderator.Username} is not banned.";
-                return RedirectToAction(nameof(ManageMod));
-            }
+        TempData["Success"] = $"Moderator account '{newModerator.Username}' created successfully.";
+        return RedirectToAction(nameof(Users));
+    }
 
-            moderator.Status = AccountStatus.Offline;
-
-            try
-            {
-                var log = new Log
-                {
-                    UserId = GetCurrentUserId(),
-                    Action = $"Unbanned moderator '{moderator.Username}' (ID: {moderator.UserId})",
-                    CreatedAt = DateTime.Now
-                };
-                _context.Logs.Add(log);
-            }
-            catch { }
-
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = $"Successfully unbanned {moderator.Username}!";
-            return RedirectToAction(nameof(ManageMod));
+    // POST: /Admin/BanModerator — ban a Moderator account
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> BanMod(int userId)
+    {
+        var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == userId);
+        if (user == null || user.Role.RoleName != "Moderator")
+        {
+            TempData["Error"] = "Moderator not found.";
+            return RedirectToAction(nameof(Users));
         }
 
-        private int GetCurrentUserId()
+        user.Status = AccountStatus.Banned;
+        await _context.SaveChangesAsync();
+
+        // Notify admins panel to update status badge
+        await _hubContext.Clients.Group("admins").SendAsync("UserBanned", userId);
+
+        TempData["Success"] = $"Moderator '{user.Username}' has been banned.";
+        return RedirectToAction(nameof(Users));
+    }
+
+    // POST: /Admin/UnbanModerator — unban a Moderator account
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UnbanMod(int userId)
+    {
+        var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == userId);
+        if (user == null || user.Role.RoleName != "Moderator")
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
-            {
-                return userId;
-            }
-            return 1;
+            TempData["Error"] = "Moderator not found.";
+            return RedirectToAction(nameof(Users));
         }
+
+        user.Status = AccountStatus.Offline;
+        await _context.SaveChangesAsync();
+
+        // Notify admins panel
+        await _hubContext.Clients.Group("admins").SendAsync("UserOffline", userId);
+
+        TempData["Success"] = $"Moderator '{user.Username}' has been unbanned.";
+        return RedirectToAction(nameof(Users));
     }
 }

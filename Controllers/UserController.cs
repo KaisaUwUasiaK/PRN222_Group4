@@ -117,11 +117,7 @@ public class UserController : Controller
         //     return View(model);
         // }
 
-        // Handle password change if provided (validated in view model)
-        if (!string.IsNullOrWhiteSpace(model.NewPassword))
-        {
-            user.PasswordHash = model.NewPassword;
-        }
+        // Password change is now handled on a separate page (/User/ChangePassword)
 
         user.Username = username;
         user.Bio = bio;
@@ -135,10 +131,21 @@ public class UserController : Controller
         return RedirectToAction("Profile");
     }
 
+    [HttpGet]
+    public IActionResult ChangePassword()
+    {
+        return View(new ChangePasswordViewModel());
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ChangePassword(string currentPassword, string newPassword, string confirmPassword)
+    public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
     {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
         {
@@ -152,41 +159,15 @@ public class UserController : Controller
             return RedirectToAction("Profile");
         }
 
-        // If password fields are empty, skip password change
-        if (string.IsNullOrWhiteSpace(newPassword) && string.IsNullOrWhiteSpace(confirmPassword))
+        // Verify current password using BCrypt
+        if (!BCrypt.Net.BCrypt.Verify(model.CurrentPassword, user.PasswordHash))
         {
-            TempData["Success"] = "Profile updated successfully.";
-            return RedirectToAction("Profile");
+            ModelState.AddModelError(nameof(model.CurrentPassword), "Current password is incorrect.");
+            return View(model);
         }
 
-        // Validate password fields
-        if (string.IsNullOrWhiteSpace(newPassword))
-        {
-            ModelState.AddModelError("NewPassword", "New password is required.");
-            return View("Profile", user);
-        }
-
-        if (newPassword != confirmPassword)
-        {
-            ModelState.AddModelError("ConfirmPassword", "Passwords do not match.");
-            return View("Profile", user);
-        }
-
-        if (newPassword.Length < 6)
-        {
-            ModelState.AddModelError("NewPassword", "Password must be at least 6 characters.");
-            return View("Profile", user);
-        }
-
-        // Verify current password (if provided)
-        if (!string.IsNullOrWhiteSpace(currentPassword) && user.PasswordHash != currentPassword)
-        {
-            ModelState.AddModelError("CurrentPassword", "Current password is incorrect.");
-            return View("Profile", user);
-        }
-
-        // Update password
-        user.PasswordHash = newPassword;
+        // Hash and save new password
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
         await _context.SaveChangesAsync();
 
         TempData["Success"] = "Password changed successfully.";

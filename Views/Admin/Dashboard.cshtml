@@ -1,138 +1,116 @@
-﻿@model Group4_ReadingComicWeb.ViewModels.DashboardViewModel
 @{
-    ViewData["Title"] = "Admin Dashboard";
-    Layout = null;
+    ViewData["Title"] = "Dashboard";
+    ViewData["Breadcrumb"] = "Dashboard";
+    Layout = "_AdminLayout";
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>Dashboard</h1>
+        <p>Welcome back, @User.Identity?.Name. Here's what's happening today.</p>
+    </div>
+</div>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700&display=swap" rel="stylesheet" />
-
-    <link rel="stylesheet" href="~/css/variables.css" />
-    <link rel="stylesheet" href="~/css/style.css" />
-    <link rel="stylesheet" href="~/css/admin.css" />
-</head>
-
-<body>
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <a href="@Url.Action("Dashboard", "Admin")" class="sidebar-logo flex items-center gap-2">
-            <span style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700;">📚 CvAdmin</span>
-        </a>
-
-        <div class="nav-group">
-            <div class="nav-label">Overview</div>
-            <a href="@Url.Action("Dashboard", "Admin")" class="nav-item active">
-                Dashboard
-            </a>
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-purple">
+            <i class="ph ph-books"></i>
         </div>
-
-        <div class="nav-group">
-            <div class="nav-label">Management</div>
-            <a href="@Url.Action("ManageMod", "Admin")" class="nav-item">   
-                Moderators
-            </a>
+        <div class="stat-label">Total Comics</div>
+        <div class="stat-value">1,240</div>
+        <div class="stat-trend up">
+            <i class="ph ph-trend-up"></i> +12 this week
         </div>
+    </div>
 
-        <div class="nav-group" style="margin-top: auto;">
-            <a href="@Url.Action("Logout", "Account")" class="nav-item" style="color: var(--color-danger);">
-                Logout
-            </a>
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-green">
+            <i class="ph ph-users"></i>
         </div>
-    </aside>
-
-    <!-- Main Content -->
-    <main class="admin-main">
-        <div class="flex justify-between items-center" style="margin-bottom: 2rem;">
-            <h1 style="margin-bottom: 0;">Dashboard</h1>
-            <div class="flex items-center gap-4">
-                <span style="font-weight: 600;">@(User.Identity?.Name ?? "Admin")</span>
-            </div>
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value">54,302</div>
+        <div class="stat-trend up">
+            <i class="ph ph-trend-up"></i> +1.2k this week
         </div>
+    </div>
 
-        @if (TempData["Success"] != null)
-        {
-            <div style="margin-bottom: 1.5rem; padding: 12px 16px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; color: #34D399;">
-                @TempData["Success"]
-            </div>
-        }
-
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-            @* <div class="stat-card">
-                <div class="stat-label">Total Comics</div>
-                <div class="stat-value">@Model.TotalComics.ToString("N0")</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-label">Total Views</div>
-                <div class="stat-value">@Model.TotalViews.ToString("N0")</div>
-                <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">All comics</div>
-            </div> *@
-
-            <div class="stat-card">
-                <div class="stat-label">Total Users</div>
-                <div class="stat-value">@Model.TotalUsers.ToString("N0")</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-label">Moderators</div>
-                <div style="display: flex; gap: 16px; margin-top: 8px;">
-                    <div>
-                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-accent);">@Model.ActiveModerators</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">Active</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 1.25rem; font-weight: 700; color: var(--color-danger);">@Model.BannedModerators</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">Banned</div>
-                    </div>
-                </div>
-            </div>
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-blue">
+            <i class="ph ph-eye"></i>
         </div>
-
-        <!-- Recent Logs Table -->
-        <div class="table-container">
-            <div class="table-header">
-                <h3>Recent Admin Actions (Logs)</h3>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Admin</th>
-                        <th>Action</th>
-                        <th>Time</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.RecentLogs.Any())
-                    {
-                        @foreach (var log in Model.RecentLogs)
-                        {
-                            <tr>
-                                <td>@log.LogId</td>
-                                <td style="font-weight: 500;">@log.AdminUsername</td>
-                                <td>@log.Action</td>
-                                <td>@log.CreatedAt.ToString("MMM dd, yyyy HH:mm")</td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="4" style="text-align: center; padding: 2rem;">No logs yet</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <div class="stat-label">Daily Views</div>
+        <div class="stat-value">89.4k</div>
+        <div class="stat-trend down">
+            <i class="ph ph-trend-down"></i> -3% from yesterday
         </div>
-    </main>
-</body>
-</html>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-red">
+            <i class="ph ph-clock-countdown"></i>
+        </div>
+        <div class="stat-label">Pending Uploads</div>
+        <div class="stat-value">8</div>
+        <div class="stat-trend neutral">
+            <i class="ph ph-minus"></i> Needs review
+        </div>
+    </div>
+</div>
+
+<!-- Recent Upload Requests -->
+<div class="data-card">
+    <div class="data-card-header">
+        <h3 class="data-card-title">Recent Upload Requests</h3>
+        <button class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem;">View All</button>
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Comic</th>
+                    <th>Author</th>
+                    <th>Genre</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="font-weight: 600; color: var(--text-primary);">The Return of the Hero</td>
+                    <td>User_123</td>
+                    <td>Action</td>
+                    <td><span class="badge badge-warning"><span class="badge-dot" style="background: #FBBF24;"></span>Pending</span></td>
+                    <td>Feb 18, 2026</td>
+                    <td><button class="action-btn" style="color: var(--color-primary); border-color: rgba(124,58,237,0.3);">Review</button></td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600; color: var(--text-primary);">My Life as a Slime</td>
+                    <td>SlimeLover</td>
+                    <td>Fantasy</td>
+                    <td><span class="badge badge-success"><span class="badge-dot" style="background: #34D399;"></span>Approved</span></td>
+                    <td>Feb 17, 2026</td>
+                    <td><button class="action-btn" style="color: var(--text-muted); border-color: var(--border-color);">Edit</button></td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600; color: var(--text-primary);">Dark Souls: The Comic</td>
+                    <td>FromFan</td>
+                    <td>Horror</td>
+                    <td><span class="badge badge-danger"><span class="badge-dot" style="background: #FB7185;"></span>Rejected</span></td>
+                    <td>Feb 16, 2026</td>
+                    <td><button class="action-btn" style="color: var(--text-muted); border-color: var(--border-color);">Details</button></td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600; color: var(--text-primary);">Cyberpunk 2099</td>
+                    <td>NeonCity</td>
+                    <td>Sci-Fi</td>
+                    <td><span class="badge badge-warning"><span class="badge-dot" style="background: #FBBF24;"></span>Pending</span></td>
+                    <td>Feb 16, 2026</td>
+                    <td><button class="action-btn" style="color: var(--color-primary); border-color: rgba(124,58,237,0.3);">Review</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
