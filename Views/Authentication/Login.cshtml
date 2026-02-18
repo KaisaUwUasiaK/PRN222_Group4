@@ -27,6 +27,33 @@
         .validation-summary-errors {
             display: none;
         }
+
+        /* Password toggle eye button */
+        .input-wrapper {
+            position: relative;
+        }
+        .pwd-toggle {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            padding: 0;
+            font-size: 1.1rem;
+            transition: color 0.2s;
+            z-index: 2;
+        }
+        .pwd-toggle:hover {
+            color: var(--text-primary);
+        }
+        .has-pwd-toggle {
+            padding-right: 42px !important;
+        }
     </style>
 </head>
 <body>
@@ -62,8 +89,12 @@
             <div class="form-group">
                 <label for="password" class="form-label">Password</label>
                 <div class="input-wrapper">
-                    <input type="password" id="password" name="password" class="form-input" placeholder="••••••••" required>
+                    <input type="password" id="password" name="password"
+                           class="form-input has-pwd-toggle" placeholder="••••••••" required>
                     <i class="ph ph-lock-key input-icon"></i>
+                    <button type="button" class="pwd-toggle" id="togglePassword" tabindex="-1" aria-label="Toggle password visibility">
+                        <i class="ph ph-eye" id="togglePasswordIcon"></i>
+                    </button>
                 </div>
             </div>
 
@@ -122,6 +153,15 @@
                 }
             });
         }
+
+        // Password show/hide toggle
+        var pwdInput = document.getElementById('password');
+        var pwdIcon  = document.getElementById('togglePasswordIcon');
+        document.getElementById('togglePassword').addEventListener('click', function () {
+            var isHidden = pwdInput.type === 'password';
+            pwdInput.type = isHidden ? 'text' : 'password';
+            pwdIcon.className = isHidden ? 'ph ph-eye-slash' : 'ph ph-eye';
+        });
     });
 </script>
 

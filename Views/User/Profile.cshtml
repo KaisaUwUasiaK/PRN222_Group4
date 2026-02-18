@@ -142,13 +142,103 @@
             margin-top: 0.25rem;
         }
 
-        .delete-confirm-input {
-            margin-top: 1rem;
-            padding: 8px 12px;
+        /* ── Delete Account Modal ── */
+        .delete-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .delete-modal-overlay.active {
+            display: flex;
+        }
+        .delete-modal-card {
+            background: var(--bg-surface);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+            animation: modal-in 0.2s ease;
+        }
+        @@keyframes modal-in {
+            from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .delete-modal-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: rgba(244, 63, 94, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+        }
+        .delete-modal-title {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+        .delete-modal-desc {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+        .delete-modal-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            display: block;
+        }
+        .delete-modal-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-main);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-sm);
-            background: var(--bg-main);
             color: var(--text-primary);
+            font-size: 0.95rem;
+            font-family: monospace;
+            letter-spacing: 0.05em;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        .delete-modal-input:focus {
+            outline: none;
+            border-color: var(--color-danger);
+            box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.15);
+        }
+        .delete-modal-input.input-error {
+            border-color: var(--color-danger);
+            animation: shake 0.3s ease;
+        }
+        @@keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25%       { transform: translateX(-6px); }
+            75%       { transform: translateX(6px); }
+        }
+        .delete-modal-error {
+            color: var(--color-danger);
+            font-size: 0.8rem;
+            margin-top: 6px;
+            min-height: 18px;
+        }
+        .delete-modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 1.5rem;
         }
     </style>
 }
@@ -197,7 +287,7 @@
 
                 <div style="margin: 2rem 0 1.5rem; padding: 16px 20px; background: rgba(124, 58, 237, 0.06); border: 1px solid rgba(124, 58, 237, 0.2); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between;">
                     <div class="flex items-center gap-3">
-                        <i class="ph ph-shield-check" style="font-size: 2.5rem; color: var(--color-primary);"></i>
+                        <i class="ph ph-shield-check" style="margin-right: 20px; font-size: 2.5rem; color: var(--color-primary);"></i>
                         <div>
                             <div style="font-weight: 600; font-size: 0.95rem;">Password &amp; Security</div>
                             <div class="text-muted" style="font-size: 0.85rem;">Update your password to keep your account secure</div>
@@ -211,15 +301,9 @@
 
                 <div class="flex justify-between items-center"
                      style="margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-                    <div>
-                        <button type="button" class="btn btn-delete" id="deleteAccountBtn">Delete Account</button>
-                        <div id="deleteConfirmSection" style="display: none; margin-top: 1rem;">
-                            <p style="color: var(--color-danger); margin-bottom: 0.5rem;">Type 'DELETE' to confirm:</p>
-                            <input type="text" id="deleteConfirmInput" class="delete-confirm-input" placeholder="Type DELETE">
-                            <button type="button" class="btn btn-delete" id="confirmDeleteBtn" style="margin-left: 0.5rem;">Confirm Delete</button>
-                            <button type="button" class="btn btn-ghost" id="cancelDeleteBtn" style="margin-left: 0.5rem;">Cancel</button>
-                        </div>
-                    </div>
+                    <button type="button" class="btn btn-delete" id="deleteAccountBtn">
+                        <i class="ph ph-trash" style="margin-right: 6px;"></i>Delete Account
+                    </button>
                     <div class="flex gap-4">
                         <a href="@Url.Action("Index", "Home")" class="btn btn-ghost">Cancel</a>
                         <button type="submit" class="btn btn-primary">Save Changes</button>
@@ -227,7 +311,7 @@
                 </div>
             </form>
 
-            <!-- Hidden delete form (separate, not nested) -->
+            <!-- Hidden delete form (separate from profile form) -->
             <form asp-action="DeleteAccount" method="post" id="deleteForm" style="display: none;">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="confirmText" id="deleteConfirmText" />
@@ -235,6 +319,42 @@
         </div>
     </div>
 </main>
+
+<!-- ── Delete Account Modal ── -->
+<div id="deleteModal" class="delete-modal-overlay">
+    <div class="delete-modal-card">
+        <!-- Icon -->
+        <div class="delete-modal-icon">
+            <i class="ph-fill ph-warning" style="font-size: 1.75rem; color: var(--color-danger);"></i>
+        </div>
+
+        <!-- Title & description -->
+        <h2 class="delete-modal-title">Delete Account</h2>
+        <p class="delete-modal-desc">
+            This action is <strong style="color: var(--color-danger);">permanent and irreversible</strong>.
+            All your data, comics, and settings will be deleted.<br><br>
+            To confirm, type <strong style="color: var(--text-primary); font-family: monospace;">DELETE</strong> below.
+        </p>
+
+        <!-- Input -->
+        <label class="delete-modal-label" for="deleteModalInput">Confirmation phrase</label>
+        <input id="deleteModalInput" class="delete-modal-input" type="text"
+               placeholder="Type DELETE here" autocomplete="off" spellcheck="false" />
+        <div id="deleteModalError" class="delete-modal-error"></div>
+
+        <!-- Actions -->
+        <div class="delete-modal-actions">
+            <button type="button" id="deleteModalCancel"
+                    class="btn btn-ghost" style="flex: 1; border: 1px solid var(--border-color);">
+                Cancel
+            </button>
+            <button type="button" id="deleteModalConfirm"
+                    class="btn btn-delete" style="flex: 2; justify-content: center;">
+                <i class="ph ph-trash" style="margin-right: 6px;"></i> Delete My Account
+            </button>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
@@ -298,32 +418,63 @@
             });
         });
 
-        // Delete account confirmation
-        const deleteAccountBtn = document.getElementById('deleteAccountBtn');
-        const deleteConfirmSection = document.getElementById('deleteConfirmSection');
-        const deleteConfirmInput = document.getElementById('deleteConfirmInput');
-        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-        const deleteForm = document.getElementById('deleteForm');
-        const deleteConfirmText = document.getElementById('deleteConfirmText');
+        // ── Delete Account Modal ──
+        const deleteModal    = document.getElementById('deleteModal');
+        const deleteModalInput   = document.getElementById('deleteModalInput');
+        const deleteModalError   = document.getElementById('deleteModalError');
+        const deleteModalConfirm = document.getElementById('deleteModalConfirm');
+        const deleteModalCancel  = document.getElementById('deleteModalCancel');
+        const deleteForm         = document.getElementById('deleteForm');
+        const deleteConfirmText  = document.getElementById('deleteConfirmText');
 
-        deleteAccountBtn.addEventListener('click', function() {
-            deleteConfirmSection.style.display = 'block';
+        // Open modal
+        document.getElementById('deleteAccountBtn').addEventListener('click', function () {
+            deleteModalInput.value = '';
+            deleteModalError.textContent = '';
+            deleteModalInput.classList.remove('input-error');
+            deleteModal.classList.add('active');
+            setTimeout(() => deleteModalInput.focus(), 150);
         });
 
-        cancelDeleteBtn.addEventListener('click', function() {
-            deleteConfirmSection.style.display = 'none';
-            deleteConfirmInput.value = '';
+        // Close modal helpers
+        function closeDeleteModal() {
+            deleteModal.classList.remove('active');
+            deleteModalInput.value = '';
+            deleteModalError.textContent = '';
+            deleteModalInput.classList.remove('input-error');
+        }
+
+        deleteModalCancel.addEventListener('click', closeDeleteModal);
+
+        // Close on overlay click (outside card)
+        deleteModal.addEventListener('click', function (e) {
+            if (e.target === deleteModal) closeDeleteModal();
         });
 
-        confirmDeleteBtn.addEventListener('click', function() {
-            const confirmText = deleteConfirmInput.value;
-            if (confirmText !== 'DELETE') {
-                notyf.error('Please type "DELETE" to confirm account deletion.');
+        // Close on Escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && deleteModal.classList.contains('active')) closeDeleteModal();
+        });
+
+        // Confirm button — validate then submit
+        deleteModalConfirm.addEventListener('click', function () {
+            const val = deleteModalInput.value.trim();
+            if (val !== 'DELETE') {
+                deleteModalError.textContent = 'Please type exactly "DELETE" to confirm.';
+                deleteModalInput.classList.add('input-error');
+                // Remove shake class after animation so it can re-trigger
+                deleteModalInput.addEventListener('animationend', function () {
+                    deleteModalInput.classList.remove('input-error');
+                }, { once: true });
                 return;
             }
-            deleteConfirmText.value = confirmText;
+            deleteConfirmText.value = val;
             deleteForm.submit();
+        });
+
+        // Clear error on input
+        deleteModalInput.addEventListener('input', function () {
+            deleteModalError.textContent = '';
         });
     </script>
 }
