@@ -10,8 +10,8 @@ namespace Group4_ReadingComicWeb.Models
         public int TagId { get; set; }
 
         [StringLength(100)]
-        public string TagName { get; set; }
+        public string TagName { get; set; } = null!;
 
-        public virtual ICollection<ComicTag> ComicTags { get; set; }
+        public virtual ICollection<ComicTag> ComicTags { get; set; } = new List<ComicTag>();
     }
 }

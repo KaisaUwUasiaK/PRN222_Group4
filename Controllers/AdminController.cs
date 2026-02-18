@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Group4_ReadingComicWeb.Hubs;
 using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models.Enum;
 using Group4_ReadingComicWeb.ViewModels;
 
 namespace Group4_ReadingComicWeb.Controllers;

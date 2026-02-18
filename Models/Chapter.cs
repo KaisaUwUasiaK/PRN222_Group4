@@ -18,12 +18,11 @@ namespace Group4_ReadingComicWeb.Models
         public string? Title { get; set; }
 
         [Column(TypeName = "ntext")]
-        public string Path { get; set; }
+        public string Path { get; set; } = null!;
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-        // Navigation Property
         [ForeignKey("ComicId")]
-        public virtual Comic Comic { get; set; }
+        public virtual Comic Comic { get; set; } = null!;
     }
 }

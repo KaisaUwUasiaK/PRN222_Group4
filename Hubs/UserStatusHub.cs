@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models.Enum;
 
 namespace Group4_ReadingComicWeb.Hubs
 {

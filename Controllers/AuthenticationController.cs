@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models.Enum;
 using Group4_ReadingComicWeb.Services;
 using Group4_ReadingComicWeb.Utils;
 using Group4_ReadingComicWeb.ViewModels;

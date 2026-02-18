@@ -13,9 +13,9 @@ namespace Group4_ReadingComicWeb.Models
         public int TagId { get; set; }
 
         [ForeignKey("ComicId")]
-        public virtual Comic Comic { get; set; }
+        public virtual Comic Comic { get; set; } = null!;
 
         [ForeignKey("TagId")]
-        public virtual Tag Tag { get; set; }
+        public virtual Tag Tag { get; set; } = null!;
     }
 }

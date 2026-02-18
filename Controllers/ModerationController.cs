@@ -82,6 +82,7 @@ namespace Group4_ReadingComicWeb.Controllers
             {
                 ModelState.AddModelError(string.Empty, "Reason is required.");
                 var moderation = await _moderationService.GetModerationByIdAsync(id);
+                if (moderation == null) return NotFound();
                 var history = await _moderationService.GetModerationHistoryAsync(moderation.ComicId);
                 ViewBag.ModerationHistory = history;
                 return View("Review", moderation);
@@ -108,6 +109,7 @@ namespace Group4_ReadingComicWeb.Controllers
             {
                 ModelState.AddModelError(string.Empty, "Reason is required.");
                 var moderation = await _moderationService.GetModerationByIdAsync(id);
+                if (moderation == null) return NotFound();
                 var history = await _moderationService.GetModerationHistoryAsync(moderation.ComicId);
                 ViewBag.ModerationHistory = history;
                 return View("Review", moderation);

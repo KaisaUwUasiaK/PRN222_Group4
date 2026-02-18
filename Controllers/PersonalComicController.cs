@@ -74,7 +74,7 @@ namespace Group4_ReadingComicWeb.Controllers
                 comic.Status = "Pending";
 
                 // Logic lưu ảnh (Chắc chắn chạy được vì đã check null ở trên)
-                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(coverImage.FileName);
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(coverImage!.FileName);
                 var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "covers");
 
                 if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
