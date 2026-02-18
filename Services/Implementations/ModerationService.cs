@@ -107,6 +107,10 @@ namespace Group4_ReadingComicWeb.Services.Implementations
                 .CountAsync(cm => cm.ModerationStatus == "Pending");
         }
 
+        /// <summary>
+        /// Returns the count of comics approved in the current calendar month.
+        /// Filters by both month and year to avoid cross-year collisions.
+        /// </summary>
         public async Task<int> GetApprovedCountThisMonthAsync()
         {
             var now = DateTime.Now;
@@ -117,6 +121,10 @@ namespace Group4_ReadingComicWeb.Services.Implementations
                     cm.ProcessedAt.Value.Year == now.Year);
         }
 
+        /// <summary>
+        /// Returns the count of comics rejected in the current calendar month.
+        /// Filters by both month and year to avoid cross-year collisions.
+        /// </summary>
         public async Task<int> GetRejectedCountThisMonthAsync()
         {
             var now = DateTime.Now;

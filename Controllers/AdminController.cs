@@ -47,7 +47,11 @@ public class AdminController : Controller
         return View(Moderators);
     }
 
-    // POST: /Admin/CreateMod — create a new Moderator account
+    /// <summary>
+    /// Creates a new Moderator account.
+    /// Validates uniqueness of username and email before inserting.
+    /// On validation failure, re-renders the Users view with the current moderator list.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateMod(CreateModViewModel model)
@@ -109,7 +113,10 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Users));
     }
 
-    // POST: /Admin/BanModerator — ban a Moderator account
+    /// <summary>
+    /// Bans a Moderator account. Verifies the target is a Moderator before applying.
+    /// Broadcasts a SignalR event to update the status badge in real-time on the admin panel.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> BanMod(int userId)
@@ -124,14 +131,17 @@ public class AdminController : Controller
         user.Status = AccountStatus.Banned;
         await _context.SaveChangesAsync();
 
-        // Notify admins panel to update status badge
+        // Notify all admin clients to update the status badge in real-time
         await _hubContext.Clients.Group("admins").SendAsync("UserBanned", userId);
 
         TempData["Success"] = $"Moderator '{user.Username}' has been banned.";
         return RedirectToAction(nameof(Users));
     }
 
-    // POST: /Admin/UnbanModerator — unban a Moderator account
+    /// <summary>
+    /// Unbans a Moderator account, restoring their status to Offline.
+    /// Broadcasts a SignalR event to update the status badge in real-time on the admin panel.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UnbanMod(int userId)
@@ -146,7 +156,7 @@ public class AdminController : Controller
         user.Status = AccountStatus.Offline;
         await _context.SaveChangesAsync();
 
-        // Notify admins panel
+        // Notify all admin clients to update the status badge in real-time
         await _hubContext.Clients.Group("admins").SendAsync("UserOffline", userId);
 
         TempData["Success"] = $"Moderator '{user.Username}' has been unbanned.";
