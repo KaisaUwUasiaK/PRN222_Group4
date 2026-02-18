@@ -44,9 +44,9 @@ public class AuthenticationController : Controller
 
         var user = await _context.Users
             .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.Email == email && u.PasswordHash == password);
+            .FirstOrDefaultAsync(u => u.Email == email);
 
-        if (user == null)
+        if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
         {
             ModelState.AddModelError(string.Empty, "Invalid email or password.");
             return View();
@@ -119,7 +119,7 @@ public class AuthenticationController : Controller
         {
             Username = fullname,
             Email = email,
-            PasswordHash = password,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
             RoleId = userRole.RoleId,
             Status = AccountStatus.Offline
         };
@@ -246,7 +246,7 @@ public class AuthenticationController : Controller
             return View(model);
         }
 
-        user.PasswordHash = model.Password;
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password);
         user.ResetPasswordToken = null;
         user.ResetTokenExpiry = null;
 
