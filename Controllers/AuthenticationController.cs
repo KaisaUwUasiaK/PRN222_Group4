@@ -33,6 +33,12 @@ public class AuthenticationController : Controller
         return View();
     }
 
+    [HttpGet]
+    public IActionResult AccountLocked()
+    {
+        return View();
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(string email, string password, bool rememberMe)
@@ -50,6 +56,12 @@ public class AuthenticationController : Controller
         {
             ModelState.AddModelError(string.Empty, "Invalid email or password.");
             return View();
+        }
+
+        // Check if account is banned
+        if (user.Status == AccountStatus.Banned)
+        {
+            return RedirectToAction("AccountLocked");
         }
 
         user.Status = AccountStatus.Online;
@@ -78,6 +90,10 @@ public class AuthenticationController : Controller
         };
 
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
+
+        // Redirect Admin directly to Admin Dashboard
+        if (user.Role.RoleName == "Admin")
+            return RedirectToAction("Dashboard", "Admin");
 
         return RedirectToAction("Index", "Home");
     }

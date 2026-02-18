@@ -1,0 +1,131 @@
+@{
+    ViewData["Title"] = "Account Locked";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Locked - ComicVerse</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/%40phosphor-icons/web"></script>
+
+    <link rel="stylesheet" href="~/css/variables.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/auth.css">
+
+    <style>
+        .locked-icon-wrap {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(244, 63, 94, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            animation: pulse-red 2s ease-in-out infinite;
+        }
+
+        @@keyframes pulse-red {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.3); }
+            50%       { box-shadow: 0 0 0 14px rgba(244, 63, 94, 0); }
+        }
+
+        .locked-title {
+            font-family: var(--font-heading);
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .locked-subtitle {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .locked-info-box {
+            background: rgba(244, 63, 94, 0.06);
+            border: 1px solid rgba(244, 63, 94, 0.2);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.75rem;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .locked-info-box i {
+            color: var(--color-danger);
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .locked-info-box p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .locked-info-box strong {
+            color: var(--color-danger);
+        }
+    </style>
+</head>
+<body class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card" style="max-width: 440px;">
+
+            <!-- Logo -->
+            <a href="@Url.Action("Index", "Home")" class="auth-logo">
+                <i class="ph-fill ph-book-open-text" style="font-size: 1.75rem; color: var(--color-primary);"></i>
+                <span>ComicVerse</span>
+            </a>
+
+            <!-- Lock Icon -->
+            <div class="locked-icon-wrap">
+                <i class="ph-fill ph-lock-key" style="font-size: 2.25rem; color: var(--color-danger);"></i>
+            </div>
+
+            <h1 class="locked-title">Account Locked</h1>
+            <p class="locked-subtitle">
+                Your account has been suspended and you are unable to sign in at this time.
+            </p>
+
+            <!-- Info Box -->
+            <div class="locked-info-box">
+                <i class="ph ph-warning-circle"></i>
+                <p>
+                    This account has been <strong>banned</strong> by an administrator due to a violation of our
+                    <a href="#" style="color: var(--color-danger); text-decoration: underline;">Terms of Service</a>.
+                    If you believe this is a mistake, please contact our support team.
+                </p>
+            </div>
+
+            <!-- Actions -->
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <a href="mailto:support@comicverse.com" class="btn btn-primary" style="text-align: center; justify-content: center;">
+                    <i class="ph ph-envelope" style="margin-right: 8px;"></i>
+                    Contact Support
+                </a>
+                <a href="@Url.Action("Login", "Authentication")" class="btn btn-ghost" style="text-align: center; justify-content: center; border: 1px solid var(--border-color);">
+                    <i class="ph ph-arrow-left" style="margin-right: 8px;"></i>
+                    Back to Login
+                </a>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - ComicVerse Admin</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/%40phosphor-icons/web"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="~/css/variables.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/admin.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body>
+
+@{
+    var adminName = User.Identity?.Name ?? "Admin";
+    var avatarClaim = User.Claims.FirstOrDefault(c => c.Type == "AvatarUrl")?.Value;
+    var adminAvatar = !string.IsNullOrEmpty(avatarClaim)
+        ? avatarClaim
+        : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(adminName)}&background=7c3aed&color=fff&size=40";
+
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction     = ViewContext.RouteData.Values["action"]?.ToString();
+}
+
+<div class="admin-wrapper">
+
+    <!-- ── Sidebar ── -->
+    <aside class="admin-sidebar">
+
+        <!-- Logo -->
+        <a href="@Url.Action("Dashboard", "Admin")" class="sidebar-logo">
+            <i class="ph-fill ph-book-open-text" style="font-size: 1.6rem; color: var(--color-primary);"></i>
+            <span class="sidebar-logo-text">ComicVerse</span>
+            <span class="sidebar-logo-badge">Admin</span>
+        </a>
+
+        <!-- Overview -->
+        <div class="nav-group">
+            <div class="nav-group-label">Overview</div>
+            <a href="@Url.Action("Dashboard", "Admin")"
+               class="nav-item @(currentAction == "Dashboard" ? "active" : "")">
+                <i class="ph ph-squares-four"></i>
+                <span>Dashboard</span>
+            </a>
+        </div>
+
+        <!-- Management -->
+        <div class="nav-group">
+            <div class="nav-group-label">Management</div>
+            <a href="@Url.Action("Users", "Admin")"
+               class="nav-item @(currentAction == "Users" ? "active" : "")">
+                <i class="ph ph-shield-star"></i>
+                <span>Moderators</span>
+            </a>
+            <a href="#" class="nav-item">
+                <i class="ph ph-flag"></i>
+                <span>Reports</span>
+                <span class="nav-badge">3</span>
+            </a>
+        </div>
+
+        <!-- Spacer pushes bottom items down -->
+        <div class="nav-spacer"></div>
+
+        <!-- Bottom -->
+        <div class="nav-group" style="margin-bottom: 0;">
+            <a href="@Url.Action("Logout", "Authentication")" class="nav-item nav-item-danger">
+                <i class="ph ph-sign-out"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+
+    </aside>
+
+    <!-- ── Main ── -->
+    <div class="admin-main">
+
+        <!-- Top Bar -->
+        <header class="admin-topbar">
+            <div class="topbar-breadcrumb">
+                <a href="@Url.Action("Dashboard", "Admin")">Admin</a>
+                @if (ViewData["Breadcrumb"] != null)
+                {
+                    <span class="sep">/</span>
+                    <span>@ViewData["Breadcrumb"]</span>
+                }
+            </div>
+
+            <div class="topbar-actions">
+                <button class="btn btn-ghost" style="padding: 8px; position: relative;" title="Notifications">
+                    <i class="ph ph-bell" style="font-size: 1.1rem;"></i>
+                </button>
+
+                <div class="dropdown">
+                    <div class="dropdown-trigger" style="gap: 8px; padding: 4px 8px; border-radius: var(--radius-sm);">
+                        <img src="@adminAvatar" alt="Admin" class="topbar-avatar">
+                        <span class="topbar-username">@adminName</span>
+                        <i class="ph-bold ph-caret-down dropdown-arrow" style="font-size: 0.75rem;"></i>
+                    </div>
+                    <div class="dropdown-content" style="right: 0; min-width: 180px;">
+                        <a href="@Url.Action("Logout", "Authentication")" class="dropdown-item" style="color: var(--color-danger);">
+                            <i class="ph ph-sign-out"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Page Content -->
+        <div class="admin-content">
+            @RenderBody()
+        </div>
+
+    </div>
+</div>
+
+<!-- Scripts -->
+<script src="~/js/script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const notyf = new Notyf({ duration: 4000, position: { x: 'right', y: 'top' }, dismissible: true });
+
+        @if (TempData["Success"] != null)
+        {
+            <text>notyf.success("@TempData["Success"]");</text>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <text>notyf.error("@TempData["Error"]");</text>
+        }
+    });
+</script>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <script>
+        const statusConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/userStatus")
+            .withAutomaticReconnect()
+            .build();
+        statusConnection.start().catch(err => console.error("SignalR error:", err));
+    </script>
+}
+
+@await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>

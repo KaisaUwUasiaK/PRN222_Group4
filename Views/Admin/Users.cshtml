@@ -1,0 +1,276 @@
+@model IEnumerable<Group4_ReadingComicWeb.Models.User>
+@using Group4_ReadingComicWeb.Models
+@{
+    ViewData["Title"] = "Moderators";
+    ViewData["Breadcrumb"] = "Moderators";
+    Layout = "_AdminLayout";
+}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>Moderators</h1>
+        <p>Manage moderator accounts — create, monitor status, and ban if needed.</p>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem;">
+            <i class="ph ph-shield-star" style="color: var(--color-primary);"></i>
+            <span style="font-weight: 700;">@Model.Count()</span>
+            <span style="color: var(--text-muted);">Total</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-accent); display: inline-block;"></span>
+            <span id="onlineCount" style="font-weight: 700;">@Model.Count(u => u.Status == AccountStatus.Online)</span>
+            <span style="color: var(--text-muted);">Online</span>
+        </div>
+        <button onclick="document.getElementById('createModModal').classList.add('active')" class="btn btn-primary" style="gap: 6px;">
+            <i class="ph ph-plus"></i> Add Moderator
+        </button>
+    </div>
+</div>
+
+<!-- Moderators Table -->
+<div class="data-card">
+    <div class="data-card-header">
+        <h3 class="data-card-title">
+            <i class="ph ph-shield-star" style="margin-right: 6px; color: var(--color-primary);"></i>
+            Moderator Accounts
+        </h3>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div style="padding: 60px; text-align: center; color: var(--text-muted);">
+            <i class="ph ph-shield-slash" style="font-size: 3rem; display: block; margin-bottom: 12px; opacity: 0.4;"></i>
+            <p style="font-size: 0.95rem;">No moderators yet.</p>
+            <p style="font-size: 0.85rem; margin-top: 4px;">Click <strong style="color: var(--color-primary);">Add Moderator</strong> to create one.</p>
+        </div>
+    }
+    else
+    {
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Moderator</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var mod in Model)
+                    {
+                        var isOnline = mod.Status == AccountStatus.Online;
+                        var isBanned = mod.Status == AccountStatus.Banned;
+                        var dotColor = isBanned ? "var(--color-danger)" : isOnline ? "var(--color-accent)" : "var(--text-muted)";
+                        var badgeClass = isBanned ? "badge-banned" : isOnline ? "badge-online" : "badge-offline";
+                        var statusText = mod.Status.ToString();
+                        var avatarUrl = !string.IsNullOrEmpty(mod.AvatarUrl)
+                            ? mod.AvatarUrl
+                            : "https://ui-avatars.com/api/?name=" + Uri.EscapeDataString(mod.Username ?? "M") + "&background=7c3aed&color=fff";
+
+                        <tr id="user-row-@mod.UserId">
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div class="user-avatar-wrap">
+                                        <img src="@avatarUrl" alt="Avatar" class="user-avatar">
+                                        <div id="status-dot-@mod.UserId" class="status-indicator" style="background: @dotColor;"></div>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--text-primary); font-size: 0.9rem;">@mod.Username</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">#@mod.UserId</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="color: var(--text-secondary);">@mod.Email</td>
+                            <td>
+                                <span id="status-badge-@mod.UserId" class="badge @badgeClass">
+                                    <span id="status-color-dot-@mod.UserId" class="badge-dot" style="background: @dotColor;"></span>
+                                    <span id="status-text-@mod.UserId">@statusText</span>
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                @if (isBanned)
+                                {
+                                    <form asp-controller="Admin" asp-action="UnbanMod" method="post" style="display: inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@mod.UserId" />
+                                        <button type="submit" class="action-btn action-btn-unban">
+                                            <i class="ph ph-lock-open"></i> Unban
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-controller="Admin" asp-action="BanMod" method="post" style="display: inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@mod.UserId" />
+                                        <button type="submit" class="action-btn action-btn-ban"
+                                                onclick="return confirm('Ban moderator @mod.Username?')">
+                                            <i class="ph ph-prohibit"></i> Ban
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- ── Create Mod Modal ── -->
+<div id="createModModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                <i class="ph ph-shield-plus" style="margin-right: 8px; color: var(--color-primary);"></i>
+                Add New Moderator
+            </h2>
+            <button class="modal-close" type="button" onclick="document.getElementById('createModModal').classList.remove('active')">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+
+        <div id="createModForm">
+
+            <div class="form-group">
+                <label for="mod-username" class="form-label">Username</label>
+                <input id="mod-username" class="form-control" placeholder="e.g. john_mod" />
+                <span id="err-username" class="field-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="mod-email" class="form-label">Email Address</label>
+                <input id="mod-email" type="email" class="form-control" placeholder="mod@@example.com" />
+                <span id="err-email" class="field-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="mod-password" class="form-label">Password</label>
+                <input id="mod-password" type="password" class="form-control" placeholder="••••••••" />
+                <span id="err-password" class="field-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="mod-confirm" class="form-label">Confirm Password</label>
+                <input id="mod-confirm" type="password" class="form-control" placeholder="••••••••" />
+                <span id="err-confirm" class="field-error"></span>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 1.5rem;">
+                <button type="button" onclick="document.getElementById('createModModal').classList.remove('active')"
+                        class="btn btn-ghost" style="flex: 1; border: 1px solid var(--border-color);">Cancel</button>
+                <button type="button" id="createModBtn" class="btn btn-primary" style="flex: 2;">
+                    <i class="ph ph-plus" style="margin-right: 6px;"></i> Create Moderator
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden real form for CSRF token -->
+<form id="hiddenCreateForm" asp-controller="Admin" asp-action="CreateMod" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="hf-username" name="Username" />
+    <input type="hidden" id="hf-email" name="Email" />
+    <input type="hidden" id="hf-password" name="Password" />
+    <input type="hidden" id="hf-confirm" name="ConfirmPassword" />
+</form>
+
+@section Scripts {
+    <script>
+        // Close on overlay click
+        document.getElementById('createModModal').addEventListener('click', function (e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+        document.querySelector('#createModModal .modal-card').addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+
+        // Submit button handler
+        document.getElementById('createModBtn').addEventListener('click', function () {
+            submitCreateMod();
+        });
+
+        function submitCreateMod() {
+            // Clear errors
+            ['username', 'email', 'password', 'confirm'].forEach(function (f) {
+                document.getElementById('err-' + f).textContent = '';
+                document.getElementById('mod-' + f).style.borderColor = '';
+            });
+
+            var username = document.getElementById('mod-username').value.trim();
+            var email    = document.getElementById('mod-email').value.trim();
+            var password = document.getElementById('mod-password').value;
+            var confirm  = document.getElementById('mod-confirm').value;
+
+            // Validate
+            var hasError = false;
+            if (!username || username.length < 3) {
+                showFieldError('username', 'Username must be at least 3 characters.');
+                hasError = true;
+            }
+            if (!email || email.indexOf('@@') < 0) {
+                showFieldError('email', 'Please enter a valid email address.');
+                hasError = true;
+            }
+            if (!password || password.length < 6) {
+                showFieldError('password', 'Password must be at least 6 characters.');
+                hasError = true;
+            }
+            if (password !== confirm) {
+                showFieldError('confirm', 'Passwords do not match.');
+                hasError = true;
+            }
+            if (hasError) return;
+
+            // Fill hidden form and submit
+            document.getElementById('hf-username').value = username;
+            document.getElementById('hf-email').value    = email;
+            document.getElementById('hf-password').value = password;
+            document.getElementById('hf-confirm').value  = confirm;
+            document.getElementById('hiddenCreateForm').submit();
+        }
+
+        function showFieldError(field, msg) {
+            document.getElementById('err-' + field).textContent = msg;
+            document.getElementById('mod-' + field).style.borderColor = 'var(--color-danger)';
+        }
+
+        // SignalR realtime status
+        if (typeof statusConnection !== 'undefined') {
+            statusConnection.on("UserOnline",  function (userId) { updateStatus(userId, 'Online'); });
+            statusConnection.on("UserOffline", function (userId) { updateStatus(userId, 'Offline'); });
+            statusConnection.on("UserBanned",  function (userId) { updateStatus(userId, 'Banned'); });
+        }
+
+        function updateStatus(userId, status) {
+            var dot      = document.getElementById('status-dot-' + userId);
+            var badge    = document.getElementById('status-badge-' + userId);
+            var colorDot = document.getElementById('status-color-dot-' + userId);
+            var text     = document.getElementById('status-text-' + userId);
+            if (!dot || !badge || !text) return;
+
+            var cfgMap = {
+                'Online':  { color: 'var(--color-accent)', cls: 'badge badge-online'  },
+                'Offline': { color: 'var(--text-muted)',   cls: 'badge badge-offline' },
+                'Banned':  { color: 'var(--color-danger)', cls: 'badge badge-banned'  }
+            };
+            var cfg = cfgMap[status] || cfgMap['Offline'];
+
+            dot.style.background = cfg.color;
+            if (colorDot) colorDot.style.background = cfg.color;
+            badge.className = cfg.cls;
+            text.textContent = status;
+
+            var count = 0;
+            document.querySelectorAll('[id^="status-text-"]').forEach(function (el) {
+                if (el.textContent === 'Online') count++;
+            });
+            document.getElementById('onlineCount').textContent = count;
+        }
+    </script>
+}

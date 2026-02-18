@@ -71,6 +71,13 @@
                             <i class="ph-bold ph-caret-down dropdown-arrow"></i>
                         </div>
                         <div class="dropdown-content">
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a href="@Url.Action("Dashboard", "Admin")" class="dropdown-item">
+                                    <i class="ph ph-squares-four"></i> Admin Panel
+                                </a>
+                                <div class="dropdown-divider"></div>
+                            }
                             <a href="@Url.Action("Profile", "User")" class="dropdown-item">
                                 <i class="ph ph-user"></i> My Profile
                             </a>
@@ -118,6 +125,7 @@
 
     <script src="~/js/script.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const notyf = new Notyf({
@@ -156,6 +164,18 @@
             }
         });
     </script>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <script>
+            // Connect to SignalR Hub to broadcast online/offline status
+            const statusConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/userStatus")
+                .withAutomaticReconnect()
+                .build();
+
+            statusConnection.start().catch(err => console.error("SignalR connection error:", err));
+        </script>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>

@@ -1,0 +1,116 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    ViewData["Breadcrumb"] = "Dashboard";
+    Layout = "_AdminLayout";
+}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>Dashboard</h1>
+        <p>Welcome back, @User.Identity?.Name. Here's what's happening today.</p>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-purple">
+            <i class="ph ph-books"></i>
+        </div>
+        <div class="stat-label">Total Comics</div>
+        <div class="stat-value">1,240</div>
+        <div class="stat-trend up">
+            <i class="ph ph-trend-up"></i> +12 this week
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-green">
+            <i class="ph ph-users"></i>
+        </div>
+        <div class="stat-label">Total Users</div>
+        <div class="stat-value">54,302</div>
+        <div class="stat-trend up">
+            <i class="ph ph-trend-up"></i> +1.2k this week
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-blue">
+            <i class="ph ph-eye"></i>
+        </div>
+        <div class="stat-label">Daily Views</div>
+        <div class="stat-value">89.4k</div>
+        <div class="stat-trend down">
+            <i class="ph ph-trend-down"></i> -3% from yesterday
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-red">
+            <i class="ph ph-clock-countdown"></i>
+        </div>
+        <div class="stat-label">Pending Uploads</div>
+        <div class="stat-value">8</div>
+        <div class="stat-trend neutral">
+            <i class="ph ph-minus"></i> Needs review
+        </div>
+    </div>
+</div>
+
+<!-- Recent Upload Requests -->
+<div class="data-card">
+    <div class="data-card-header">
+        <h3 class="data-card-title">Recent Upload Requests</h3>
+        <button class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem;">View All</button>
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Comic</th>
+                    <th>Author</th>
+                    <th>Genre</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="font-weight: 600; color: var(--text-primary);">The Return of the Hero</td>
+                    <td>User_123</td>
+                    <td>Action</td>
+                    <td><span class="badge badge-warning"><span class="badge-dot" style="background: #FBBF24;"></span>Pending</span></td>
+                    <td>Feb 18, 2026</td>
+                    <td><button class="action-btn" style="color: var(--color-primary); border-color: rgba(124,58,237,0.3);">Review</button></td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600; color: var(--text-primary);">My Life as a Slime</td>
+                    <td>SlimeLover</td>
+                    <td>Fantasy</td>
+                    <td><span class="badge badge-success"><span class="badge-dot" style="background: #34D399;"></span>Approved</span></td>
+                    <td>Feb 17, 2026</td>
+                    <td><button class="action-btn" style="color: var(--text-muted); border-color: var(--border-color);">Edit</button></td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600; color: var(--text-primary);">Dark Souls: The Comic</td>
+                    <td>FromFan</td>
+                    <td>Horror</td>
+                    <td><span class="badge badge-danger"><span class="badge-dot" style="background: #FB7185;"></span>Rejected</span></td>
+                    <td>Feb 16, 2026</td>
+                    <td><button class="action-btn" style="color: var(--text-muted); border-color: var(--border-color);">Details</button></td>
+                </tr>
+                <tr>
+                    <td style="font-weight: 600; color: var(--text-primary);">Cyberpunk 2099</td>
+                    <td>NeonCity</td>
+                    <td>Sci-Fi</td>
+                    <td><span class="badge badge-warning"><span class="badge-dot" style="background: #FBBF24;"></span>Pending</span></td>
+                    <td>Feb 16, 2026</td>
+                    <td><button class="action-btn" style="color: var(--color-primary); border-color: rgba(124,58,237,0.3);">Review</button></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

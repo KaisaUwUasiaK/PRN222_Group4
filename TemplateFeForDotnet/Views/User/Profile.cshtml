@@ -1,0 +1,187 @@
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+@section Styles {
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 4rem auto;
+        }
+
+        .profile-card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, var(--color-brand-start) 0%, var(--color-brand-end) 100%);
+            height: 160px;
+            position: relative;
+        }
+
+        .profile-avatar-wrapper {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-top: 100px;
+            /* Push down */
+        }
+
+        .profile-avatar-lg {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid var(--bg-surface);
+            object-fit: cover;
+            background: var(--bg-main);
+        }
+
+        .avatar-upload-btn {
+            position: absolute;
+            bottom: 0px;
+            right: 315px;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .avatar-upload-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .profile-body {
+            padding: 4rem 2rem 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            transition: border-color 0.2s;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn-delete {
+            color: var(--color-danger);
+            background: rgba(244, 63, 94, 0.1);
+            border: none; 
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .btn-delete:hover {
+            background: rgba(244, 63, 94, 0.2);
+        }
+    </style>
+}
+
+<main class="container profile-container">
+    <div class="profile-card">
+        <div class="profile-header">
+            <div style="position: absolute; bottom: -60px; left: 0; right: 0; display: flex; justify-content: center;">
+                <img src="https://i.pravatar.cc/150?img=11" alt="Profile" class="profile-avatar-lg">
+
+                <button class="avatar-upload-btn">
+                    <i class="ph ph-camera"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="profile-body">
+            <div style="text-align: center; margin-bottom: 3rem; margin-top: 1rem;">
+                <h2 style="font-size: 1.5rem;">Edit Profile</h2>
+                <p class="text-muted">Update your personal information</p>
+            </div>
+
+            <form action="#">
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label class="form-label">Display Name</label>
+                        <input type="text" class="form-input" value="ReaderOne">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-input" value="reader@example.com" disabled
+                               style="opacity: 0.7; cursor: not-allowed;">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Bio</label>
+                    <textarea class="form-textarea">Just a casual reader who loves fantasy and action comics.</textarea>
+                </div>
+
+                <h3 style="margin: 2rem 0 1rem; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+                    Security
+                </h3>
+
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="form-group">
+                        <label class="form-label">New Password</label>
+                        <input type="password" class="form-input" placeholder="Leave blank to keep current">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Confirm Password</label>
+                        <input type="password" class="form-input" placeholder="Confirm new password">
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center"
+                     style="margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                    <button type="button" class="btn btn-delete">Delete Account</button>
+                    <div class="flex gap-4">
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-ghost">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</main>
