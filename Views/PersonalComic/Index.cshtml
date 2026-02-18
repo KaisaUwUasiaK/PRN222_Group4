@@ -1,0 +1,112 @@
+﻿@model IEnumerable< Group4_ReadingComicWeb.Models.Comic>
+
+@{
+    ViewData["Title"] = "My Comic";
+    // Layout = "~/Views/Shared/_Layout.cshtml"; 
+  }
+
+<div class="container" style="margin-top: 2rem; min-height: 80vh;">
+    <div class="flex justify-between items-center" style="margin-bottom: 2rem;">
+        <div>
+            <h2>Comic Management</h2>
+            <p class="text-muted">Uploaded Comic And Comic Status</p>
+        </div>
+        <a href="@Url.Action("Create")" class="btn btn-primary">
+            <i class="ph-fill ph-plus-circle" style="margin-right: 8px;"></i> Upload Comic
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="bg-surface rounded-md" style="padding: 4rem; text-align: center; border: 1px solid var(--border-color);">
+            <i class="ph-duotone ph-books" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem; display: block; margin-left: auto; margin-right: auto;"></i>
+            <h3 class="text-muted">You haven't uploaded any comic'</h3>
+            <p class="text-muted" style="margin-bottom: 2rem;">Let's start to share your comic'</p>
+            <a href="@Url.Action("Create")" class="btn btn-outline">Upload</a>
+        </div>
+    }
+    else
+    {
+        <div class="grid" style="gap: 1.5rem;">
+            @foreach (var item in Model)
+            {
+                <div class="bg-surface rounded-md flex gap-4" style="padding: 1.5rem; border: 1px solid var(--border-color); align-items: start; transition: transform 0.2s;">
+
+                    <div style="width: 100px; aspect-ratio: 2/3; flex-shrink: 0; overflow: hidden; border-radius: 8px; background: #000;">
+                        <img src="@(string.IsNullOrEmpty(item.CoverImage) ? "https://via.placeholder.com/150x200?text=No+Cover" : item.CoverImage)"
+                             alt="@item.Title"
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+
+                    <div style="flex-grow: 1;">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">@item.Title</h3>
+                                <p class="text-muted" style="font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 0.5rem;">
+                                    @item.Description
+                                </p>
+                            </div>
+
+                            @{
+                                string badgeColor = "var(--text-muted)";
+                                string badgeBg = "rgba(255,255,255,0.1)";
+                                string statusText = item.Status;
+
+                                if (item.Status == "Pending") { badgeColor = "#eab308"; badgeBg = "rgba(234, 179, 8, 0.1)"; statusText = "Pending"; }
+                                else if (item.Status == "OnWorking") { badgeColor = "#3b82f6"; badgeBg = "rgba(59, 130, 246, 0.1)"; statusText = "OnGoing"; }
+                                else if (item.Status == "Completed") { badgeColor = "#22c55e"; badgeBg = "rgba(34, 197, 94, 0.1)"; statusText = "Completed"; }
+                                else if (item.Status == "Rejected") { badgeColor = "#ef4444"; badgeBg = "rgba(239, 68, 68, 0.1)"; statusText = "Rejected"; }
+                            }
+
+                            <span style="background: @badgeBg; color: @badgeColor; padding: 22px 4px; border-radius: 100px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; border: 1px solid @badgeColor;">
+                                @statusText
+                            </span>
+                        </div>
+
+                        <div class="text-muted" style="margin-top: auto; font-size: 0.85rem; margin-bottom: 1rem;">
+                            <span style="margin-right: 15px;"><i class="ph-fill ph-calendar-blank"></i> @item.CreatedAt.ToString("dd/MM/yyyy")</span>
+                            <span><i class="ph-fill ph-files"></i> @(item.Chapters?.Count ?? 0) Chapter</span>
+                            <span style="color: var(--color-primary); font-weight: 600; background: rgba(99, 102, 241, 0.1); padding: 2px 8px; border-radius: 4px;">
+                                <i class="ph-fill ph-eye"></i> @item.ViewCount.ToString("N0")
+                            </span>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <a href="@Url.Action("Chapters", new { id = item.ComicId })" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.9rem;">
+                                <i class="ph-fill ph-list-dashes" style="margin-right: 6px;"></i> Chapter Management
+                            </a>
+                           
+                            @if (item.Status != "Canceled")
+                            {
+                                <a href="@Url.Action("Edit", new { id = item.ComicId })" class="btn btn-ghost" style="padding: 8px 16px;">
+                                    <i class="ph-fill ph-pencil-simple"></i> Modify
+                                </a>
+                            }
+
+                            <form asp-action="Delete" asp-route-id="@item.ComicId" method="post" style="display:inline-block;">
+                                @Html.AntiForgeryToken() @if (item.Status == "Pending")
+                                {
+                                    <button type="submit" class="btn btn-ghost" style="color: #f59e0b;"
+                                            onclick="return confirm('Bạn có chắc muốn HỦY yêu cầu duyệt truyện này? Trạng thái sẽ chuyển sang Canceled.');">
+                                        <i class="ph-fill ph-x-circle"></i> Cancel
+                                    </button>
+                                }
+                                                else if (item.Status == "OnWorking" || item.Status == "Completed")
+                                {
+                                    <button type="submit" class="btn btn-ghost" style="color: #ef4444;"
+                                            onclick="return confirm('CẢNH BÁO: Hành động này sẽ XÓA VĨNH VIỄN bộ truyện và toàn bộ chapter. Không thể khôi phục!');">
+                                        <i class="ph-fill ph-trash"></i> Delete
+                                    </button>
+                                }
+                                else if (item.Status == "Canceled")
+                                {
+                                    <span class="text-muted" style="font-size: 0.9rem;">Đã hủy</span>
+                                }
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

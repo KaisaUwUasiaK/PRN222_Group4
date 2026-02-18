@@ -1,0 +1,43 @@
+﻿@model Group4_ReadingComicWeb.Models.Chapter
+
+@{
+    ViewData["Title"] = Model.Title;
+    var images = ViewBag.Images as List<string>;
+}
+
+<div class="header" style="position: sticky; top: 0; z-index: 50; background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid var(--border-color); padding: 10px 0;">
+    <div class="container flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <a href="@Url.Action("Chapters", new { id = Model.ComicId })" class="btn btn-ghost">
+                <i class="ph-bold ph-arrow-left"></i> Back
+            </a>
+            <div>
+                <h4 style="margin: 0; font-size: 1rem;">@Model.Comic.Title</h4>
+                <p class="text-muted" style="margin: 0; font-size: 0.85rem;">Chapter @Model.ChapterNumber: @Model.Title</p>
+            </div>
+        </div>
+
+        <a href="@Url.Action("EditChapter", new { id = Model.ChapterId })" class="btn btn-outline btn-sm">
+            <i class="ph-fill ph-pencil-simple"></i> Modify This Chapter 
+        </a>
+    </div>
+</div>
+
+<div style="background: #1a1a1a; min-height: 100vh; padding-bottom: 50px;">
+    <div style="max-width: 800px; margin: 0 auto; box-shadow: 0 0 50px rgba(0,0,0,0.5);">
+        @if (images != null && images.Any())
+        {
+            foreach (var imgPath in images)
+            {
+                <img src="@imgPath" alt="Page" style="width: 100%; display: block; margin: 0;" loading="lazy" />
+            }
+        }
+        else
+        {
+            <div style="padding: 4rem; text-align: center; color: var(--text-muted);">
+                <i class="ph-duotone ph-image-broken" style="font-size: 3rem;"></i>
+                <p>Can't found any images in this chapter'</p>
+            </div>
+        }
+    </div>
+</div>

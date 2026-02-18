@@ -1,0 +1,50 @@
+﻿@model Group4_ReadingComicWeb.Models.Chapter
+
+@{
+    ViewData["Title"] = "Modify Chapter";
+}
+
+<div class="container" style="max-width: 600px; margin-top: 3rem; margin-bottom: 3rem;">
+    <div style="margin-bottom: 1rem;">
+        <a href="@Url.Action("Chapters", new { id = Model.ComicId })" class="text-muted hover:text-white">
+            <i class="ph-bold ph-arrow-left"></i> Back to List
+        </a>
+    </div>
+
+    <div class="bg-surface rounded-md" style="padding: 2rem; border: 1px solid var(--border-color);">
+        <h2 style="margin-bottom: 1.5rem;">Update Chapter</h2>
+
+        <form asp-action="EditChapter" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="id" value="@Model.ChapterId" />
+
+            <div class="grid grid-cols-2 gap-4" style="margin-bottom: 1.5rem;">
+                <div>
+                    <label class="text-muted" style="font-size: 0.9rem;">Chapter Number</label>
+                    <input asp-for="ChapterNumber" class="search-input" style="width: 100%; border-radius: 6px;" required />
+                </div>
+                <div>
+                    <label class="text-muted" style="font-size: 0.9rem;">Chapter Name</label>
+                    <input asp-for="Title" class="search-input" style="width: 100%; border-radius: 6px;" required />
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label class="text-muted" style="font-size: 0.9rem;">Upload Content</label>
+                <div style="border: 1px dashed var(--border-color); padding: 1rem; border-radius: 6px; margin-top: 5px;">
+                    <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 10px;">
+                        <i class="ph-fill ph-warning" style="color: #eab308;"></i>
+                        Warning: If you choose new image, <strong>old images will be deleted</strong> and replace with new images.
+                    </p>
+                    <input type="file" name="newPages" class="search-input" multiple accept="image/*" style="width: 100%;" />
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center" style="margin-top: 2rem;">
+                <a href="@Url.Action("Chapters", new { id = Model.ComicId })" class="btn btn-ghost">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="ph-fill ph-floppy-disk" style="margin-right: 8px;"></i> Save Change
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

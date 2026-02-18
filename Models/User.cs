@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Group4_ReadingComicWeb.Models
 {
     public class User
@@ -18,5 +20,17 @@ namespace Group4_ReadingComicWeb.Models
 
         public string? Bio { get; set; }
         public string? AvatarUrl { get; set; }
+
+        public ICollection<Comic> Comics { get; set; } = new List<Comic>();
+        public ICollection<Log> Logs { get; set; } = new List<Log>();
+    }
+
+    // Enum trạng thái tài khoản
+    public enum AccountStatus
+    {
+        Online,    // Đang hoạt động
+        Offline,   // Ngoại tuyến
+        Suspended, // Bị tạm ngừng
+        Banned     // Bị cấm
     }
 }

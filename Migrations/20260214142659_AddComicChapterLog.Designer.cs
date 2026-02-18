@@ -4,6 +4,7 @@ using Group4_ReadingComicWeb.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Group4_ReadingComicWeb.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260214142659_AddComicChapterLog")]
+    partial class AddComicChapterLog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -40,7 +43,6 @@ namespace Group4_ReadingComicWeb.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Path")
-                        .IsRequired()
                         .HasColumnType("ntext");
 
                     b.Property<string>("Title")
@@ -51,7 +53,7 @@ namespace Group4_ReadingComicWeb.Migrations
 
                     b.HasIndex("ComicId");
 
-                    b.ToTable("Chapter");
+                    b.ToTable("Chapter", (string)null);
                 });
 
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.Comic", b =>
@@ -65,23 +67,16 @@ namespace Group4_ReadingComicWeb.Migrations
                     b.Property<int>("AuthorId")
                         .HasColumnType("int");
 
-                    b.Property<string>("CoverImage")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("ntext");
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasDefaultValue("Pending");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -95,60 +90,7 @@ namespace Group4_ReadingComicWeb.Migrations
 
                     b.HasIndex("AuthorId");
 
-                    b.ToTable("Comic");
-                });
-
-            modelBuilder.Entity("Group4_ReadingComicWeb.Models.ComicModeration", b =>
-                {
-                    b.Property<int>("ComicModerationId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ComicModerationId"));
-
-                    b.Property<int>("ComicId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ModerationStatus")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasDefaultValue("Pending");
-
-                    b.Property<int?>("ModeratorId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("ntext");
-
-                    b.Property<DateTime?>("ProcessedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("ComicModerationId");
-
-                    b.HasIndex("ComicId");
-
-                    b.HasIndex("ModeratorId");
-
-                    b.ToTable("ComicModeration");
-                });
-
-            modelBuilder.Entity("Group4_ReadingComicWeb.Models.ComicTag", b =>
-                {
-                    b.Property<int>("ComicId")
-                        .HasColumnType("int")
-                        .HasColumnOrder(0);
-
-                    b.Property<int>("TagId")
-                        .HasColumnType("int")
-                        .HasColumnOrder(1);
-
-                    b.HasKey("ComicId", "TagId");
-
-                    b.HasIndex("TagId");
-
-                    b.ToTable("ComicTag");
+                    b.ToTable("Comic", (string)null);
                 });
 
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.Log", b =>
@@ -209,24 +151,6 @@ namespace Group4_ReadingComicWeb.Migrations
                             RoleId = 3,
                             RoleName = "User"
                         });
-                });
-
-            modelBuilder.Entity("Group4_ReadingComicWeb.Models.Tag", b =>
-                {
-                    b.Property<int>("TagId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TagId"));
-
-                    b.Property<string>("TagName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("TagId");
-
-                    b.ToTable("Tag");
                 });
 
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.User", b =>
@@ -296,43 +220,6 @@ namespace Group4_ReadingComicWeb.Migrations
                     b.Navigation("Author");
                 });
 
-            modelBuilder.Entity("Group4_ReadingComicWeb.Models.ComicModeration", b =>
-                {
-                    b.HasOne("Group4_ReadingComicWeb.Models.Comic", "Comic")
-                        .WithMany()
-                        .HasForeignKey("ComicId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Group4_ReadingComicWeb.Models.User", "Moderator")
-                        .WithMany()
-                        .HasForeignKey("ModeratorId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Comic");
-
-                    b.Navigation("Moderator");
-                });
-
-            modelBuilder.Entity("Group4_ReadingComicWeb.Models.ComicTag", b =>
-                {
-                    b.HasOne("Group4_ReadingComicWeb.Models.Comic", "Comic")
-                        .WithMany("ComicTags")
-                        .HasForeignKey("ComicId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Group4_ReadingComicWeb.Models.Tag", "Tag")
-                        .WithMany("ComicTags")
-                        .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Comic");
-
-                    b.Navigation("Tag");
-                });
-
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.Log", b =>
                 {
                     b.HasOne("Group4_ReadingComicWeb.Models.User", "User")
@@ -358,18 +245,11 @@ namespace Group4_ReadingComicWeb.Migrations
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.Comic", b =>
                 {
                     b.Navigation("Chapters");
-
-                    b.Navigation("ComicTags");
                 });
 
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.Role", b =>
                 {
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("Group4_ReadingComicWeb.Models.Tag", b =>
-                {
-                    b.Navigation("ComicTags");
                 });
 
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.User", b =>

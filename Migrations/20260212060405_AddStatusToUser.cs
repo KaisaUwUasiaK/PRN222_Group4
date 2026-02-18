@@ -19,7 +19,7 @@ namespace Group4_ReadingComicWeb.Migrations
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
+        protected override void Down(MigrationBuilder migrationBuilder) 
         {
             migrationBuilder.DropColumn(
                 name: "Status",
