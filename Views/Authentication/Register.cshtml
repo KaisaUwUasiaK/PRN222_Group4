@@ -28,6 +28,34 @@
         .validation-summary-errors {
             display: none;
         }
+
+        /* Password toggle eye button */
+        .input-wrapper {
+            position: relative;
+        }
+        .pwd-toggle {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            padding: 0;
+            font-size: 1.1rem;
+            transition: color 0.2s;
+            z-index: 2;
+        }
+        .pwd-toggle:hover {
+            color: var(--text-primary);
+        }
+        /* Shift the input text so it doesn't overlap the eye icon */
+        .has-pwd-toggle {
+            padding-right: 42px !important;
+        }
     </style>
 </head>
 <body>
@@ -73,8 +101,12 @@
                 <div class="form-group">
                     <label asp-for="Password" class="form-label">Password</label>
                     <div class="input-wrapper">
-                        <input asp-for="Password" class="form-input" placeholder="••••••••" autocomplete="new-password">
+                        <input asp-for="Password" id="passwordInput" type="password"
+                               class="form-input has-pwd-toggle" placeholder="••••••••" autocomplete="new-password">
                         <i class="ph ph-lock-key input-icon"></i>
+                        <button type="button" class="pwd-toggle" id="togglePassword" tabindex="-1" aria-label="Toggle password visibility">
+                            <i class="ph ph-eye" id="togglePasswordIcon"></i>
+                        </button>
                     </div>
                     <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
@@ -82,8 +114,12 @@
                 <div class="form-group">
                     <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
                     <div class="input-wrapper">
-                        <input asp-for="ConfirmPassword" class="form-input" placeholder="••••••••" autocomplete="new-password">
+                        <input asp-for="ConfirmPassword" id="confirmPasswordInput" type="password"
+                               class="form-input has-pwd-toggle" placeholder="••••••••" autocomplete="new-password">
                         <i class="ph ph-lock-key-open input-icon"></i>
+                        <button type="button" class="pwd-toggle" id="toggleConfirmPassword" tabindex="-1" aria-label="Toggle confirm password visibility">
+                            <i class="ph ph-eye" id="toggleConfirmPasswordIcon"></i>
+                        </button>
                     </div>
                     <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                 </div>
@@ -143,6 +179,24 @@
                 }
             });
         }
+
+        // Password show/hide toggle
+        function setupPasswordToggle(inputId, toggleBtnId, iconId) {
+            var input  = document.getElementById(inputId);
+            var btn    = document.getElementById(toggleBtnId);
+            var icon   = document.getElementById(iconId);
+            if (!input || !btn || !icon) return;
+
+            btn.addEventListener('click', function () {
+                var isHidden = input.type === 'password';
+                input.type = isHidden ? 'text' : 'password';
+                // Switch between eye and eye-slash icons
+                icon.className = isHidden ? 'ph ph-eye-slash' : 'ph ph-eye';
+            });
+        }
+
+        setupPasswordToggle('passwordInput',        'togglePassword',        'togglePasswordIcon');
+        setupPasswordToggle('confirmPasswordInput', 'toggleConfirmPassword', 'toggleConfirmPasswordIcon');
     });
 </script>
 
