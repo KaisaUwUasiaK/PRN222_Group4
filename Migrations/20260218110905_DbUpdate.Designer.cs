@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Group4_ReadingComicWeb.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260215110535_SyncMergeCode")]
-    partial class SyncMergeCode
+    [Migration("20260218110905_DbUpdate")]
+    partial class DbUpdate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -99,6 +99,42 @@ namespace Group4_ReadingComicWeb.Migrations
                     b.HasIndex("AuthorId");
 
                     b.ToTable("Comic");
+                });
+
+            modelBuilder.Entity("Group4_ReadingComicWeb.Models.ComicModeration", b =>
+                {
+                    b.Property<int>("ComicModerationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ComicModerationId"));
+
+                    b.Property<int>("ComicId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModerationStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<int?>("ModeratorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasColumnType("ntext");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ComicModerationId");
+
+                    b.HasIndex("ComicId");
+
+                    b.HasIndex("ModeratorId");
+
+                    b.ToTable("ComicModeration");
                 });
 
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.ComicTag", b =>
@@ -261,6 +297,24 @@ namespace Group4_ReadingComicWeb.Migrations
                         .IsRequired();
 
                     b.Navigation("Author");
+                });
+
+            modelBuilder.Entity("Group4_ReadingComicWeb.Models.ComicModeration", b =>
+                {
+                    b.HasOne("Group4_ReadingComicWeb.Models.Comic", "Comic")
+                        .WithMany()
+                        .HasForeignKey("ComicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Group4_ReadingComicWeb.Models.User", "Moderator")
+                        .WithMany()
+                        .HasForeignKey("ModeratorId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Comic");
+
+                    b.Navigation("Moderator");
                 });
 
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.ComicTag", b =>

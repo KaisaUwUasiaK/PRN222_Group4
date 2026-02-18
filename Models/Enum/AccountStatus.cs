@@ -1,4 +1,4 @@
-namespace Group4_ReadingComicWeb.Models
+namespace Group4_ReadingComicWeb.Models.Enum
 {
     public enum AccountStatus
     {

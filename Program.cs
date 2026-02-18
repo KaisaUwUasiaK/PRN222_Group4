@@ -1,4 +1,5 @@
 using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models.Enum;
 using Group4_ReadingComicWeb.Services;
 using Group4_ReadingComicWeb.Hubs;
 using Group4_ReadingComicWeb.Services.Contracts;

@@ -1,7 +1,6 @@
 using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Services.Contracts;
 using Microsoft.EntityFrameworkCore;
-using PRN222_Group4.Models;
 
 namespace Group4_ReadingComicWeb.Services.Implementations
 {

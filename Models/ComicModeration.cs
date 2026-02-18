@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using PRN222_Group4.Models;
+using Group4_ReadingComicWeb.Models.Enum;
 
 namespace Group4_ReadingComicWeb.Models
 {
