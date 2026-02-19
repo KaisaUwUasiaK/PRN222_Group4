@@ -93,6 +93,8 @@ public class AdminController : Controller
 
         // Notify all admin clients to update the status badge in real-time
         await _hubContext.Clients.Group("admins").SendAsync("UserBanned", userId);
+        // Also notify everyone for the public profile indicator
+        await _hubContext.Clients.All.SendAsync("UserStatusChanged", userId, "Banned");
 
         TempData["Success"] = $"Moderator '{user.Username}' has been banned.";
         return RedirectToAction(nameof(Users));
@@ -115,6 +117,8 @@ public class AdminController : Controller
 
         // Notify all admin clients to update the status badge in real-time
         await _hubContext.Clients.Group("admins").SendAsync("UserOffline", userId);
+        // Also notify everyone for the public profile indicator
+        await _hubContext.Clients.All.SendAsync("UserStatusChanged", userId, "Offline");
 
         TempData["Success"] = $"Moderator '{user.Username}' has been unbanned.";
         return RedirectToAction(nameof(Users));
