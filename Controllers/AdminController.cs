@@ -1,10 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 using Group4_ReadingComicWeb.Hubs;
-using Group4_ReadingComicWeb.Models;
-using Group4_ReadingComicWeb.Models.Enum;
+using Group4_ReadingComicWeb.Services.Contracts;
 using Group4_ReadingComicWeb.ViewModels;
 
 namespace Group4_ReadingComicWeb.Controllers;
@@ -12,12 +10,12 @@ namespace Group4_ReadingComicWeb.Controllers;
 [Authorize(Roles = "Admin")]
 public class AdminController : Controller
 {
-    private readonly AppDbContext _context;
+    private readonly IAdminService _adminService;
     private readonly IHubContext<UserStatusHub> _hubContext;
 
-    public AdminController(AppDbContext context, IHubContext<UserStatusHub> hubContext)
+    public AdminController(IAdminService adminService, IHubContext<UserStatusHub> hubContext)
     {
-        _context = context;
+        _adminService = adminService;
         _hubContext = hubContext;
     }
 
@@ -30,21 +28,15 @@ public class AdminController : Controller
     // GET: /Admin/Users — list all Moderators only
     public async Task<IActionResult> Users()
     {
-        // Find the Moderator role
-        var ModeratorRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Moderator");
-        if (ModeratorRole == null)
+        var moderators = await _adminService.GetAllModeratorsAsync();
+        if (moderators == null)
         {
             TempData["Error"] = "Moderator role not found in database.";
-            return View(new List<User>());
+            return View(new List<Group4_ReadingComicWeb.Models.User>());
         }
 
-        var Moderators = await _context.Users
-            .Include(u => u.Role)
-            .Where(u => u.RoleId == ModeratorRole.RoleId)
-            .ToListAsync();
-
         ViewBag.CreateModViewModel = new CreateModViewModel();
-        return View(Moderators);
+        return View(moderators);
     }
 
     /// <summary>
@@ -58,58 +50,29 @@ public class AdminController : Controller
     {
         if (!ModelState.IsValid)
         {
-            var modRole2 = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Moderator");
-            var mods2 = modRole2 != null
-                ? await _context.Users.Include(u => u.Role).Where(u => u.RoleId == modRole2.RoleId).ToListAsync()
-                : new List<User>();
+            var mods = await _adminService.GetAllModeratorsAsync();
             ViewBag.CreateModViewModel = model;
-            return View("Users", mods2);
+            return View("Users", mods);
         }
 
-        // Check duplicate username
-        if (await _context.Users.AnyAsync(u => u.Username == model.Username))
+        var error = await _adminService.CreateModeratorAsync(model);
+        if (error != null)
         {
-            ModelState.AddModelError(nameof(model.Username), "Username is already taken.");
-            var modRole2 = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Moderator");
-            var mods2 = modRole2 != null
-                ? await _context.Users.Include(u => u.Role).Where(u => u.RoleId == modRole2.RoleId).ToListAsync()
-                : new List<User>();
+            // Error format: "field:FieldName:Message" or "role:Message"
+            var parts = error.Split(':', 3);
+            if (parts[0] == "username")
+                ModelState.AddModelError(nameof(model.Username), parts[2]);
+            else if (parts[0] == "email")
+                ModelState.AddModelError(nameof(model.Email), parts[2]);
+            else
+                TempData["Error"] = parts.Length > 1 ? parts[1] : error;
+
+            var mods = await _adminService.GetAllModeratorsAsync();
             ViewBag.CreateModViewModel = model;
-            return View("Users", mods2);
+            return View("Users", mods);
         }
 
-        // Check duplicate email
-        if (await _context.Users.AnyAsync(u => u.Email == model.Email))
-        {
-            ModelState.AddModelError(nameof(model.Email), "Email is already registered.");
-            var modRole2 = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Moderator");
-            var mods2 = modRole2 != null
-                ? await _context.Users.Include(u => u.Role).Where(u => u.RoleId == modRole2.RoleId).ToListAsync()
-                : new List<User>();
-            ViewBag.CreateModViewModel = model;
-            return View("Users", mods2);
-        }
-
-        var ModeratorRole = await _context.Roles.FirstOrDefaultAsync(r => r.RoleName == "Moderator");
-        if (ModeratorRole == null)
-        {
-            TempData["Error"] = "Moderator role not found in database.";
-            return RedirectToAction(nameof(Users));
-        }
-
-        var newModerator = new User
-        {
-            Username = model.Username.Trim(),
-            Email = model.Email.Trim().ToLower(),
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.Password),
-            RoleId = ModeratorRole.RoleId,
-            Status = AccountStatus.Offline
-        };
-
-        _context.Users.Add(newModerator);
-        await _context.SaveChangesAsync();
-
-        TempData["Success"] = $"Moderator account '{newModerator.Username}' created successfully.";
+        TempData["Success"] = $"Moderator account '{model.Username.Trim()}' created successfully.";
         return RedirectToAction(nameof(Users));
     }
 
@@ -121,15 +84,12 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> BanMod(int userId)
     {
-        var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == userId);
-        if (user == null || user.Role.RoleName != "Moderator")
+        var user = await _adminService.BanModeratorAsync(userId);
+        if (user == null)
         {
             TempData["Error"] = "Moderator not found.";
             return RedirectToAction(nameof(Users));
         }
-
-        user.Status = AccountStatus.Banned;
-        await _context.SaveChangesAsync();
 
         // Notify all admin clients to update the status badge in real-time
         await _hubContext.Clients.Group("admins").SendAsync("UserBanned", userId);
@@ -146,15 +106,12 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UnbanMod(int userId)
     {
-        var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserId == userId);
-        if (user == null || user.Role.RoleName != "Moderator")
+        var user = await _adminService.UnbanModeratorAsync(userId);
+        if (user == null)
         {
             TempData["Error"] = "Moderator not found.";
             return RedirectToAction(nameof(Users));
         }
-
-        user.Status = AccountStatus.Offline;
-        await _context.SaveChangesAsync();
 
         // Notify all admin clients to update the status badge in real-time
         await _hubContext.Clients.Group("admins").SendAsync("UserOffline", userId);
