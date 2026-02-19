@@ -164,18 +164,15 @@
             }
         });
     </script>
-    @if (User.Identity?.IsAuthenticated == true)
-    {
-        <script>
-            // Connect to SignalR Hub to broadcast online/offline status
-            const statusConnection = new signalR.HubConnectionBuilder()
-                .withUrl("/hubs/userStatus")
-                .withAutomaticReconnect()
-                .build();
+    <script>
+        // Connect to SignalR Hub to broadcast/listen online/offline status
+        const statusConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/userStatus")
+            .withAutomaticReconnect()
+            .build();
 
-            statusConnection.start().catch(err => console.error("SignalR connection error:", err));
-        </script>
-    }
+        statusConnection.start().catch(err => console.error("SignalR connection error:", err));
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 
 </body>

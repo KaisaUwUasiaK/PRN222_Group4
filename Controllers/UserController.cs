@@ -3,8 +3,11 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Services.Contracts;
 using Group4_ReadingComicWeb.ViewModels;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Group4_ReadingComicWeb.Controllers;
 
@@ -36,6 +39,46 @@ public class UserController : Controller
             User = user,
             Username = user.Username,
             Bio = user.Bio
+        };
+
+        return View(vm);
+    }
+
+    [AllowAnonymous]
+    [HttpGet]
+    public async Task<IActionResult> PublicProfile(int id, int page = 1)
+    {
+        if (page < 1) page = 1;
+        int pageSize = 8;
+
+        var user = await _userService.GetUserByIdAsync(id);
+        if (user == null)
+            return NotFound();
+
+        // Get all applicable comics for filtering and counting
+        var allFilteredComics = (user.Comics ?? new List<Comic>())
+            .Where(c => string.Equals(c.Status, "OnWorking", StringComparison.OrdinalIgnoreCase) || 
+                        string.Equals(c.Status, "Completed", StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(c => c.CreatedAt)
+            .ToList();
+
+        int totalCount = allFilteredComics.Count;
+        int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        
+        // Slice for current page
+        var paginatedComics = allFilteredComics
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+        
+        var vm = new PublicProfileViewModel
+        {
+            User = user,
+            AuthoredComics = paginatedComics,
+            TotalComicsCount = totalCount,
+            TotalViewsCount = allFilteredComics.Sum(c => c.ViewCount),
+            CurrentPage = page,
+            TotalPages = totalPages
         };
 
         return View(vm);

@@ -6,7 +6,7 @@ using Group4_ReadingComicWeb.Models.Enum;
 
 namespace Group4_ReadingComicWeb.Hubs
 {
-    [Authorize]
+    // [Authorize] - Removed to allow guests to listen for status updates
     public class UserStatusHub : Hub
     {
         private readonly IServiceScopeFactory _scopeFactory;
@@ -49,8 +49,17 @@ namespace Group4_ReadingComicWeb.Hubs
                 // Only update DB and notify admins on the first tab/connection
                 if (isFirstConnection)
                 {
-                    await SetUserStatusInDb(userId.Value, AccountStatus.Online);
-                    await Clients.Group("admins").SendAsync("UserOnline", userId.Value);
+                    var actualStatus = await SetUserStatusInDb(userId.Value, AccountStatus.Online);
+                    if (actualStatus == AccountStatus.Online)
+                    {
+                        await Clients.Group("admins").SendAsync("UserOnline", userId.Value);
+                        await Clients.All.SendAsync("UserStatusChanged", userId.Value, "Online");
+                    }
+                    else if (actualStatus == AccountStatus.Banned)
+                    {
+                        // Even if they connect, they are banned, so broadcast Banned status
+                        await Clients.All.SendAsync("UserStatusChanged", userId.Value, "Banned");
+                    }
                 }
             }
 
@@ -83,8 +92,12 @@ namespace Group4_ReadingComicWeb.Hubs
                 // Only update DB and notify admins when the last tab is closed
                 if (isLastConnection)
                 {
-                    await SetUserStatusInDb(userId.Value, AccountStatus.Offline);
-                    await Clients.Group("admins").SendAsync("UserOffline", userId.Value);
+                    var actualStatus = await SetUserStatusInDb(userId.Value, AccountStatus.Offline);
+                    if (actualStatus == AccountStatus.Offline)
+                    {
+                        await Clients.Group("admins").SendAsync("UserOffline", userId.Value);
+                        await Clients.All.SendAsync("UserStatusChanged", userId.Value, "Offline");
+                    }
                 }
             }
 
@@ -96,22 +109,33 @@ namespace Group4_ReadingComicWeb.Hubs
         /// Skips the update if the user is Banned to prevent overriding the ban status.
         /// Uses a scoped DbContext since Hub instances are transient.
         /// </summary>
-        private async Task SetUserStatusInDb(int userId, AccountStatus status)
+        private async Task<AccountStatus?> SetUserStatusInDb(int userId, AccountStatus status)
         {
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var user = await db.Users.FindAsync(userId);
-            if (user != null && user.Status != AccountStatus.Banned)
+            if (user != null)
             {
-                user.Status = status;
-                await db.SaveChangesAsync();
+                if (user.Status != AccountStatus.Banned)
+                {
+                    user.Status = status;
+                    await db.SaveChangesAsync();
+                    return status;
+                }
+                return AccountStatus.Banned;
             }
+            return null;
         }
 
         /// <summary>
-        /// Extracts the authenticated user's ID from the JWT/cookie claims.
-        /// Returns null if the claim is missing or cannot be parsed.
+        /// Manually trigger a status update (e.g., when a user is Banned).
+        /// Can be called from other parts of the system if needed.
         /// </summary>
+        public async Task TriggerStatusUpdate(int userId, string status)
+        {
+            await Clients.All.SendAsync("UserStatusChanged", userId, status);
+        }
+
         private int? GetUserId()
         {
             var claim = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);

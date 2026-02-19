@@ -148,8 +148,6 @@
     });
 </script>
 
-@if (User.Identity?.IsAuthenticated == true)
-{
     <script>
         const statusConnection = new signalR.HubConnectionBuilder()
             .withUrl("/hubs/userStatus")
@@ -157,7 +155,6 @@
             .build();
         statusConnection.start().catch(err => console.error("SignalR error:", err));
     </script>
-}
 
 @await RenderSectionAsync("Scripts", required: false)
 

@@ -23,6 +23,7 @@ namespace Group4_ReadingComicWeb.Services.Implementations
         {
             return await _context.Users
                 .Include(u => u.Role)
+                .Include(u => u.Comics)
                 .FirstOrDefaultAsync(u => u.UserId == userId);
         }
 
