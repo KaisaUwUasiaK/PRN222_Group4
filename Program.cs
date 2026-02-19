@@ -33,6 +33,9 @@ namespace Group4_ReadingComicWeb
 
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddScoped<IModerationService, ModerationService>();
+            builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IAdminService, AdminService>();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSignalR();
 
@@ -67,7 +70,7 @@ namespace Group4_ReadingComicWeb
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Authentication}/{action=Login}");
+                pattern: "{controller=Home}/{action=Index}/{id?}");
 
             app.MapHub<UserStatusHub>("/hubs/userStatus");
 
