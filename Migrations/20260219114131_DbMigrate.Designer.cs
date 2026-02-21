@@ -4,6 +4,7 @@ using Group4_ReadingComicWeb.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Group4_ReadingComicWeb.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260219114131_DbMigrate")]
+    partial class DbMigrate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -175,59 +178,6 @@ namespace Group4_ReadingComicWeb.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Log", (string)null);
-                });
-
-            modelBuilder.Entity("Group4_ReadingComicWeb.Models.Report", b =>
-                {
-                    b.Property<int>("ReportId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportId"));
-
-                    b.Property<int?>("ActionTaken")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("ProcessedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ProcessedById")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ReportType")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ReporterId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ResolutionNote")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TargetUserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ReportId");
-
-                    b.HasIndex("ProcessedById");
-
-                    b.HasIndex("ReporterId");
-
-                    b.HasIndex("TargetUserId");
-
-                    b.ToTable("Reports");
                 });
 
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.Role", b =>
@@ -395,32 +345,6 @@ namespace Group4_ReadingComicWeb.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Group4_ReadingComicWeb.Models.Report", b =>
-                {
-                    b.HasOne("Group4_ReadingComicWeb.Models.User", "ProcessedBy")
-                        .WithMany()
-                        .HasForeignKey("ProcessedById")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Group4_ReadingComicWeb.Models.User", "Reporter")
-                        .WithMany()
-                        .HasForeignKey("ReporterId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Group4_ReadingComicWeb.Models.User", "TargetUser")
-                        .WithMany()
-                        .HasForeignKey("TargetUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ProcessedBy");
-
-                    b.Navigation("Reporter");
-
-                    b.Navigation("TargetUser");
                 });
 
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.User", b =>
