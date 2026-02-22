@@ -3,51 +3,24 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Group4_ReadingComicWeb.Models;
-using Group4_ReadingComicWeb.Utils;
+using Group4_ReadingComicWeb.Services.Contracts;
 using Group4_ReadingComicWeb.ViewModels;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Group4_ReadingComicWeb.Controllers;
 
 [Authorize]
 public class UserController : Controller
 {
-    private readonly AppDbContext _context;
+    private readonly IUserService _userService;
     private readonly IWebHostEnvironment _environment;
 
-    public UserController(AppDbContext context, IWebHostEnvironment environment)
+    public UserController(IUserService userService, IWebHostEnvironment environment)
     {
-        _context = context;
+        _userService = userService;
         _environment = environment;
-    }
-
-    private async Task RefreshUserSignInAsync(User user)
-    {
-        // Reload user with role to build full claims
-        var fullUser = await _context.Users
-            .Include(u => u.Role)
-            .FirstAsync(u => u.UserId == user.UserId);
-
-        var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, fullUser.UserId.ToString()),
-            new Claim(ClaimTypes.Name, fullUser.Username),
-            new Claim(ClaimTypes.Email, fullUser.Email),
-            new Claim(ClaimTypes.Role, fullUser.Role.RoleName)
-        };
-
-        if (!string.IsNullOrEmpty(fullUser.AvatarUrl))
-        {
-            claims.Add(new Claim("AvatarUrl", fullUser.AvatarUrl));
-        }
-
-        var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        var principal = new ClaimsPrincipal(identity);
-
-        await HttpContext.SignInAsync(
-            CookieAuthenticationDefaults.AuthenticationScheme,
-            principal);
     }
 
     [HttpGet]
@@ -55,18 +28,11 @@ public class UserController : Controller
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-        {
             return RedirectToAction("Login", "Authentication");
-        }
 
-        var user = await _context.Users
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.UserId == userId);
-
+        var user = await _userService.GetUserByIdAsync(userId);
         if (user == null)
-        {
             return RedirectToAction("Login", "Authentication");
-        }
 
         var vm = new ProfileUpdateViewModel
         {
@@ -78,19 +44,55 @@ public class UserController : Controller
         return View(vm);
     }
 
+    [AllowAnonymous]
+    [HttpGet]
+    public async Task<IActionResult> PublicProfile(int id, int page = 1)
+    {
+        if (page < 1) page = 1;
+        int pageSize = 8;
+
+        var user = await _userService.GetUserByIdAsync(id);
+        if (user == null)
+            return NotFound();
+
+        // Get all applicable comics for filtering and counting
+        var allFilteredComics = (user.Comics ?? new List<Comic>())
+            .Where(c => string.Equals(c.Status, "OnWorking", StringComparison.OrdinalIgnoreCase) || 
+                        string.Equals(c.Status, "Completed", StringComparison.OrdinalIgnoreCase))
+            .OrderByDescending(c => c.CreatedAt)
+            .ToList();
+
+        int totalCount = allFilteredComics.Count;
+        int totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+        
+        // Slice for current page
+        var paginatedComics = allFilteredComics
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+        
+        var vm = new PublicProfileViewModel
+        {
+            User = user,
+            AuthoredComics = paginatedComics,
+            TotalComicsCount = totalCount,
+            TotalViewsCount = allFilteredComics.Sum(c => c.ViewCount),
+            CurrentPage = page,
+            TotalPages = totalPages
+        };
+
+        return View(vm);
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Profile(ProfileUpdateViewModel model)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-        {
             return RedirectToAction("Login", "Authentication");
-        }
 
-        var user = await _context.Users
-            .Include(u => u.Role)
-            .FirstOrDefaultAsync(u => u.UserId == userId);
+        var user = await _userService.GetUserByIdAsync(userId);
         if (user == null)
         {
             TempData["Error"] = "User not found.";
@@ -101,31 +103,17 @@ public class UserController : Controller
         model.User = user;
 
         if (!ModelState.IsValid)
+            return View(model);
+
+        var error = await _userService.UpdateProfileAsync(userId, model.Username, model.Bio);
+        if (error != null)
         {
+            ModelState.AddModelError("Username", error);
             return View(model);
         }
 
-        var username = ValidationRules.NormalizeSpaces(model.Username);
-        var bio = string.IsNullOrWhiteSpace(model.Bio) ? null : model.Bio.Trim();
-
-        // Check if username is already taken by another user
-        var existingUser = await _context.Users
-            .FirstOrDefaultAsync(u => u.Username == username && u.UserId != userId);
-        // if (existingUser != null)
-        // {
-        //     ModelState.AddModelError("Username", "Username is already taken.");
-        //     return View(model);
-        // }
-
-        // Password change is now handled on a separate page (/User/ChangePassword)
-
-        user.Username = username;
-        user.Bio = bio;
-
-        await _context.SaveChangesAsync();
-
         // Re-issue auth cookie so header (claims) reflect latest username/avatar
-        await RefreshUserSignInAsync(user);
+        await _userService.RefreshUserSignInAsync(user, HttpContext);
 
         TempData["Success"] = "Profile updated successfully.";
         return RedirectToAction("Profile");
@@ -142,33 +130,23 @@ public class UserController : Controller
     public async Task<IActionResult> ChangePassword(ChangePasswordViewModel model)
     {
         if (!ModelState.IsValid)
-        {
             return View(model);
-        }
 
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-        {
             return RedirectToAction("Login", "Authentication");
-        }
 
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null)
+        var error = await _userService.ChangePasswordAsync(userId, model.CurrentPassword, model.NewPassword);
+        if (error != null)
         {
-            TempData["Error"] = "User not found.";
-            return RedirectToAction("Profile");
-        }
+            // Map error to the correct field
+            if (error.Contains("Current password"))
+                ModelState.AddModelError(nameof(model.CurrentPassword), error);
+            else
+                ModelState.AddModelError(string.Empty, error);
 
-        // Verify current password using BCrypt
-        if (!BCrypt.Net.BCrypt.Verify(model.CurrentPassword, user.PasswordHash))
-        {
-            ModelState.AddModelError(nameof(model.CurrentPassword), "Current password is incorrect.");
             return View(model);
         }
-
-        // Hash and save new password
-        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
-        await _context.SaveChangesAsync();
 
         TempData["Success"] = "Password changed successfully.";
         return RedirectToAction("Profile");
@@ -180,70 +158,20 @@ public class UserController : Controller
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-        {
             return Json(new { success = false, message = "User not authenticated." });
-        }
 
-        if (avatarFile.Length == 0)
-        {
-            return Json(new { success = false, message = "No file uploaded." });
-        }
+        var (success, errorMessage, avatarUrl) = await _userService.UploadAvatarAsync(
+            userId, avatarFile, _environment.WebRootPath);
 
-        // Validate file type
-        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-        var fileExtension = Path.GetExtension(avatarFile.FileName).ToLowerInvariant();
-        if (!allowedExtensions.Contains(fileExtension))
-        {
-            return Json(new { success = false, message = "Invalid file type. Only JPG, PNG, and GIF are allowed." });
-        }
-
-        // Validate file size (max 5MB)
-        if (avatarFile.Length > 5 * 1024 * 1024)
-        {
-            return Json(new { success = false, message = "File size exceeds 5MB limit." });
-        }
-
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null)
-        {
-            return Json(new { success = false, message = "User not found." });
-        }
-
-        // Create uploads directory if it doesn't exist
-        var uploadsPath = Path.Combine(_environment.WebRootPath, "uploads", "avatars");
-        if (!Directory.Exists(uploadsPath))
-        {
-            Directory.CreateDirectory(uploadsPath);
-        }
-
-        // Delete old avatar if exists
-        if (!string.IsNullOrEmpty(user.AvatarUrl))
-        {
-            var oldAvatarPath = Path.Combine(_environment.WebRootPath, user.AvatarUrl.TrimStart('/'));
-            if (System.IO.File.Exists(oldAvatarPath))
-            {
-                System.IO.File.Delete(oldAvatarPath);
-            }
-        }
-
-        // Generate unique filename
-        var fileName = $"{userId}_{Guid.NewGuid()}{fileExtension}";
-        var filePath = Path.Combine(uploadsPath, fileName);
-
-        // Save file
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await avatarFile.CopyToAsync(stream);
-        }
-
-        // Update user avatar URL
-        user.AvatarUrl = $"/uploads/avatars/{fileName}";
-        await _context.SaveChangesAsync();
+        if (!success)
+            return Json(new { success = false, message = errorMessage });
 
         // Re-issue auth cookie so header avatar updates immediately
-        await RefreshUserSignInAsync(user);
+        var user = await _userService.GetUserByIdAsync(userId);
+        if (user != null)
+            await _userService.RefreshUserSignInAsync(user, HttpContext);
 
-        return Json(new { success = true, avatarUrl = user.AvatarUrl });
+        return Json(new { success = true, avatarUrl });
     }
 
     [HttpPost]
@@ -252,9 +180,7 @@ public class UserController : Controller
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int userId))
-        {
             return RedirectToAction("Login", "Authentication");
-        }
 
         // Simple confirmation check - user must type "DELETE" to confirm
         if (confirmText != "DELETE")
@@ -263,26 +189,12 @@ public class UserController : Controller
             return RedirectToAction("Profile");
         }
 
-        var user = await _context.Users.FindAsync(userId);
-        if (user == null)
+        var deleted = await _userService.DeleteAccountAsync(userId, _environment.WebRootPath);
+        if (!deleted)
         {
             TempData["Error"] = "User not found.";
             return RedirectToAction("Profile");
         }
-
-        // Delete avatar file if exists
-        if (!string.IsNullOrEmpty(user.AvatarUrl))
-        {
-            var avatarPath = Path.Combine(_environment.WebRootPath, user.AvatarUrl.TrimStart('/'));
-            if (System.IO.File.Exists(avatarPath))
-            {
-                System.IO.File.Delete(avatarPath);
-            }
-        }
-
-        // Delete user from database
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
 
         // Sign out user
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);

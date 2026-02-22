@@ -1,8 +1,9 @@
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Group4_ReadingComicWeb.Services.Contracts;
 using MimeKit;
 
-namespace Group4_ReadingComicWeb.Services;
+namespace Group4_ReadingComicWeb.Services.Implementations;
 
 public class EmailSender : IEmailSender
 {

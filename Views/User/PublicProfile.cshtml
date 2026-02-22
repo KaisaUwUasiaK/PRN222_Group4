@@ -1,0 +1,186 @@
+@model Group4_ReadingComicWeb.ViewModels.PublicProfileViewModel
+@{
+    ViewData["Title"] = $"{Model.User.Username}'s Wall";
+    var avatarUrl = !string.IsNullOrEmpty(Model.User.AvatarUrl) 
+        ? Model.User.AvatarUrl 
+        : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(Model.User.Username)}&background=6366f1&color=fff&size=160";
+    
+    // Placeholder cover image
+    var coverUrl = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop";
+    
+    var currentStatus = Model.User.Status;
+    var isOnline = currentStatus == Group4_ReadingComicWeb.Models.Enum.AccountStatus.Online;
+    var isBanned = currentStatus == Group4_ReadingComicWeb.Models.Enum.AccountStatus.Banned;
+    
+    var statusClass = isBanned ? "banned" : (isOnline ? "online" : "offline");
+    var statusDisplay = isBanned ? "Permanently Banned" : (isOnline ? "Online Now" : "Currently Offline");
+    var statusIcon = isBanned ? "ph-prohibit" : "ph-circle";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/profile.css">
+}
+
+<div class="profile-container">
+    <!-- Hero / Cover -->
+    <section class="profile-hero">
+        <img src="@coverUrl" alt="Cover" class="profile-cover">
+        <div class="profile-hero-overlay"></div>
+        
+        <div class="container relative">
+            <div class="profile-avatar-wrapper">
+                <div class="profile-avatar-container">
+                    <img src="@avatarUrl" alt="@Model.User.Username" class="profile-avatar-main">
+                    <div class="status-indicator @statusClass" 
+                         title="@currentStatus"></div>
+                </div>
+                
+                <div class="profile-info-header">
+                    <h1 class="profile-username">@Model.User.Username</h1>
+                    <div class="profile-meta-row">
+                        <div class="profile-meta-item">
+                            <i class="ph ph-calendar"></i>
+                            <span>@Model.JoinedDate</span>
+                        </div>
+                        <div class="profile-meta-item">
+                            <i class="ph @statusIcon @(isBanned ? "text-danger" : (isOnline ? "text-accent" : "text-muted"))"
+                               @(isBanned ? "style=color:var(--color-danger)" : "")></i>
+                            <span @(isBanned ? "style=color:var(--color-danger)" : "")>@statusDisplay</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="profile-content-grid">
+            <!-- Sidebar -->
+            <aside class="profile-sidebar">
+                <div class="profile-sidebar-card">
+                    <h3 class="sidebar-title">
+                        <i class="ph ph-info text-primary"></i> About
+                    </h3>
+                    <p class="profile-bio">
+                        @(string.IsNullOrEmpty(Model.User.Bio) ? "This user hasn't added a bio yet." : Model.User.Bio)
+                    </p>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <span class="stat-value">@Model.TotalComicsCount</span>
+                            <span class="stat-label">Comics</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-value">@Model.TotalViewsCount</span>
+                            <span class="stat-label">Total Views</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="profile-main-content">
+                <section>
+                    <h2 class="content-section-title">
+                        <i class="ph ph-books text-primary"></i> Authored Comics
+                    </h2>
+                    
+                    <div class="comics-main-card">
+                        @if (Model.AuthoredComics.Any())
+                        {
+                            <div class="comic-grid">
+                                @foreach (var comic in Model.AuthoredComics)
+                                {
+                                    <a href="@Url.Action("Details", "Home", new { id = comic.ComicId })" class="comic-card">
+                                        <div class="card-image-wrapper">
+                                            <img src="@comic.CoverImage" alt="@comic.Title" class="card-image" onerror="this.src='/images/placeholder-comic.jpg'">
+                                            <div class="card-overlay">
+                                                <i class="ph-fill ph-play text-primary" style="font-size: 2.5rem;"></i>
+                                            </div>
+                                        </div>
+                                        <div class="card-title">@comic.Title</div>
+                                        <div class="card-meta">
+                                            <span class="flex items-center gap-2">
+                                                <i class="ph ph-eye"></i> @comic.ViewCount views
+                                            </span>
+                                        </div>
+                                    </a>
+                                }
+                            </div>
+
+                            @if (Model.TotalPages > 1)
+                            {
+                                <div class="pagination-container">
+                                    <a href="@Url.Action("PublicProfile", new { id = Model.User.UserId, page = Model.CurrentPage - 1 })" 
+                                       class="pagination-btn @(!Model.HasPreviousPage ? "disabled" : "")">
+                                        <i class="ph ph-caret-left"></i> Previous
+                                    </a>
+                                    
+                                    <div class="pagination-info">
+                                        Page <span class="current">@Model.CurrentPage</span> of <span>@Model.TotalPages</span>
+                                    </div>
+                                    
+                                    <a href="@Url.Action("PublicProfile", new { id = Model.User.UserId, page = Model.CurrentPage + 1 })" 
+                                       class="pagination-btn @(!Model.HasNextPage ? "disabled" : "")">
+                                        Next <i class="ph ph-caret-right"></i>
+                                    </a>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="bg-surface rounded-md p-16 text-center border border-dashed border-color" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 40px 0;">
+                                <i class="ph ph-ghost text-muted" style="font-size: 4rem; margin: 1.5rem;"></i>
+                                <p class="text-secondary" style="font-size: 1.1rem;">This user hasn't published any comics yet.</p>
+                                <p class="text-muted" style="font-size: 0.9rem; margin: 1.5rem;">Check back later for updates!</p>
+                            </div>
+                        }
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof statusConnection !== 'undefined') {
+                const profileUserId = @Model.User.UserId;
+                const statusIndicator = document.querySelector('.status-indicator');
+                const statusText = document.querySelector('.profile-meta-item:nth-child(2) span');
+                const statusIcon = document.querySelector('.profile-meta-item:nth-child(2) i');
+
+                statusConnection.on("UserStatusChanged", function(userId, status) {
+                    if (userId === profileUserId) {
+                        console.log("Status update received:", userId, status);
+                        
+                        // Update indicator color
+                        statusIndicator.classList.remove('online', 'offline', 'banned');
+                        statusIndicator.classList.add(status.toLowerCase());
+                        
+                        // Update title/tooltip
+                        statusIndicator.title = status;
+
+                        // Update text and icon
+                        if (status === 'Online') {
+                            statusText.textContent = "Online Now";
+                            statusIcon.classList.remove('text-muted');
+                            statusIcon.classList.add('text-accent');
+                        } else if (status === 'Offline') {
+                            statusText.textContent = "Currently Offline";
+                            statusIcon.classList.remove('text-accent');
+                            statusIcon.classList.add('text-muted');
+                        } else if (status === 'Banned') {
+                            statusText.textContent = "Permanently Banned";
+                            statusText.style.color = "var(--color-danger)";
+                            statusIcon.style.color = "var(--color-danger)";
+                            statusIcon.classList.remove('ph-circle');
+                            statusIcon.classList.add('ph-prohibit');
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+}

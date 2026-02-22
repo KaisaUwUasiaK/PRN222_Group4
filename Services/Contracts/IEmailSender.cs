@@ -1,4 +1,4 @@
-namespace Group4_ReadingComicWeb.Services;
+namespace Group4_ReadingComicWeb.Services.Implementations;
 
 public interface IEmailSender
 {
