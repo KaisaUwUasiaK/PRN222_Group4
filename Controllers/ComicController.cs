@@ -1,4 +1,5 @@
 ﻿using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models.Enum;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,7 +15,7 @@ namespace Group4_ReadingComicWeb.Controllers
         }
         public async Task<IActionResult> Index()
         {
-            var allComics = await _context.Comics.Where(c => c.Status == "OnWorking" && c.Status == "Completed").ToListAsync();
+            var allComics = await _context.Comics.Where(c => c.Status == ComicStatus.OnWorking.ToString() || c.Status == ComicStatus.Completed.ToString()).ToListAsync();
             return View(allComics);
         }
         public async Task<IActionResult> Detail(int id)
