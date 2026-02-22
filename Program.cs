@@ -34,7 +34,11 @@ namespace Group4_ReadingComicWeb
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddScoped<IModerationService, ModerationService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IHomeService, HomeService>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IComicService, ComicService>();
+            builder.Services.AddScoped<IPersonalComicService, PersonalComicService>();
+
             builder.Services.AddScoped<IAdminService, AdminService>();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSignalR();
