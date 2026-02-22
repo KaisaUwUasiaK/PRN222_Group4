@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Models.Enum;
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,22 @@ namespace Group4_ReadingComicWeb.Controllers
             _environment = environment;
         }
 
+        public IActionResult Index()
+        {
+            // Check if user is authenticated and redirect based on role
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
+                
+                if (roleClaim == "Admin")
+                {
+                    return RedirectToAction("Dashboard", "Admin");
+                }
+                // For regular users, stay on Home Index
+            }
+            
+            return View();
+        }
 
     public async Task<IActionResult> Index()
     {

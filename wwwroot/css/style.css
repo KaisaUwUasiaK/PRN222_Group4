@@ -478,3 +478,29 @@ h6 {
     background-color: var(--border-color);
     margin: 4px 0;
 }
+
+/* Badges */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.badge-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+}
+
+.badge-online  { background: rgba(16,185,129,0.12); color: #34D399; }
+.badge-offline { background: rgba(100,116,139,0.15); color: #94A3B8; }
+.badge-banned  { background: rgba(244,63,94,0.12);  color: #FB7185; }
+.badge-success { background: rgba(16,185,129,0.12); color: #34D399; }
+.badge-warning { background: rgba(245,158,11,0.15); color: #FBBF24; }
+.badge-danger  { background: rgba(244,63,94,0.12);  color: #FB7185; }
+.badge-info    { background: rgba(59,130,246,0.12); color: #60A5FA; }
