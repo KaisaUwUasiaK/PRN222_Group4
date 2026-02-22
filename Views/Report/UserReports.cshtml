@@ -1,0 +1,213 @@
+@using Group4_ReadingComicWeb.Models.Enum
+@model List<Report>
+
+@{
+    ViewData["Title"] = "User Reports";
+    ViewData["Breadcrumb"] = "User Reports";
+    Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
+}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>User Reports</h1>
+        <p>Manage and review user reports submitted by community members.</p>
+    </div>
+</div>
+
+<!-- Reports Table -->
+<div class="data-card">
+    <div class="data-card-header">
+        <h3 class="data-card-title">Pending Reports</h3>
+        <span class="badge" style="background: rgba(244,63,94,0.2); color: #FB7185;">
+            @Model.Count
+        </span>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Reporter</th>
+                        <th>Target User</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var report in Model)
+                    {
+                        <tr>
+                            <td style="font-weight: 500;">@report.Reporter?.Username ?? "Unknown"</td>
+                            <td style="font-weight: 500;">@report.TargetUser?.Username ?? "Unknown"</td>
+                            <td>@report.Reason</td>
+                            <td>
+                                <span class="badge badge-@(report.Status == ReportStatus.Pending ? "warning" : report.Status == ReportStatus.Resolved ? "success" : "danger")">
+                                    <span class="badge-dot" style="background: @(report.Status == ReportStatus.Pending ? "#FBBF24" : report.Status == ReportStatus.Resolved ? "#34D399" : "#EF4444");"></span>
+                                    @report.Status
+                                </span>
+                            </td>
+                            <td>@report.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <a href="@Url.Action("Details", "Report", new { id = report.ReportId })" 
+                                   class="action-btn" style="color: var(--color-primary); border-color: rgba(124,58,237,0.3);">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div style="padding: 3rem 1rem; text-align: center;">
+            <i class="ph ph-check-circle" style="font-size: 3rem; color: var(--color-accent); margin-bottom: 1rem; display: block;"></i>
+            <p style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">No pending reports!</p>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">All reports have been reviewed.</p>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        /* Page Header */
+        .page-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .page-header-left h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .page-header-left p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Data Card */
+        .data-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .data-card-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .data-card-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table thead th {
+            text-align: left;
+            padding: 10px 16px;
+            background: var(--bg-main);
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.7rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table tbody tr {
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.2s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: var(--bg-main);
+        }
+
+        .data-table tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        .data-table td {
+            padding: 12px 16px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: var(--radius-full);
+            font-size: 0.68rem;
+            font-weight: 600;
+            width: fit-content;
+        }
+
+        .badge-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #F59E0B;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10B981;
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #EF4444;
+        }
+
+        /* Action Button */
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 10px;
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            background: transparent;
+            border-radius: var(--radius-sm);
+            color: var(--color-primary);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            gap: 4px;
+        }
+
+        .action-btn:hover {
+            background: rgba(124, 58, 237, 0.1);
+            border-color: var(--color-primary);
+        }
+    </style>
+}

@@ -72,7 +72,6 @@ namespace Group4_ReadingComicWeb.Controllers
                 comic.CreatedAt = DateTime.Now;
                 comic.Status = "Pending";
 
-                // Save cover image with a unique GUID filename to avoid collisions
                 var fileName = Guid.NewGuid().ToString() + Path.GetExtension(coverImage!.FileName);
                 var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "covers");
 
@@ -88,7 +87,6 @@ namespace Group4_ReadingComicWeb.Controllers
                 _context.Comics.Add(comic);
                 await _context.SaveChangesAsync();
 
-                // Save selected tags as ComicTag join records
                 if (selectedTags != null)
                 {
                     foreach (var tagId in selectedTags)
@@ -118,8 +116,7 @@ namespace Group4_ReadingComicWeb.Controllers
         }
 
         /// <summary>
-        /// Creates a new chapter for a comic. Saves uploaded page images to disk,
-        /// sorted by filename to preserve page order. Folder structure: /uploads/comic-{id}/chap-{n}/
+        
         /// </summary>
         [HttpPost]
         public async Task<IActionResult> CreateChapter(int comicId, int chapterNumber, string title, List<IFormFile> pages)
@@ -128,7 +125,14 @@ namespace Group4_ReadingComicWeb.Controllers
             var comic = await _context.Comics.FirstOrDefaultAsync(c => c.ComicId == comicId && c.AuthorId == userId);
 
             if (comic == null) return Forbid();
+            bool isChapterExists = await _context.Chapters
+                .AnyAsync(ch => ch.ComicId == comicId && ch.ChapterNumber == chapterNumber);
 
+            if (isChapterExists)
+            {
+                TempData["ErrorMessage"] = "Chương số này đã tồn tại trong bộ truyện.";
+                return RedirectToAction("Chapters", new { id = comicId });
+            }
             string wwwRootPath = _environment.WebRootPath;
             string folderName = $"comic-{comicId}/chap-{chapterNumber}";
             string folderPath = Path.Combine(wwwRootPath, "uploads", folderName);
@@ -141,20 +145,20 @@ namespace Group4_ReadingComicWeb.Controllers
             if (pages != null && pages.Count > 0)
             {
                 var sortedPages = pages.OrderBy(f => f.FileName).ToList();
+                List<string> savedFileNames = new List<string>();
 
                 for (int i = 0; i < sortedPages.Count; i++)
                 {
                     var file = sortedPages[i];
-
                     string extension = Path.GetExtension(file.FileName);
                     string newFileName = $"page-{(i + 1):000}{extension}";
-
                     string filePath = Path.Combine(folderPath, newFileName);
 
                     using (var stream = new FileStream(filePath, FileMode.Create))
                     {
                         await file.CopyToAsync(stream);
                     }
+                    savedFileNames.Add(newFileName);
                 }
             }
 

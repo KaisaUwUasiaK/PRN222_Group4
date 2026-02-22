@@ -1,0 +1,191 @@
+﻿@using System.IO 
+@model Group4_ReadingComicWeb.Models.Chapter
+
+@{
+    Layout = null;
+    var prevChapterId = ViewBag.PrevChapterId;
+    var nextChapterId = ViewBag.NextChapterId;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@Model.Comic.Title - Chương @Model.ChapterNumber</title>
+
+    <script src="https://unpkg.com/phosphor-icons"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        :root {
+            --bg-reader: #0a0a0a;
+            --nav-bg: rgba(18, 18, 18, 0.95);
+            --primary: #3b82f6;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--bg-reader);
+            color: #ececec;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .reader-nav {
+            background: var(--nav-bg);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comic-image {
+            display: block;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            height: auto;
+        }
+
+        .btn-nav {
+            padding: 8px 20px;
+            border-radius: 6px;
+            background: #252525;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .btn-nav:hover:not(:disabled) {
+                background: #333;
+                color: var(--primary);
+            }
+
+            .btn-nav:disabled {
+                opacity: 0.3;
+                cursor: not-allowed;
+            }
+
+        #scrollTop {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: none;
+            place-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="reader-nav sticky top-0 z-50 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <a href="@Url.Action("Detail", "Comic", new { id = Model.ComicId })" class="hover:text-primary transition">
+                    <i class="ph ph-arrow-left text-xl"></i>
+                </a>
+                <div>
+                    <h1 class="font-bold text-sm md:text-base truncate max-w-[150px] md:max-w-md">@Model.Comic.Title</h1>
+                    <p class="text-xs text-blue-400">Chương @Model.ChapterNumber: @Model.Title</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 md:gap-4">
+                @if (prevChapterId != null)
+                {
+                    <a href="@Url.Action("Read", "Comic", new { id = prevChapterId })" class="btn-nav text-xs md:text-sm">
+                        <i class="ph ph-caret-left"></i> <span class="hidden md:inline">Trước</span>
+                    </a>
+                }
+                else
+                {
+                    <button class="btn-nav text-xs md:text-sm" disabled><i class="ph ph-caret-left"></i></button>
+                }
+
+                @if (nextChapterId != null)
+                {
+                    <a href="@Url.Action("Read", "Comic", new { id = nextChapterId })" class="btn-nav text-xs md:text-sm text-white bg-blue-600 hover:bg-blue-500">
+                        <span class="hidden md:inline">Tiếp</span> <i class="ph ph-caret-right"></i>
+                    </a>
+                }
+                else
+                {
+                    <button class="btn-nav text-xs md:text-sm" disabled><i class="ph ph-caret-right"></i></button>
+                }
+            </div>
+        </div>
+    </nav>
+
+    <main class="content-area py-4">
+        <div class="flex flex-col">
+            @{
+                var currentDir = System.IO.Directory.GetCurrentDirectory();
+                var relativePath = Model.Path.TrimStart('/');
+                var folderPath = System.IO.Path.Combine(currentDir, "wwwroot", relativePath);
+
+                if (System.IO.Directory.Exists(folderPath))
+                {
+                    var imageFiles = System.IO.Directory.GetFiles(folderPath)
+                    .Where(f => f.EndsWith(".jpg") || f.EndsWith(".png") || f.EndsWith(".jpeg") || f.EndsWith(".webp"))
+                    .Select(System.IO.Path.GetFileName)
+                    .OrderBy(f => f);
+
+                    foreach (var fileName in imageFiles)
+                    {
+                        var cleanPath = Model.Path.EndsWith("/") ? Model.Path : Model.Path + "/";
+                        var imgSrc = $"{cleanPath}{fileName}";
+                        <img src="@imgSrc" class="comic-image" loading="lazy" onerror="this.style.display='none'" />
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-20">
+                        <p class="text-red-500">
+                            Error: Physical image folder not found!
+                        </p>
+                        <p class="text-gray-500 text-xs">Path: @folderPath</p>
+                    </div>
+                }
+            }
+        </div>
+    </main>
+    <div class="container mx-auto py-10 px-4 flex justify-center gap-6 border-t border-white/5">
+        @if (prevChapterId != null)
+        {
+            <a href="@Url.Action("Read", "Comic", new { id = prevChapterId })" class="btn-nav border border-white/10">
+                Previous chapter
+            </a>
+        }
+        <a href="@Url.Action("Detail", "Comic", new { id = Model.ComicId })" class="btn-nav border border-white/10">
+            Catalogue
+        </a>
+        @if (nextChapterId != null)
+        {
+            <a href="@Url.Action("Read", "Comic", new { id = nextChapterId })" class="btn-nav bg-blue-600 text-white">
+                Next chapter
+            </a>
+        }
+    </div>
+
+    <button id="scrollTop" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+        <i class="ph-bold ph-caret-up"></i>
+    </button>
+
+    <script>
+        window.onscroll = function() {
+            let btn = document.getElementById("scrollTop");
+            if (document.body.scrollTop > 500 || document.documentElement.scrollTop > 500) {
+                btn.style.display = "grid";
+            } else {
+                btn.style.display = "none";
+            }
+        };
+    </script>
+
+</body>
+</html>

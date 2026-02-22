@@ -1,0 +1,174 @@
+﻿@model Group4_ReadingComicWeb.Models.Comic
+
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+@section Styles {
+    <style>
+        .hero-banner {
+            position: relative;
+            height: 450px;
+            display: flex;
+            align-items: flex-end;
+            overflow: hidden;
+            background-color: #0b0c0f;
+        }
+
+        .hero-banner-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            filter: brightness(0.3) blur(10px);
+            transform: scale(1.1);
+        }
+
+        .hero-content-wrapper {
+            position: relative;
+            z-index: 1;
+            padding-bottom: 3rem;
+            width: 100%;
+            background: linear-gradient(to top, #0b0c0f 0%, transparent 100%);
+        }
+
+        .comic-poster {
+            width: 240px;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chapter-list-container {
+            background-color: #182939;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chapter-link {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s;
+            text-decoration: none;
+            color: white;
+        }
+
+            .chapter-link:last-child {
+                border-bottom: none;
+            }
+
+            .chapter-link:hover {
+                background-color: rgba(99, 102, 241, 0.05); 
+                padding-left: 2rem;
+            }
+
+        .tag-status {
+            background: var(--primary-color, #6366f1);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .text-comic {
+            margin-left: 10px;
+            display : flex;
+            flex-direction:column;
+            gap: 10px;
+        }
+    </style>
+}
+
+<div style="background-color: #182939; min-h-screen;">
+    <div class="hero-banner">
+        <img src="@Model.CoverImage" class="hero-banner-bg" alt="Blur Background">
+
+        <div class="hero-content-wrapper">
+            <div class="container mx-auto px-6">
+                <div class="flex flex-col md:flex-row items-end gap-8">
+                    <div class="hidden md:block shrink-0">
+                        <img src="@Model.CoverImage" class="comic-poster" alt="@Model.Title">
+                    </div>
+
+                    <div class="flex-1 text-white">
+                        <div class="text-comic">
+                        <div class="flex items-center gap-3 mb-4">
+                            
+                            <span class="tag-status">@Model.Status</span>
+                            <div class="flex gap-2">
+                                @foreach (var ct in Model.ComicTags)
+                                {
+                                    <span class="text-xs font-medium px-2 py-1 bg-white/10 rounded border border-white/5">
+                                        #@ct.Tag.TagName
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                            <h1 class="text-4xl md:text-5xl font-bold mb-4" style="font-family: var(--font-heading);">@Model.Title</h1>
+                            <p class="text-gray-400 text-lg line-clamp-3 mb-6 max-w-3xl">@Model.Description</p>
+
+                            <div class="flex gap-4">
+                                @if (Model.Chapters != null && Model.Chapters.Any())
+                                {
+                                    var firstChapterId = Model.Chapters.OrderBy(c => c.ChapterNumber).First().ChapterId;
+                                    <a href="@Url.Action("Read", "Comic", new { id = firstChapterId })" class="btn btn-primary px-8 py-3">
+                                        <i class="ph-fill ph-play mr-2"></i> READ NOW
+                                    </a>
+                                }
+                                <button class="btn btn-ghost bg-white/5 hover:bg-white/10 border-white/10 text-white px-6">
+                                    <i class="ph ph-heart mr-2"></i> Favorite
+                                </button>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-6 py-12">
+        <div class="flex justify-between items-center mb-8 border-l-4 border-indigo-500 pl-4">
+            <h2 class="text-2xl font-bold text-white">Chapters List</h2>
+            <span class="text-muted font-medium">@Model.Chapters.Count Chapters</span>
+        </div>
+
+        <div class="chapter-list-container">
+            @if (Model.Chapters != null && Model.Chapters.Any())
+            {
+                foreach (var chapter in Model.Chapters.OrderByDescending(c => c.ChapterNumber))
+                {
+                    <a href="@Url.Action("Read", "Comic", new { id = chapter.ChapterId })" class="chapter-link group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400 font-bold group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                                @chapter.ChapterNumber
+                            </div>
+                            <div>
+                                <span class="font-semibold block">Chapter @chapter.ChapterNumber</span>
+                                <span class="text-xs text-muted">@chapter.Title</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-muted block mb-1">Uploaded</span>
+                            <span class="text-sm font-medium text-gray-300">@chapter.CreatedAt.ToString("dd MMM, yyyy")</span>
+                        </div>
+                    </a>
+                }
+            }
+            else
+            {
+                <div class="p-20 text-center text-muted">
+                    <i class="ph ph-mask-happy text-5xl mb-4 opacity-20"></i>
+                    <p>No chapters available yet. Coming soon!</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
