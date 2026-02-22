@@ -1,9 +1,6 @@
 using Group4_ReadingComicWeb.Models;
-using Group4_ReadingComicWeb.Models.Enum;
 using Group4_ReadingComicWeb.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
 
 namespace Group4_ReadingComicWeb.Controllers
 {
@@ -15,17 +12,25 @@ namespace Group4_ReadingComicWeb.Controllers
         {
             _homeService = homeService;
         }
-        //Get trendiing comic and new comics
+
         public async Task<IActionResult> Index()
-    {
-        var trendingComic = await _homeService.GetTrendingComicAsync();
+        {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var roleClaim = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
 
-        var newComics = await _homeService.GetNewComicsAsync();
+                if (roleClaim == "Admin")
+                {
+                    return RedirectToAction("Dashboard", "Admin");
+                }
+            }
 
-        ViewBag.NewComics = newComics;
-        return View(trendingComic);
+            var trendingComic = await _homeService.GetTrendingComicAsync();
+            var newComics = await _homeService.GetNewComicsAsync();
+
+            ViewBag.NewComics = newComics;
+
+            return View(trendingComic);
+        }
     }
-
-
-}
 }

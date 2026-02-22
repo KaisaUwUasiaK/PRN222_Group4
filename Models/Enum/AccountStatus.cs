@@ -4,6 +4,7 @@ namespace Group4_ReadingComicWeb.Models.Enum
     {
         Offline = 0,
         Online = 1,
-        Banned = 2
+        Banned = 2,
+        Suspended = 3
     }
 }

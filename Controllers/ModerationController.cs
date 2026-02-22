@@ -1,4 +1,4 @@
-using Group4_ReadingComicWeb.Models;
+﻿using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Services.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -6,40 +6,40 @@ using Microsoft.AspNetCore.Mvc;
 namespace Group4_ReadingComicWeb.Controllers
 {
     [Authorize(Roles = "Moderator")]
+    [Route("Moderation")]
     public class ModerationController : Controller
     {
         private readonly IModerationService _moderationService;
+        private readonly IReportService _reportService; // ← Thêm này
 
-        public ModerationController(IModerationService moderationService)
+        public ModerationController(
+            IModerationService moderationService,
+            IReportService reportService) // ← Thêm này
         {
             _moderationService = moderationService;
+            _reportService = reportService; // ← Thêm này
         }
 
-        // GET: Moderation/Dashboard
+        // GET: /Moderation/Dashboard
+        [HttpGet("Dashboard")]
         public async Task<IActionResult> Dashboard()
         {
-            var pendingCount = await _moderationService.GetPendingCountAsync();
-            var approvedCount = await _moderationService.GetApprovedCountThisMonthAsync();
-            var rejectedCount = await _moderationService.GetRejectedCountThisMonthAsync();
-            var hiddenCount = await _moderationService.GetHiddenCountAsync();
-            var pendingModerations = await _moderationService.GetPendingComicsAsync();
-
-            ViewBag.PendingCount = pendingCount;
-            ViewBag.ApprovedCount = approvedCount;
-            ViewBag.RejectedCount = rejectedCount;
-            ViewBag.HiddenCount = hiddenCount;
-
-            return View(pendingModerations);
+            var pendingComics = await _moderationService.GetPendingComicsAsync();
+            var pendingUserReportsCount = await _reportService.GetPendingUserReportsCountAsync();
+            ViewBag.PendingUserReportsCount = pendingUserReportsCount;
+            return View(pendingComics);
         }
 
-        // GET: Moderation/Pending
+        // GET: /Moderation/Pending
+        [HttpGet("Pending")]
         public async Task<IActionResult> Pending()
         {
             var pendingModerations = await _moderationService.GetPendingComicsAsync();
             return View(pendingModerations);
         }
 
-        // GET: Moderation/Review/5
+        // GET: /Moderation/Review/5
+        [HttpGet("Review/{id}")]
         public async Task<IActionResult> Review(int id)
         {
             var moderation = await _moderationService.GetModerationByIdAsync(id);
@@ -52,11 +52,7 @@ namespace Group4_ReadingComicWeb.Controllers
             return View(moderation);
         }
 
-        /// <summary>
-        /// Approves a pending comic moderation request.
-        /// Extracts the moderator's ID from claims and delegates to ModerationService.
-        /// </summary>
-        [HttpPost]
+        [HttpPost("Approve")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Approve(int id)
         {
@@ -72,11 +68,7 @@ namespace Group4_ReadingComicWeb.Controllers
             return RedirectToAction("Pending");
         }
 
-        /// <summary>
-        /// Rejects a pending comic moderation request with a mandatory reason.
-        /// If reason is empty, re-renders the Review page with a validation error.
-        /// </summary>
-        [HttpPost]
+        [HttpPost("Reject")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Reject(int id, string reason)
         {
@@ -102,11 +94,7 @@ namespace Group4_ReadingComicWeb.Controllers
             return RedirectToAction("Pending");
         }
 
-        /// <summary>
-        /// Hides a previously approved comic (e.g., due to a policy violation).
-        /// Requires a mandatory reason. Re-renders Review page if reason is missing.
-        /// </summary>
-        [HttpPost]
+        [HttpPost("Hide")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Hide(int id, string reason)
         {

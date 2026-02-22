@@ -16,6 +16,7 @@ namespace Group4_ReadingComicWeb.Models
         public DbSet<ComicTag> ComicTags { get; set; }
         public DbSet<ComicModeration> ComicModerations { get; set; }
         public DbSet<Log> Logs => Set<Log>();
+        public DbSet<Report> Reports => Set<Report>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -84,6 +85,25 @@ namespace Group4_ReadingComicWeb.Models
                 .WithMany(u => u.Logs)
                 .HasForeignKey(l => l.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Report entity configuration
+            modelBuilder.Entity<Report>()
+                .HasOne(r => r.Reporter)
+                .WithMany()
+                .HasForeignKey(r => r.ReporterId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Report>()
+                .HasOne(r => r.TargetUser)
+                .WithMany()
+                .HasForeignKey(r => r.TargetUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Report>()
+                .HasOne(r => r.ProcessedBy)
+                .WithMany()
+                .HasForeignKey(r => r.ProcessedById)
+                .OnDelete(DeleteBehavior.SetNull);
 
             // Table configurations
             modelBuilder.Entity<Role>().ToTable("Role");

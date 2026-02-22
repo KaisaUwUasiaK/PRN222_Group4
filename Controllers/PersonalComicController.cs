@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Group4_ReadingComicWeb.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "User")]
     public class PersonalComicController : Controller
     {
         private readonly IPersonalComicService _comicService;

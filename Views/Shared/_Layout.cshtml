@@ -56,9 +56,13 @@
             <div class="flex items-center gap-4">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <a href="@Url.Action("Create", "PersonalComic")" class="btn btn-primary" style="text-decoration: none; color: white;">
-                        <i class="ph ph-upload-simple" style="margin-right: 8px;"></i> Upload
-                    </a>
+                    @* Hide Upload button for Moderator *@
+                    if (!User.IsInRole("Moderator"))
+                    {
+                        <a href="@Url.Action("Create", "PersonalComic")" class="btn btn-primary" style="text-decoration: none; color: white;">
+                            <i class="ph ph-upload-simple" style="margin-right: 8px;"></i> Upload
+                        </a>
+                    }
                     <button class="btn btn-ghost" style="padding: 8px;">
                         <i class="ph ph-bell" style="font-size: 1.25rem;"></i>
                     </button>
@@ -78,12 +82,23 @@
                                 </a>
                                 <div class="dropdown-divider"></div>
                             }
+                            @if (User.IsInRole("Moderator"))
+                            {
+                                <a href="@Url.Action("Dashboard", "Moderation")" class="dropdown-item">
+                                    <i class="ph ph-squares-four"></i> Mod Panel
+                                </a>
+                                <div class="dropdown-divider"></div>
+                            }
                             <a href="@Url.Action("Profile", "User")" class="dropdown-item">
                                 <i class="ph ph-user"></i> My Profile
                             </a>
-                            <a href="@Url.Action("Index", "PersonalComic")" class="dropdown-item">
-                                <i class="ph ph-books"></i> My Comics
-                            </a>
+                            @*Hide My Comics menu for Moderator*@
+                            @if (!User.IsInRole("Moderator"))
+                            {
+                                <a href="@Url.Action("Index", "PersonalComic")" class="dropdown-item">
+                                    <i class="ph ph-books"></i> My Comics
+                                </a>
+                            }
                             <div class="dropdown-divider"></div>
                             <a href="@Url.Action("Logout", "Authentication")" class="dropdown-item" style="color: var(--color-danger);">
                                 <i class="ph ph-sign-out"></i> Logout
