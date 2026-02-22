@@ -1,0 +1,122 @@
+﻿@model List<Group4_ReadingComicWeb.Models.SystemLog>
+
+@{
+    ViewData["Title"] = "System Logs";
+}
+
+<style>
+    .log-card {
+        background: #0f172a;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+
+    .log-table th {
+        background: #1e293b;
+        color: #fff;
+    }
+
+    .log-table td {
+        background: #111827;
+        color: #ddd;
+    }
+
+    .log-table tr:hover td {
+        background: #1f2937;
+    }
+
+    .filter-box input {
+        background: #1e293b;
+        border: none;
+        color: white;
+        padding: 6px 10px;
+        border-radius: 6px;
+    }
+
+    .btn-purple {
+        background: linear-gradient(45deg, #9333ea, #6366f1);
+        border: none;
+        color: white;
+        padding: 6px 14px;
+        border-radius: 6px;
+    }
+
+    .pagination a {
+        color: white;
+        padding: 6px 12px;
+        margin: 0 4px;
+        background: #1e293b;
+        border-radius: 6px;
+        text-decoration: none;
+    }
+
+    .pagination .active {
+        background: #9333ea;
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="log-card">
+
+        <h3 class="mb-3">📜 System Logs</h3>
+
+        <!-- FILTER -->
+        <form method="get" class="filter-box mb-3 d-flex gap-2 flex-wrap">
+            <input type="text" name="search" placeholder="Search username or action..."
+                   value="@ViewBag.Search" />
+
+            <input type="date" name="fromDate"
+                   value="@(ViewBag.FromDate != null ? ((DateTime)ViewBag.FromDate).ToString("yyyy-MM-dd") : "")" />
+
+            <input type="date" name="toDate"
+                   value="@(ViewBag.ToDate != null ? ((DateTime)ViewBag.ToDate).ToString("yyyy-MM-dd") : "")" />
+
+            <button type="submit" class="btn-purple">Filter</button>
+        </form>
+
+        <!-- TABLE -->
+        <table class="table log-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>Action</th>
+                    <th>Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Any())
+                {
+                    foreach (var log in Model)
+                    {
+                        <tr>
+                            <td>@log.Id</td>
+                            <td style="color:#a855f7">@log.Username</td>
+                            <td>@log.Action</td>
+                            <td>@log.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="text-center">No logs found</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- PAGINATION -->
+        <div class="pagination mt-3">
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <a class="@(i == ViewBag.CurrentPage ? "active" : "")"
+                   href="?page=@i&search=@ViewBag.Search&fromDate=@ViewBag.FromDate&toDate=@ViewBag.ToDate">
+                    @i
+                </a>
+            }
+        </div>
+
+    </div>
+</div>
