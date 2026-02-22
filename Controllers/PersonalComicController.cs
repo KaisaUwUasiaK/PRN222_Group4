@@ -1,26 +1,26 @@
 ﻿using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Linq;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
 
 namespace Group4_ReadingComicWeb.Controllers
 {
     [Authorize(Roles = "User")]
     public class PersonalComicController : Controller
     {
-        private readonly AppDbContext _context;
-        private readonly IWebHostEnvironment _environment;
+        private readonly IPersonalComicService _comicService;
 
-        public PersonalComicController(AppDbContext context, IWebHostEnvironment environment)
+        public PersonalComicController(IPersonalComicService comicService)
         {
-            _context = context;
-            _environment = environment;
+            _comicService = comicService;
         }
-        /// <summary>
-        /// Extracts the current authenticated user's ID from cookie claims.
-        /// Returns 0 if the claim is missing (should not happen for [Authorize] routes).
-        /// </summary>
+
+        //Get current user authorize to system
         private int GetCurrentUserId()
         {
             var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
@@ -29,25 +29,22 @@ namespace Group4_ReadingComicWeb.Controllers
             return 0;
         }
 
+        //Get comic uploaded by user
         public async Task<IActionResult> Index()
         {
-            var userId = GetCurrentUserId();
-            var comics = await _context.Comics
-                .Include(c => c.Chapters) 
-                .Where(c => c.AuthorId == userId)
-                .Where(c => c.Status != "Canceled" && c.Status != "Deleted")
-                .OrderByDescending(c => c.CreatedAt)
-                .ToListAsync();
-
+            var comics = await _comicService.GetUserComicsAsync(GetCurrentUserId());
             return View(comics);
         }
 
-        public IActionResult Create()
+        //Get tag list
+        public async Task<IActionResult> Create()
         {
-            ViewBag.Tags = _context.Tags.ToList();
+            ViewBag.Tags = await _comicService.GetAllTagsAsync();
             return View();
         }
 
+
+        //Upload comic
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Comic comic, int[] selectedTags, IFormFile coverImage)
@@ -62,137 +59,57 @@ namespace Group4_ReadingComicWeb.Controllers
 
             if (coverImage == null || coverImage.Length == 0)
             {
-              
                 ModelState.AddModelError("coverImage", "Please choose cover image!");
             }
 
+            //Handle uploaded file
             if (ModelState.IsValid)
             {
-                comic.AuthorId = GetCurrentUserId();
-                comic.CreatedAt = DateTime.Now;
-                comic.Status = "Pending";
-
-                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(coverImage!.FileName);
-                var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "covers");
-
-                if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
-
-                var filePath = Path.Combine(uploadPath, fileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await coverImage.CopyToAsync(stream);
-                }
-                comic.CoverImage = "/uploads/covers/" + fileName;
-
-                _context.Comics.Add(comic);
-                await _context.SaveChangesAsync();
-
-                if (selectedTags != null)
-                {
-                    foreach (var tagId in selectedTags)
-                    {
-                        _context.ComicTags.Add(new ComicTag { ComicId = comic.ComicId, TagId = tagId });
-                    }
-                    await _context.SaveChangesAsync();
-                }
-
+                await _comicService.CreateComicAsync(GetCurrentUserId(), comic, selectedTags, coverImage);
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Tags = _context.Tags.ToList();
+            ViewBag.Tags = await _comicService.GetAllTagsAsync();
             return View(comic);
         }
 
+        //Get chapter list
         public async Task<IActionResult> Chapters(int id)
         {
-            var userId = GetCurrentUserId();
-            var comic = await _context.Comics
-                .Include(c => c.Chapters.OrderBy(ch => ch.ChapterNumber))
-                .FirstOrDefaultAsync(c => c.ComicId == id && c.AuthorId == userId);
-
+            var comic = await _comicService.GetComicWithChaptersAsync(id, GetCurrentUserId());
             if (comic == null) return NotFound();
-
             return View(comic);
         }
 
-        /// <summary>
-        
-        /// </summary>
+
+        //Upload chapter
         [HttpPost]
         public async Task<IActionResult> CreateChapter(int comicId, int chapterNumber, string title, List<IFormFile> pages)
         {
-            var userId = GetCurrentUserId();
-            var comic = await _context.Comics.FirstOrDefaultAsync(c => c.ComicId == comicId && c.AuthorId == userId);
+            var result = await _comicService.CreateChapterAsync(GetCurrentUserId(), comicId, chapterNumber, title, pages);
 
-            if (comic == null) return Forbid();
-            bool isChapterExists = await _context.Chapters
-                .AnyAsync(ch => ch.ComicId == comicId && ch.ChapterNumber == chapterNumber);
-
-            if (isChapterExists)
+            if (!result.IsSuccess)
             {
-                TempData["ErrorMessage"] = "Chương số này đã tồn tại trong bộ truyện.";
+                if (result.ErrorMessage == "Forbidden") return Forbid();
+
+                TempData["ErrorMessage"] = result.ErrorMessage;
                 return RedirectToAction("Chapters", new { id = comicId });
             }
-            string wwwRootPath = _environment.WebRootPath;
-            string folderName = $"comic-{comicId}/chap-{chapterNumber}";
-            string folderPath = Path.Combine(wwwRootPath, "uploads", folderName);
-
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-
-            if (pages != null && pages.Count > 0)
-            {
-                var sortedPages = pages.OrderBy(f => f.FileName).ToList();
-                List<string> savedFileNames = new List<string>();
-
-                for (int i = 0; i < sortedPages.Count; i++)
-                {
-                    var file = sortedPages[i];
-                    string extension = Path.GetExtension(file.FileName);
-                    string newFileName = $"page-{(i + 1):000}{extension}";
-                    string filePath = Path.Combine(folderPath, newFileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await file.CopyToAsync(stream);
-                    }
-                    savedFileNames.Add(newFileName);
-                }
-            }
-
-            var chapter = new Chapter
-            {
-                ComicId = comicId,
-                ChapterNumber = chapterNumber,
-                Title = title,
-                Path = $"/uploads/{folderName}",
-                CreatedAt = DateTime.Now
-            };
-
-            _context.Chapters.Add(chapter);
-            await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Chapters), new { id = comicId });
         }
-       
+        //Get comic to update
         public async Task<IActionResult> Edit(int id)
         {
-            var userId = GetCurrentUserId();
-
-            var comic = await _context.Comics
-                .Include(c => c.ComicTags)
-                .FirstOrDefaultAsync(c => c.ComicId == id && c.AuthorId == userId);
-
+            var comic = await _comicService.GetComicForEditAsync(id, GetCurrentUserId());
             if (comic == null) return NotFound();
 
-            ViewBag.Tags = _context.Tags.ToList();
-
+            ViewBag.Tags = await _comicService.GetAllTagsAsync();
             ViewBag.SelectedTagIds = comic.ComicTags.Select(ct => ct.TagId).ToList();
 
             return View(comic);
         }
+        //Update comic
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -201,241 +118,71 @@ namespace Group4_ReadingComicWeb.Controllers
             ModelState.Remove("AuthorId");
             ModelState.Remove("Status");
             ModelState.Remove("CreatedAt");
-            ModelState.Remove("CoverImage"); 
+            ModelState.Remove("CoverImage");
             ModelState.Remove("Author");
-            ModelState.Remove("Chapters"); 
-            ModelState.Remove("ComicTags"); 
+            ModelState.Remove("Chapters");
+            ModelState.Remove("ComicTags");
+
             if (id != comic.ComicId) return NotFound();
-
-            var userId = GetCurrentUserId();
-
-            var existingComic = await _context.Comics
-                .Include(c => c.ComicTags)
-                .FirstOrDefaultAsync(c => c.ComicId == id && c.AuthorId == userId);
-
-            if (existingComic == null) return Forbid();
 
             if (ModelState.IsValid)
             {
-                existingComic.Title = comic.Title;
-                existingComic.Description = comic.Description;
-                existingComic.Status = "Pending";
+                bool success = await _comicService.EditComicAsync(GetCurrentUserId(), id, comic, selectedTags, coverImage);
+                if (!success) return Forbid();
 
-                if (coverImage != null)
-                {
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(coverImage.FileName);
-                    var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "covers");
-                    if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
-
-                    var filePath = Path.Combine(uploadPath, fileName);
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await coverImage.CopyToAsync(stream);
-                    }
-
-                    
-
-                    existingComic.CoverImage = "/uploads/covers/" + fileName;
-                }
-
-                var oldTags = _context.ComicTags.Where(ct => ct.ComicId == id);
-                _context.ComicTags.RemoveRange(oldTags);
-
-                if (selectedTags != null)
-                {
-                    foreach (var tagId in selectedTags)
-                    {
-                        _context.ComicTags.Add(new ComicTag { ComicId = id, TagId = tagId });
-                    }
-                }
-
-                await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Tags = _context.Tags.ToList();
+            ViewBag.Tags = await _comicService.GetAllTagsAsync();
             ViewBag.SelectedTagIds = selectedTags != null ? selectedTags.ToList() : new List<int>();
             return View(comic);
         }
-
-
-        /// <summary>
-        /// Soft-deletes a comic if it is in Pending status (sets to "Canceled").
-        /// Hard-deletes otherwise: removes cover image file, chapter folder, and DB record.
-        /// </summary>
+        //Remove comic
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            var userId = GetCurrentUserId();
-
-            var comic = await _context.Comics
-                .Include(c => c.Chapters) 
-                .Include(c => c.ComicTags) 
-                .FirstOrDefaultAsync(c => c.ComicId == id && c.AuthorId == userId);
-
-            if (comic == null)
-            {
-                return NotFound();
-            }
-
-            if (comic.Status == "Pending")
-            {
-                
-                comic.Status = "Canceled";
-            }
-            else
-            {
-                
-                if (!string.IsNullOrEmpty(comic.CoverImage))
-                {
-                    var coverPath = Path.Combine(_environment.WebRootPath, comic.CoverImage.TrimStart('/'));
-                    if (System.IO.File.Exists(coverPath))
-                    {
-                        System.IO.File.Delete(coverPath);
-                    }
-                }
-
-              
-                // Delete all chapter image folders for this comic
-                var comicFolderPath = Path.Combine(_environment.WebRootPath, "uploads", $"comic-{id}");
-                if (Directory.Exists(comicFolderPath))
-                {
-                    Directory.Delete(comicFolderPath, recursive: true);
-                }
-
-                _context.Comics.Remove(comic);
-            }
-
-            await _context.SaveChangesAsync();
+            bool success = await _comicService.DeleteComicAsync(GetCurrentUserId(), id);
+            if (!success) return NotFound();
 
             return RedirectToAction(nameof(Index));
         }
-        //Chapter
+
         public async Task<IActionResult> Read(int id)
         {
-            var userId = GetCurrentUserId();
+            var result = await _comicService.GetChapterForReadAsync(id, GetCurrentUserId());
+            if (result.Chapter == null) return NotFound();
 
-            var chapter = await _context.Chapters
-                .Include(c => c.Comic)
-                .FirstOrDefaultAsync(c => c.ChapterId == id && c.Comic.AuthorId == userId);
-
-            if (chapter == null) return NotFound();
-
-            var imageList = new List<string>();
-            if (!string.IsNullOrEmpty(chapter.Path))
-            {
-                string physicalPath = Path.Combine(_environment.WebRootPath, chapter.Path.TrimStart('/'));
-
-                if (Directory.Exists(physicalPath))
-                {
-                    var files = Directory.GetFiles(physicalPath)
-                        .Where(f => f.EndsWith(".jpg") || f.EndsWith(".png") || f.EndsWith(".jpeg") || f.EndsWith(".webp"))
-                        .OrderBy(f => f)
-                        .Select(f => Path.GetFileName(f));
-
-                    foreach (var fileName in files)
-                    {
-                        imageList.Add($"{chapter.Path}/{fileName}");
-                    }
-                }
-            }
-
-            ViewBag.Images = imageList;
-            return View(chapter);
+            ViewBag.Images = result.Images;
+            return View(result.Chapter);
         }
-
+        //Get chpater to update
         public async Task<IActionResult> EditChapter(int id)
         {
-            var userId = GetCurrentUserId();
-            var chapter = await _context.Chapters
-                .Include(c => c.Comic)
-                .FirstOrDefaultAsync(c => c.ChapterId == id && c.Comic.AuthorId == userId);
-
+            var chapter = await _comicService.GetChapterAsync(id, GetCurrentUserId());
             if (chapter == null) return NotFound();
 
             return View(chapter);
         }
-
+        //Update chapter
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditChapter(int id, Chapter model, List<IFormFile> newPages)
         {
-            var userId = GetCurrentUserId();
-            var chapter = await _context.Chapters
-                .Include(c => c.Comic)
-                .FirstOrDefaultAsync(c => c.ChapterId == id && c.Comic.AuthorId == userId);
+            bool success = await _comicService.EditChapterAsync(GetCurrentUserId(), id, model, newPages);
+            if (!success) return NotFound();
 
-            if (chapter == null) return NotFound();
-
-            chapter.ChapterNumber = model.ChapterNumber;
-            chapter.Title = model.Title;
-            // chapter.UpdatedAt = DateTime.Now;
-
-            if (newPages != null && newPages.Count > 0)
-            {
-                string physicalPath = Path.Combine(_environment.WebRootPath, chapter.Path.TrimStart('/'));
-
-                if (Directory.Exists(physicalPath))
-                {
-                    System.IO.DirectoryInfo di = new DirectoryInfo(physicalPath);
-                    foreach (FileInfo file in di.GetFiles())
-                    {
-                        file.Delete();
-                    }
-                }
-                else
-                {
-                    Directory.CreateDirectory(physicalPath);
-                }
-
-                var sortedPages = newPages.OrderBy(f => f.FileName).ToList();
-                for (int i = 0; i < sortedPages.Count; i++)
-                {
-                    var file = sortedPages[i];
-                    string extension = Path.GetExtension(file.FileName);
-                    string newFileName = $"page-{(i + 1):000}{extension}";
-                    string filePath = Path.Combine(physicalPath, newFileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await file.CopyToAsync(stream);
-                    }
-                }
-            }
-
-            await _context.SaveChangesAsync();
-            return RedirectToAction("Chapters", new { id = chapter.ComicId });
+            return RedirectToAction("Chapters", new { id = model.ComicId }); 
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteChapter(int id)
         {
-            var userId = GetCurrentUserId();
-            var chapter = await _context.Chapters
-                .Include(c => c.Comic)
-                .FirstOrDefaultAsync(c => c.ChapterId == id && c.Comic.AuthorId == userId);
-
-            if (chapter == null) return NotFound();
-
-            int comicId = chapter.ComicId; // Store before removal for redirect
-
-            // Delete the chapter's image folder from disk (recursive)
-            if (!string.IsNullOrEmpty(chapter.Path))
-            {
-                string physicalPath = Path.Combine(_environment.WebRootPath, chapter.Path.TrimStart('/'));
-                if (Directory.Exists(physicalPath))
-                {
-                    Directory.Delete(physicalPath, recursive: true);
-                }
-            }
-
-            _context.Chapters.Remove(chapter);
-            await _context.SaveChangesAsync();
+            var comicId = await _comicService.DeleteChapterAsync(GetCurrentUserId(), id);
+            if (comicId == null) return NotFound();
 
             return RedirectToAction("Chapters", new { id = comicId });
         }
     }
-
 }

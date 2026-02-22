@@ -15,28 +15,47 @@
         <h2 style="margin-bottom: 1.5rem;">Update Chapter</h2>
 
         <form asp-action="EditChapter" method="post" enctype="multipart/form-data">
+
+            <input type="hidden" asp-for="ChapterId" />
+            <input type="hidden" asp-for="ComicId" />
             <input type="hidden" name="id" value="@Model.ChapterId" />
 
-            <div class="grid grid-cols-2 gap-4" style="margin-bottom: 1.5rem;">
+            <div class="grid grid-cols-2 gap-2" style="margin-bottom: 1rem;">
                 <div>
-                    <label class="text-muted" style="font-size: 0.9rem;">Chapter Number</label>
-                    <input asp-for="ChapterNumber" class="search-input" style="width: 100%; border-radius: 6px;" required />
+                    <label class="text-muted" style="font-size: 0.9rem; margin-bottom: 4px; display: block;">Chapter Number</label>
+                    <input asp-for="ChapterNumber" class="search-input" style="width: 100%; border-radius: 6px; padding: 8px 12px;" placeholder="Ex: 1" required />
                 </div>
                 <div>
-                    <label class="text-muted" style="font-size: 0.9rem;">Chapter Name</label>
-                    <input asp-for="Title" class="search-input" style="width: 100%; border-radius: 6px;" required />
+                    <label class="text-muted" style="font-size: 0.9rem; margin-bottom: 4px; display: block;">Chapter Name</label>
+                    <input asp-for="Title" class="search-input" style="width: 100%; border-radius: 6px; padding: 8px 12px;" placeholder="Title..." />
                 </div>
             </div>
 
             <div style="margin-bottom: 1.5rem;">
-                <label class="text-muted" style="font-size: 0.9rem;">Upload Content</label>
-                <div style="border: 1px dashed var(--border-color); padding: 1rem; border-radius: 6px; margin-top: 5px;">
-                    <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 10px;">
-                        <i class="ph-fill ph-warning" style="color: #eab308;"></i>
-                        Warning: If you choose new image, <strong>old images will be deleted</strong> and replace with new images.
+                <label class="text-muted" style="font-size: 0.9rem; margin-bottom: 4px; display: block;">Content (Leave blank to keep old images)</label>
+                <input type="file" name="newPages" id="fileInput" class="search-input"
+                       multiple accept="image/*"
+                       style="width: 100%; border-radius: 6px; padding: 10px; margin-bottom: 12px;" />
+
+                <div style="background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 6px; padding: 12px;">
+                    <div class="flex items-center gap-2" style="margin-bottom: 6px;">
+                        <i class="ph-fill ph-warning-circle" style="color: #eab308; font-size: 1.1rem;"></i>
+                        <strong style="color: #eab308; font-size: 0.9rem;">Warning & Note:</strong>
+                    </div>
+
+                    <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 8px; line-height: 1.4; color: white">
+                        If you choose new images, <strong>old images will be deleted</strong> and replaced.<br />
+                        System sorts by <strong>file name</strong>. Please name with order (001.jpg, 002.jpg...).
                     </p>
-                    <input type="file" name="newPages" class="search-input" multiple accept="image/*" style="width: 100%;" />
+
+                    <div class="flex gap-4" style="font-size: 0.75rem; font-family: 'Noto Sans JP'; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px;">
+                        <div><span style="color: #22c55e;">✔</span> 001.jpg, 002.jpg</div>
+                        <div style="opacity: 0.3; border-left: 1px solid #fff;"></div>
+                        <div><span style="color: #ef4444;">✘</span> trang1.jpg, trang2.jpg</div>
+                    </div>
                 </div>
+
+                <div id="fileListPreview" style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted); max-height: 150px; overflow-y: auto; padding-right: 5px;"></div>
             </div>
 
             <div class="flex justify-between items-center" style="margin-top: 2rem;">
