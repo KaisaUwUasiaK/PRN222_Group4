@@ -6,7 +6,7 @@ using System.Security.Claims;
 
 namespace Group4_ReadingComicWeb.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "User")]
     public class PersonalComicController : Controller
     {
         private readonly AppDbContext _context;
