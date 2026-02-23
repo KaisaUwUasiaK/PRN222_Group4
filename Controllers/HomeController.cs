@@ -18,41 +18,34 @@ namespace Group4_ReadingComicWeb.Controllers
             _environment = environment;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             // Check if user is authenticated and redirect based on role
             if (User.Identity?.IsAuthenticated == true)
             {
                 var roleClaim = User.FindFirst(ClaimTypes.Role)?.Value;
-                
+
                 if (roleClaim == "Admin")
                 {
                     return RedirectToAction("Dashboard", "Admin");
                 }
                 // For regular users, stay on Home Index
             }
-            
-            return View();
+
+            var trendingComic = await _context.Comics
+                .Include(c => c.ComicTags).ThenInclude(ct => ct.Tag)
+                .Where(c => c.Status == ComicStatus.OnWorking.ToString() || c.Status == ComicStatus.Completed.ToString())
+                .OrderByDescending(c => c.ViewCount)
+                .FirstOrDefaultAsync();
+
+            var newComics = await _context.Comics
+                .Where(c => c.Status == ComicStatus.OnWorking.ToString() || c.Status == ComicStatus.Completed.ToString())
+                .OrderByDescending(c => c.CreatedAt)
+                .Take(10)
+                .ToListAsync();
+
+            ViewBag.NewComics = newComics;
+            return View(trendingComic);
         }
-
-    public async Task<IActionResult> Index()
-    {
-        var trendingComic = await _context.Comics
-            .Include(c => c.ComicTags).ThenInclude(ct => ct.Tag)
-            .Where(c => c.Status == ComicStatus.OnWorking.ToString() || c.Status == ComicStatus.Completed.ToString())
-            .OrderByDescending(c => c.ViewCount)
-            .FirstOrDefaultAsync();
-
-        var newComics = await _context.Comics
-            .Where(c => c.Status == ComicStatus.OnWorking.ToString() || c.Status == ComicStatus.Completed.ToString())
-            .OrderByDescending(c => c.CreatedAt)
-            .Take(10)
-            .ToListAsync();
-
-        ViewBag.NewComics = newComics;
-        return View(trendingComic);
     }
-
-
-}
 }
