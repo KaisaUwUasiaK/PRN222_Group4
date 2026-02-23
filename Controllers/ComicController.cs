@@ -1,56 +1,47 @@
 ﻿using Group4_ReadingComicWeb.Models;
-using Group4_ReadingComicWeb.Models.Enum;
+using Group4_ReadingComicWeb.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace Group4_ReadingComicWeb.Controllers
 {
     public class ComicController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IComicService _comicService;
 
-        public ComicController(AppDbContext context)
+        public ComicController(IComicService comicService)
         {
-            _context = context;
+            _comicService = comicService;
         }
+
+        // List all public comics
         public async Task<IActionResult> Index()
         {
-            var allComics = await _context.Comics.Where(c => c.Status == ComicStatus.OnWorking.ToString() || c.Status == ComicStatus.Completed.ToString()).ToListAsync();
+            var allComics = await _comicService.GetPublicComicsAsync();
             return View(allComics);
         }
+
+        // View comic detail
         public async Task<IActionResult> Detail(int id)
         {
-            var comic = await _context.Comics
-                .Include(c => c.Chapters.OrderBy(ch => ch.ChapterNumber)) 
-                .Include(c => c.Author)
-                .FirstOrDefaultAsync(m => m.ComicId == id);
+            var comic = await _comicService.GetComicDetailAsync(id);
 
             if (comic == null) return NotFound();
+
             return View(comic);
         }
 
+        // Read chapter in comic
         public async Task<IActionResult> Read(int id)
         {
-            var chapter = await _context.Chapters
-                .Include(ch => ch.Comic)
-                .FirstOrDefaultAsync(ch => ch.ChapterId == id);
+            var result = await _comicService.GetChapterForReadingAsync(id);
 
-            if (chapter == null) return NotFound();
+            if (result.CurrentChapter == null) return NotFound();
 
-            var prev = await _context.Chapters
-                .Where(c => c.ComicId == chapter.ComicId && c.ChapterNumber < chapter.ChapterNumber)
-                .OrderByDescending(c => c.ChapterNumber)
-                .FirstOrDefaultAsync();
+            ViewBag.PrevChapterId = result.PrevChapterId;
+            ViewBag.NextChapterId = result.NextChapterId;
 
-            var next = await _context.Chapters
-                .Where(c => c.ComicId == chapter.ComicId && c.ChapterNumber > chapter.ChapterNumber)
-                .OrderBy(c => c.ChapterNumber)
-                .FirstOrDefaultAsync();
-
-            ViewBag.PrevChapterId = prev?.ChapterId; 
-            ViewBag.NextChapterId = next?.ChapterId;
-
-            return View(chapter);
+            return View(result.CurrentChapter);
         }
     }
 }
