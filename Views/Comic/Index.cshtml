@@ -51,4 +51,47 @@
             </div>
         }
     </div>
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="pagination-container" style="display: flex; justify-content: center; margin-top: 3rem; gap: 8px;">
+
+            @if (ViewBag.CurrentPage > 1)
+            {
+                <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1 })" class="btn-page">« Prev</a>
+            }
+
+            @for (int i = 1; i <= ViewBag.TotalPages; i++)
+            {
+                <a href="@Url.Action("Index", new { page = i })"
+                   class="btn-page @(ViewBag.CurrentPage == i ? "active" : "")">
+                    @i
+                </a>
+            }
+
+            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+            {
+                <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1 })" class="btn-page">Next »</a>
+            }
+        </div>
+    }
+
+    <style>
+        .btn-page {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            color: white;
+            text-decoration: none;
+            background: rgba(255,255,255,0.05);
+        }
+
+            .btn-page.active {
+                background: #e74c3c; /* Màu thương hiệu của bạn */
+                border-color: #e74c3c;
+            }
+
+            .btn-page:hover:not(.active) {
+                background: rgba(255,255,255,0.15);
+            }
+    </style>
 </main>

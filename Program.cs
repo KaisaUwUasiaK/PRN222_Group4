@@ -40,6 +40,7 @@ namespace Group4_ReadingComicWeb
             builder.Services.AddScoped<IHomeService, HomeService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IComicService, ComicService>();
+            builder.Services.AddScoped<ICommentService, CommentService>();
             builder.Services.AddScoped<IPersonalComicService, PersonalComicService>();
 
             builder.Services.AddScoped<IAdminService, AdminService>();
