@@ -1,20 +1,33 @@
 @{
     ViewData["Title"] = "Pending Comics";
+    ViewData["Breadcrumb"] = "Pending Comics";
     Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
 }
 
 @model List<ComicModeration>
 
-<div class="admin-main">
-    <div class="flex justify-between items-center" style="margin-bottom: 2rem;">
-        <h1 style="margin-bottom: 0;">Pending Comics for Review</h1>
-        <a href="@Url.Action("Dashboard", "Moderation")" class="btn btn-outline">Back to Dashboard</a>
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>Pending Comics for Review</h1>
+        <p>Review and approve or reject submitted comics</p>
+    </div>
+    <a href="@Url.Action("Dashboard", "Moderation")" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem;">Back to Dashboard</a>
+</div>
+
+<!-- Pending Comics Table -->
+<div class="data-card">
+    <div class="data-card-header">
+        <h3 class="data-card-title">Pending Comics</h3>
+        <span class="badge" style="background: rgba(245,158,11,0.2); color: #FBBF24;">
+            @Model.Count
+        </span>
     </div>
 
     @if (Model.Any())
     {
-        <div class="table-container">
-            <table>
+        <div style="overflow-x: auto;">
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Comic Title</th>
@@ -29,16 +42,27 @@
                     @foreach (var moderation in Model)
                     {
                         <tr>
-                            <td style="font-weight: 500; max-width: 200px;">@moderation.Comic.Title</td>
-                            <td>Author_@moderation.Comic.AuthorId</td>
-                            <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">
-                                @Html.Raw(moderation.Comic.Description?.Substring(0, Math.Min(100, moderation.Comic.Description?.Length ?? 0)) + "...")
+                            <td style="font-weight: 600; color: var(--text-primary);">@moderation.Comic.Title</td>
+                            <td>@(moderation.Comic.Author?.Username ?? "Unknown Author")</td>
+                            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                @{
+                                    var desc = moderation.Comic.Description ?? "";
+                                    var truncated = desc.Length > 100 ? desc[..100] + "..." : desc;
+                                }
+                                @truncated
                             </td>
                             <td>@moderation.Comic.CreatedAt.ToString("MMM dd, yyyy")</td>
-                            <td><span class="badge badge-warning">Pending</span></td>
                             <td>
-                                <a href="@Url.Action("Review", "Moderation", new { id = moderation.ComicModerationId })" 
-                                   class="btn btn-ghost" style="padding: 4px; font-size: 0.85rem;">Review</a>
+                                <span class="badge badge-warning">
+                                    <span class="badge-dot" style="background: #FBBF24;"></span>
+                                    Pending
+                                </span>
+                            </td>
+                            <td>
+                                <a href="@Url.Action("Review", "Moderation", new { id = moderation.ComicModerationId })"
+                                   class="action-btn" style="color: var(--color-primary); border-color: rgba(124,58,237,0.3);">
+                                    Review
+                                </a>
                             </td>
                         </tr>
                     }
@@ -48,35 +72,91 @@
     }
     else
     {
-        <div class="table-container" style="padding: 3rem; text-align: center;">
-            <i class="ph ph-check-circle" style="font-size: 3rem; color: var(--color-accent); margin-bottom: 1rem;"></i>
-            <p style="font-size: 1.2rem; margin-bottom: 0.5rem;">No pending comics!</p>
-            <p style="color: var(--text-muted);">All comics have been reviewed.</p>
+        <div style="padding: 3rem 1rem; text-align: center;">
+            <i class="ph ph-check-circle" style="font-size: 3rem; color: var(--color-accent); margin-bottom: 1rem; display: block;"></i>
+            <p style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">No pending comics!</p>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">All comics have been reviewed.</p>
         </div>
     }
 </div>
 
 @section Styles {
     <style>
-        .admin-main {
-            flex: 1;
-            overflow-y: auto;
-            padding: 2rem;
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
         }
 
-        .table-container {
+        .page-header-left h1 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--text-title);
+        }
+
+        .page-header-left p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .btn.btn-outline {
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
+            background: transparent;
+            border-radius: var(--radius-md);
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .btn.btn-outline:hover {
+            background: var(--color-primary);
+            color: #fff;
+        }
+
+        .data-card {
             background: var(--bg-surface);
             border-radius: var(--radius-md);
             border: 1px solid var(--border-color);
             overflow: hidden;
+            margin-bottom: 2rem;
         }
 
-        table {
+        .data-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            background: var(--bg-card-header);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-card-title {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--text-title);
+        }
+
+        .badge {
+            padding: 0.375rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .data-table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 0;
         }
 
-        th {
+        .data-table th {
             text-align: left;
             padding: 1rem 1.5rem;
             color: var(--text-muted);
@@ -85,25 +165,35 @@
             border-bottom: 1px solid var(--border-color);
         }
 
-        td {
+        .data-table td {
             padding: 1rem 1.5rem;
             color: var(--text-secondary);
             border-bottom: 1px solid var(--border-color);
         }
 
-        tr:last-child td {
+        .data-table tr:last-child td {
             border-bottom: none;
         }
 
-        tr:hover td {
+        .data-table tr:hover td {
             background: var(--bg-surface-hover);
         }
 
-        .badge {
-            padding: 4px 8px;
-            border-radius: var(--radius-full);
-            font-size: 0.75rem;
-            font-weight: 600;
+        .action-btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border: 1px solid transparent;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: center;
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        .action-btn:hover {
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--color-primary);
+            border-color: rgba(124, 58, 237, 0.3);
         }
 
         .badge-warning {
