@@ -24,5 +24,7 @@ namespace Group4_ReadingComicWeb.Models
 
         public ICollection<Comic> Comics { get; set; } = new List<Comic>();
         public ICollection<Log> Logs { get; set; } = new List<Log>();
+
+        public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
     }
 }

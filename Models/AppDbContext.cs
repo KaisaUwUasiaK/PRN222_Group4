@@ -18,6 +18,7 @@ namespace Group4_ReadingComicWeb.Models
         public DbSet<Log> Logs => Set<Log>();
         public DbSet<Report> Reports => Set<Report>();
 
+        public DbSet<Comment> Comments { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

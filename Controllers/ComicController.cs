@@ -1,55 +1,145 @@
 ﻿using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Services;
+using Group4_ReadingComicWeb.Services.Contracts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace Group4_ReadingComicWeb.Controllers
 {
     public class ComicController : Controller
     {
-        private readonly AppDbContext _context;
+        private readonly IComicService _comicService;
 
-        public ComicController(AppDbContext context)
+        private readonly ICommentService _commentService;
+
+        private readonly IMemoryCache _memoryCache;
+        public ComicController(IComicService comicService, ICommentService commentService, IMemoryCache memoryCache)
         {
-            _context = context;
+            _comicService = comicService;
+            _commentService = commentService;
+            _memoryCache = memoryCache;
         }
-        public async Task<IActionResult> Index()
+
+        // List all public comics
+        public async Task<IActionResult> Index(int page = 1)
         {
-            var allComics = await _context.Comics.Where(c => c.Status == "OnWorking" && c.Status == "Completed").ToListAsync();
-            return View(allComics);
+            int pageSize = 12; 
+
+            var (comics, totalCount) = await _comicService.GetPublicComicsPagedAsync(page, pageSize);
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+            ViewBag.PageSize = pageSize;
+
+            return View(comics);
         }
-        public async Task<IActionResult> Detail(int id)
+
+      
+        // View comic detail
+        public async Task<IActionResult> Detail(int id, int commentPage = 1)
         {
-            var comic = await _context.Comics
-                .Include(c => c.Chapters.OrderBy(ch => ch.ChapterNumber)) 
-                .Include(c => c.Author)
-                .FirstOrDefaultAsync(m => m.ComicId == id);
+            var comic = await _comicService.GetComicDetailAsync(id);
 
             if (comic == null) return NotFound();
+
+            // Logic phân trang comment
+            int commentPageSize = 10;
+            var allComments = comic.Chapters
+                .Where(c => c.Comments != null)
+                .SelectMany(c => c.Comments)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToList();
+
+            ViewBag.TotalComments = allComments.Count;
+            ViewBag.TotalCommentPages = (int)Math.Ceiling((double)allComments.Count / commentPageSize);
+            ViewBag.CurrentCommentPage = commentPage;
+            ViewBag.PaginatedComments = allComments
+                .Skip((commentPage - 1) * commentPageSize)
+                .Take(commentPageSize)
+                .ToList();
+
             return View(comic);
         }
 
-        public async Task<IActionResult> Read(int id)
+        // Read chapter in comic
+        public async Task<IActionResult> Read(int id, int commentPage = 1)
         {
-            var chapter = await _context.Chapters
-                .Include(ch => ch.Comic)
-                .FirstOrDefaultAsync(ch => ch.ChapterId == id);
+            var result = await _comicService.GetChapterForReadingAsync(id);
 
-            if (chapter == null) return NotFound();
+            if (result.CurrentChapter == null) return NotFound();
 
-            var prev = await _context.Chapters
-                .Where(c => c.ComicId == chapter.ComicId && c.ChapterNumber < chapter.ChapterNumber)
-                .OrderByDescending(c => c.ChapterNumber)
-                .FirstOrDefaultAsync();
+            ViewBag.PrevChapterId = result.PrevChapterId;
+            ViewBag.NextChapterId = result.NextChapterId;
 
-            var next = await _context.Chapters
-                .Where(c => c.ComicId == chapter.ComicId && c.ChapterNumber > chapter.ChapterNumber)
-                .OrderBy(c => c.ChapterNumber)
-                .FirstOrDefaultAsync();
+            // Logic phân trang comment
+            int commentPageSize = 10;
+            var allComments = result.CurrentChapter.Comments != null
+                ? result.CurrentChapter.Comments.OrderByDescending(c => c.CreatedAt).ToList()
+                : new List<Comment>();
 
-            ViewBag.PrevChapterId = prev?.ChapterId; 
-            ViewBag.NextChapterId = next?.ChapterId;
+            ViewBag.TotalComments = allComments.Count;
+            ViewBag.TotalCommentPages = (int)Math.Ceiling((double)allComments.Count / commentPageSize);
+            ViewBag.CurrentCommentPage = commentPage;
+            ViewBag.PaginatedComments = allComments
+                .Skip((commentPage - 1) * commentPageSize)
+                .Take(commentPageSize)
+                .ToList();
 
-            return View(chapter);
+            return View(result.CurrentChapter);
+        }
+        // Add comment 
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> AddComment(int ChapterId, string Content)
+        {
+            if (string.IsNullOrWhiteSpace(Content))
+            {
+                TempData["ErrorMessage"] = "Nội dung bình luận không được để trống!";
+                return RedirectToAction("Read", new { id = ChapterId });
+            }
+
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (int.TryParse(userIdString, out int userId))
+            {
+                var cacheKey = $"CommentCooldown_{userId}";
+
+                if (_memoryCache.TryGetValue(cacheKey, out _))
+                {
+                    TempData["ErrorMessage"] = "Bạn bình luận quá nhanh. Vui lòng đợi 15 giây trước khi gửi tiếp!";
+                    return RedirectToAction("Read", new { id = ChapterId });
+                }
+
+                await _commentService.AddCommentAsync(ChapterId, userId, Content);
+
+                _memoryCache.Set(cacheKey, true, TimeSpan.FromSeconds(15));
+
+                TempData["SuccessMessage"] = "Đã gửi bình luận thành công!";
+            }
+
+            return RedirectToAction("Read", new { id = ChapterId });
+        }
+        //Delete comment
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> DeleteComment(int commentId, int chapterId, string source, int? comicId)
+        {
+            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (int.TryParse(userIdString, out int userId))
+            {
+                await _commentService.DeleteCommentAsync(commentId, userId);
+            }
+
+            if (source == "Detail" && comicId.HasValue)
+            {
+                return RedirectToAction("Detail", new { id = comicId.Value });
+            }
+
+            return RedirectToAction("Read", new { id = chapterId });
         }
     }
 }

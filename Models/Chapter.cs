@@ -24,5 +24,7 @@ namespace Group4_ReadingComicWeb.Models
 
         [ForeignKey("ComicId")]
         public virtual Comic Comic { get; set; } = null!;
+
+        public virtual ICollection<Comment> Comments { get; set; } = new List<Comment>();
     }
 }
