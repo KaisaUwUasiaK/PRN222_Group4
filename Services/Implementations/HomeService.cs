@@ -19,7 +19,7 @@ namespace Group4_ReadingComicWeb.Services.Implementations
             return await _context.Comics
             .Where(c => c.Status == ComicStatus.OnWorking.ToString() || c.Status == ComicStatus.Completed.ToString())
             .OrderByDescending(c => c.CreatedAt)
-            .Take(10)
+            .Take(12)
             .ToListAsync();
         }
 

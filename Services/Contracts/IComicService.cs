@@ -6,6 +6,7 @@ namespace Group4_ReadingComicWeb.Services
 {
     public interface IComicService
     {
+        Task<(List<Comic> Comics, int TotalCount)> GetPublicComicsPagedAsync(int page, int pageSize);
         Task<List<Comic>> GetPublicComicsAsync();
         Task<Comic> GetComicDetailAsync(int comicId);
 
