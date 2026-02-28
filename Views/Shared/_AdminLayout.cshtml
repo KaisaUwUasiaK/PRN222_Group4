@@ -153,6 +153,9 @@
             .withUrl("/hubs/userStatus")
             .withAutomaticReconnect()
             .build();
+        statusConnection.on("ForceLogout", function () {
+            window.location.href = "/Authentication/Logout";
+        });
         statusConnection.start().catch(err => console.error("SignalR error:", err));
     </script>
 

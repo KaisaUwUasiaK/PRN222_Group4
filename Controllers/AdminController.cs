@@ -140,6 +140,10 @@ namespace Group4_ReadingComicWeb.Controllers
             await _hubContext.Clients.All
                 .SendAsync("UserStatusChanged", userId, "Banned");
 
+            // NEW: Force logout the banned user immediately
+            await _hubContext.Clients.User(userId.ToString())
+                .SendAsync("ForceLogout");
+
             TempData["Success"] =
                 $"Moderator '{user.Username}' has been banned.";
 

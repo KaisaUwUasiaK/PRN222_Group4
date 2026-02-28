@@ -7,6 +7,8 @@ using Group4_ReadingComicWeb.Services.Implementations;
 using Group4_ReadingComicWeb.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
 
 namespace Group4_ReadingComicWeb
 {
@@ -58,6 +60,26 @@ namespace Group4_ReadingComicWeb
                     options.SlidingExpiration = true;
                     options.Cookie.HttpOnly = true;
                     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+
+                    options.Events = new CookieAuthenticationEvents
+                    {
+                        OnValidatePrincipal = async context =>
+                        {
+                            var userIdClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int userId))
+                            {
+                                using var scope = context.HttpContext.RequestServices.CreateScope();
+                                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                                var user = await db.Users.FindAsync(userId);
+
+                                if (user == null || user.Status == AccountStatus.Banned)
+                                {
+                                    context.RejectPrincipal();
+                                    await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                                }
+                            }
+                        }
+                    };
                 });
 
             var app = builder.Build();

@@ -186,6 +186,10 @@
             .withAutomaticReconnect()
             .build();
 
+        statusConnection.on("ForceLogout", function () {
+            window.location.href = "/Authentication/Logout";
+        });
+
         statusConnection.start().catch(err => console.error("SignalR connection error:", err));
     </script>
     @await RenderSectionAsync("Scripts", required: false)
