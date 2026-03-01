@@ -1,0 +1,54 @@
+@model Group4_ReadingComicWeb.Models.Chapter
+
+@{
+    ViewData["Title"] = $"Chapter {Model.ChapterNumber} - {Model.Comic.Title}";
+    ViewData["Breadcrumb"] = $"Chapter {Model.ChapterNumber}";
+    Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
+    var images = ViewBag.Images as List<string>;
+    var moderationId = ViewBag.ModerationId;
+}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>@Model.Comic.Title</h1>
+        <p>Chapter @Model.ChapterNumber: @(Model.Title ?? "Untitled")</p>
+    </div>
+    <a href="@Url.Action("Review", "Moderation", new { id = moderationId })" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem;">
+        <i class="ph ph-arrow-left" style="margin-right: 4px;"></i> Back to Review
+    </a>
+</div>
+
+<!-- Chapter Content -->
+<div class="data-card">
+    <div class="data-card-header">
+        <h3 class="data-card-title">
+            <i class="ph ph-image-square" style="margin-right: 6px; color: var(--color-primary);"></i>
+            Chapter Content
+        </h3>
+        <span class="badge" style="background: rgba(124,58,237,0.15); color: var(--color-primary);">
+            @(images?.Count ?? 0) pages
+        </span>
+    </div>
+
+    <div style="padding: 1rem; background: #0a0a0a; border-radius: 0 0 var(--radius-md) var(--radius-md);">
+        @if (images != null && images.Any())
+        {
+            <div style="max-width: 800px; margin: 0 auto;">
+                @foreach (var imgPath in images)
+                {
+                    <img src="@imgPath" alt="Page"
+                         style="width: 100%; display: block; margin: 0;"
+                         loading="lazy" />
+                }
+            </div>
+        }
+        else
+        {
+            <div style="padding: 4rem; text-align: center;">
+                <i class="ph ph-image-broken" style="font-size: 3rem; color: var(--text-muted); opacity: 0.4; display: block; margin-bottom: 0.75rem;"></i>
+                <p style="color: var(--text-muted); margin: 0;">No images found for this chapter.</p>
+            </div>
+        }
+    </div>
+</div>

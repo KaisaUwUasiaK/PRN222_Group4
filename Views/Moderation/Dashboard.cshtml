@@ -63,7 +63,7 @@
                     {
                         <tr>
                             <td style="font-weight: 600; color: var(--text-primary);">@moderation.Comic.Title</td>
-                            <td>@moderation.Comic.Author?.Username ?? "Unknown Author"</td>
+                            <td>@(moderation.Comic.Author?.Username ?? "Unknown Author")</td>
                             <td>@moderation.Comic.CreatedAt.ToString("MMM dd, yyyy")</td>
                             <td>
                                 <span class="badge badge-warning">

@@ -66,12 +66,16 @@
                class="nav-item @(currentAction == "Pending" ? "active" : "")">
                 <i class="ph ph-hourglass"></i>
                 <span>Pending Comics</span>
+                @if (ViewBag.PendingComicsCount != null && ViewBag.PendingComicsCount > 0)
+                {
+                    <span class="nav-badge">@ViewBag.PendingComicsCount</span>
+                }
             </a>
             <a href="@Url.Action("UserReports", "Report")"
                class="nav-item @(currentAction == "UserReports" ? "active" : "")">
                 <i class="ph ph-flag"></i>
                 <span>User Reports</span>
-                @if (ViewBag.PendingUserReportsCount > 0)
+                @if (ViewBag.PendingUserReportsCount != null && ViewBag.PendingUserReportsCount > 0)
                 {
                     <span class="nav-badge">@ViewBag.PendingUserReportsCount</span>
                 }
