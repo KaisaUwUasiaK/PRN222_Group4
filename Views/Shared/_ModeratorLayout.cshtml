@@ -20,7 +20,6 @@
     <link rel="stylesheet" href="~/css/admin.css">
     <link rel="stylesheet" href="~/css/moderator.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
-
     @await RenderSectionAsync("Styles", required: false)
 </head>
 
@@ -82,7 +81,7 @@
             </a>
         </div>
 
-        <!-- Spacer pushes bottom items down -->
+        <!-- Spacer -->
         <div class="nav-spacer"></div>
 
         <!-- Bottom -->
@@ -114,9 +113,15 @@
             </div>
 
             <div class="topbar-actions">
-                <button class="btn btn-ghost" style="padding: 8px; position: relative;" title="Notifications">
+                <!-- Bell with red dot -->
+                <a href="@Url.Action("Index", "Notification")"
+                   class="btn btn-ghost notif-bell-wrapper"
+                   style="padding: 8px; text-decoration: none;"
+                   id="notifBellLink"
+                   title="Notifications">
                     <i class="ph ph-bell" style="font-size: 1.1rem;"></i>
-                </button>
+                    <span class="notif-dot" id="notifDot"></span>
+                </a>
 
                 <div class="dropdown">
                     <div class="dropdown-trigger" style="gap: 8px; padding: 4px 8px; border-radius: var(--radius-sm);">
@@ -148,15 +153,15 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const notyf = new Notyf({ duration: 4000, position: { x: 'right', y: 'top' }, dismissible: true });
+        window.notyf = new Notyf({ duration: 4000, position: { x: 'right', y: 'top' }, dismissible: true });
 
         @if (TempData["Success"] != null)
         {
-            <text>notyf.success("@TempData["Success"]");</text>
+            <text>window.notyf.success("@TempData["Success"]");</text>
         }
         @if (TempData["Error"] != null)
         {
-            <text>notyf.error("@TempData["Error"]");</text>
+            <text>window.notyf.error("@TempData["Error"]");</text>
         }
     });
 
@@ -176,11 +181,50 @@
 @if (User.Identity?.IsAuthenticated == true)
 {
     <script>
+        // UserStatus Hub
         const statusConnection = new signalR.HubConnectionBuilder()
             .withUrl("/hubs/userStatus")
             .withAutomaticReconnect()
             .build();
         statusConnection.start().catch(err => console.error("SignalR error:", err));
+    </script>
+}
+
+@if (User.Identity?.IsAuthenticated == true && User.IsInRole("Moderator"))
+{
+    <script>
+        const notifDot = document.getElementById('notifDot');
+
+        function showBellDot() { notifDot?.classList.add('visible'); }
+        function hideBellDot() { notifDot?.classList.remove('visible'); }
+
+        // Check unread while loading
+        (async function () {
+            try {
+                const res = await fetch('/Notifications/UnreadCount');
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.count > 0) showBellDot();
+            } catch { }
+        })();
+
+        // Connect NotificationHub
+        const notifConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/notifications")
+            .withAutomaticReconnect()
+            .build();
+
+        notifConnection.on("NotificationReceived", function (n) {
+            showBellDot();
+            if (window.notyf) {
+                window.notyf.open({ type: 'info', message: `🔔 ${n.title}` });
+            }
+        });
+
+        notifConnection.start().catch(err => console.error("NotificationHub error:", err));
+
+        // Hide dot when click bell
+        document.getElementById('notifBellLink')?.addEventListener('click', hideBellDot);
     </script>
 }
 

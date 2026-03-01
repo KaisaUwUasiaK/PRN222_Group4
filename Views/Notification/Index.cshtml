@@ -1,0 +1,608 @@
+﻿@model Group4_ReadingComicWeb.ViewModels.NotificationListViewModel
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+@section Styles {
+<style>
+    .notif-page {
+        max-width: 800px;
+        margin: 2.5rem auto;
+        padding: 0 1rem;
+    }
+
+    .notif-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+    }
+
+    .notif-header h1 {
+        font-family: var(--font-heading);
+        font-size: 1.75rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .badge-unread {
+        background: var(--color-primary, #6366f1);
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.15rem 0.6rem;
+        border-radius: 999px;
+    }
+
+    .btn-mark-all {
+        font-size: 0.85rem;
+        color: var(--color-primary, #6366f1);
+        background: none;
+        border: 1px solid var(--color-primary, #6366f1);
+        padding: 0.4rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .btn-mark-all:hover {
+        background: var(--color-primary, #6366f1);
+        color: #fff;
+    }
+
+    /* ── Table ── */
+    .notif-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--color-surface, #1e1e2e);
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--color-border, #2e2e3e);
+    }
+
+    .notif-table thead tr {
+        background: var(--color-surface-raised, #252535);
+    }
+
+    .notif-table th {
+        padding: 0.85rem 1.1rem;
+        text-align: left;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-text-muted, #a0a0b0);
+        border-bottom: 1px solid var(--color-border, #2e2e3e);
+    }
+
+    .notif-table tbody tr {
+        border-bottom: 1px solid var(--color-border, #2e2e3e);
+        transition: background 0.15s;
+        cursor: pointer;
+    }
+
+    .notif-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    .notif-table tbody tr:hover {
+        background: var(--color-surface-raised, #252535);
+    }
+
+    .notif-table tbody tr.unread {
+        border-left: 3px solid var(--color-primary, #6366f1);
+    }
+
+    .notif-table td {
+        padding: 0.9rem 1.1rem;
+        font-size: 0.9rem;
+        vertical-align: middle;
+    }
+
+    .notif-title {
+        font-weight: 600;
+        color: var(--color-text, #e0e0f0);
+    }
+
+    .notif-title.read {
+        font-weight: 400;
+        color: var(--color-text-muted, #a0a0b0);
+    }
+
+    .notif-content {
+        font-size: 0.82rem;
+        color: var(--color-text-muted, #a0a0b0);
+        margin-top: 0.2rem;
+        max-width: 380px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .notif-time {
+        font-size: 0.8rem;
+        color: var(--color-text-muted, #a0a0b0);
+        white-space: nowrap;
+    }
+
+    .dot-unread {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background: var(--color-primary, #6366f1);
+        border-radius: 50%;
+        margin-right: 6px;
+        flex-shrink: 0;
+    }
+
+    .btn-read-single {
+        font-size: 0.78rem;
+        background: none;
+        border: 1px solid var(--color-border, #2e2e3e);
+        color: var(--color-text-muted, #a0a0b0);
+        padding: 0.25rem 0.7rem;
+        border-radius: 5px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s;
+    }
+
+    .btn-read-single:hover {
+        border-color: var(--color-primary, #6366f1);
+        color: var(--color-primary, #6366f1);
+    }
+
+    .status-read {
+        font-size: 0.78rem;
+        color: var(--color-text-muted, #a0a0b0);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--color-text-muted, #a0a0b0);
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    .notif-bell-wrapper {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .notif-bell-wrapper .notif-dot {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 9px;
+        height: 9px;
+        background: #ef4444;
+        border-radius: 50%;
+        border: 2px solid var(--color-bg, #13131f);
+        display: none;
+    }
+
+    .notif-bell-wrapper .notif-dot.visible {
+        display: block;
+    }
+
+    /* ── Detail Modal ───────────────────────────────────────────── */
+    .notif-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .notif-modal-overlay.active {
+        display: flex;
+    }
+
+    .notif-modal {
+        background: var(--color-surface, #1e1e2e);
+        border: 1px solid var(--color-border, #2e2e3e);
+        border-radius: 14px;
+        width: 100%;
+        max-width: 640px;
+        max-height: 78vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: modalFadeIn 0.2s ease;
+    }
+
+    @@keyframes modalFadeIn {
+        from { opacity: 0; transform: translateY(14px) scale(0.98); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .notif-modal-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 1.4rem 1.5rem 1rem;
+        border-bottom: 1px solid var(--color-border, #2e2e3e);
+        gap: 1rem;
+    }
+
+    .notif-modal-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--color-text, #e0e0f0);
+        line-height: 1.4;
+        flex: 1;
+    }
+
+    .notif-modal-close {
+        background: none;
+        border: none;
+        color: var(--color-text-muted, #a0a0b0);
+        font-size: 1.3rem;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        flex-shrink: 0;
+        transition: color 0.15s;
+        display: flex;
+        align-items: center;
+    }
+
+    .notif-modal-close:hover {
+        color: var(--color-text, #e0e0f0);
+    }
+
+    .notif-modal-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        padding: 0.7rem 1.5rem;
+        border-bottom: 1px solid var(--color-border, #2e2e3e);
+        flex-wrap: wrap;
+    }
+
+    .modal-status-new {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.15rem 0.6rem;
+        border-radius: 999px;
+        background: rgba(99, 102, 241, 0.18);
+        color: var(--color-primary, #6366f1);
+    }
+
+    .modal-status-read {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.15rem 0.6rem;
+        border-radius: 999px;
+        background: rgba(160, 160, 176, 0.12);
+        color: var(--color-text-muted, #a0a0b0);
+    }
+
+    .notif-modal-body {
+        padding: 1.3rem 1.5rem 1.5rem;
+        overflow-y: auto;
+        font-size: 0.95rem;
+        color: var(--color-text, #e0e0f0);
+        line-height: 1.8;
+        white-space: pre-wrap;
+        word-break: break-word;
+        flex: 1;
+    }
+</style>
+}
+
+<div class="notif-page">
+    <div class="notif-header">
+        <h1>
+            <i class="ph ph-bell" style="font-size:1.6rem;"></i>
+            Notifications
+            @if (Model.UnreadCount > 0)
+            {
+                <span class="badge-unread" id="unreadBadge">@Model.UnreadCount</span>
+            }
+        </h1>
+        @if (Model.Notifications.Any(n => !n.IsRead))
+        {
+            <button class="btn-mark-all" id="markAllBtn">Mark all as read</button>
+        }
+    </div>
+
+    @if (!Model.Notifications.Any())
+    {
+        <div class="empty-state" id="emptyState">
+            <i class="ph ph-bell-slash"></i>
+            <p>No notifications yet.</p>
+        </div>
+    }
+    else
+    {
+        <table class="notif-table" id="notifTable">
+            <thead>
+                <tr>
+                    <th style="width:40%">Title &amp; Content</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="notifBody">
+                @foreach (var n in Model.Notifications)
+                {
+                    <tr class="@(n.IsRead ? "" : "unread")"
+                        id="notif-@n.NotificationId"
+                        data-id="@n.NotificationId"
+                        data-title="@Html.Raw(System.Text.Json.JsonSerializer.Serialize(n.Title))"
+                        data-content="@Html.Raw(System.Text.Json.JsonSerializer.Serialize(n.Content))"
+                        data-time="@n.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")"
+                        data-read="@n.IsRead.ToString().ToLower()"
+                        onclick="openDetail(this)">
+                        <td>
+                            <div style="display:flex;align-items:flex-start;gap:4px;">
+                                @if (!n.IsRead)
+                                {
+                                    <span class="dot-unread" style="margin-top:5px;"></span>
+                                }
+                                <div>
+                                    <div class="notif-title @(n.IsRead ? "read" : "")">@n.Title</div>
+                                    <div class="notif-content">@n.Content</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            @if (n.IsRead)
+                            {
+                                <span class="status-read">Read</span>
+                            }
+                            else
+                            {
+                                <span style="font-size:0.8rem;color:var(--color-primary,#6366f1);font-weight:600;">New</span>
+                            }
+                        </td>
+                        <td class="notif-time">
+                            @n.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")
+                        </td>
+                        <td>
+                            @if (!n.IsRead)
+                            {
+                                <button class="btn-read-single"
+                                        onclick="event.stopPropagation(); markRead(@n.NotificationId, this)">
+                                    Mark read
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+<!-- ── Detail Modal ─────────────────────────────────────────────── -->
+<div class="notif-modal-overlay" id="notifOverlay" onclick="handleOverlayClick(event)">
+    <div class="notif-modal">
+        <div class="notif-modal-header">
+            <div class="notif-modal-title" id="modalTitle"></div>
+            <button class="notif-modal-close" onclick="closeDetail()">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+        <div class="notif-modal-meta">
+            <span class="notif-time" style="display:flex;align-items:center;gap:0.3rem;">
+                <i class="ph ph-clock" style="font-size:0.85rem;"></i>
+                <span id="modalTime"></span>
+            </span>
+            <span id="modalStatus"></span>
+        </div>
+        <div class="notif-modal-body" id="modalBody"></div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // ── Anti-forgery token ──────────────────────────────────────────
+    function getToken() {
+        const el = document.querySelector('input[name="__RequestVerificationToken"]');
+        return el ? el.value : '';
+    }
+
+    (function ensureTokenForm() {
+        if (!document.querySelector('input[name="__RequestVerificationToken"]')) {
+            const f = document.createElement('form');
+            f.style.display = 'none';
+            f.innerHTML = '@Html.AntiForgeryToken()';
+            document.body.appendChild(f);
+        }
+    })();
+
+    // ── Open detail modal ───────────────────────────────────────────
+    function openDetail(row) {
+        const id      = parseInt(row.dataset.id);
+        const title   = JSON.parse(row.dataset.title);
+        const content = JSON.parse(row.dataset.content);
+        const time    = row.dataset.time;
+        const isRead  = row.dataset.read === 'true';
+
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalTime').textContent  = time;
+        document.getElementById('modalBody').textContent  = content;
+
+        const statusEl = document.getElementById('modalStatus');
+        if (isRead) {
+            statusEl.className   = 'modal-status-read';
+            statusEl.textContent = 'Read';
+        } else {
+            statusEl.className   = 'modal-status-new';
+            statusEl.textContent = 'New';
+        }
+
+        document.getElementById('notifOverlay').classList.add('active');
+
+        // Tự động mark as read khi mở
+        if (!isRead) markRead(id, null);
+    }
+
+    function closeDetail() {
+        document.getElementById('notifOverlay').classList.remove('active');
+    }
+
+    function handleOverlayClick(e) {
+        if (e.target === document.getElementById('notifOverlay')) closeDetail();
+    }
+
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeDetail();
+    });
+
+    // ── Mark single as read ─────────────────────────────────────────
+    async function markRead(id, btn) {
+        try {
+            const res = await fetch(`/Notifications/${id}/Read`, {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': getToken() }
+            });
+            if (!res.ok) return;
+
+            const row = document.getElementById(`notif-${id}`);
+            if (row) {
+                row.classList.remove('unread');
+                row.dataset.read = 'true';
+                row.querySelector('.dot-unread')?.remove();
+                row.querySelector('.notif-title')?.classList.add('read');
+                const statusCell = row.cells[1];
+                if (statusCell) statusCell.innerHTML = '<span class="status-read">Read</span>';
+                if (btn) btn.remove();
+                const lastCell = row.cells[3];
+                if (lastCell) lastCell.innerHTML = '';
+            }
+
+            // Cập nhật badge trong modal nếu đang hiển thị
+            const statusEl = document.getElementById('modalStatus');
+            if (statusEl && statusEl.classList.contains('modal-status-new')) {
+                statusEl.className   = 'modal-status-read';
+                statusEl.textContent = 'Read';
+            }
+
+            decrementBadge();
+        } catch (e) {
+            console.error('markRead error', e);
+        }
+    }
+
+    // ── Mark all as read ────────────────────────────────────────────
+    document.getElementById('markAllBtn')?.addEventListener('click', async function () {
+        const unreadRows = document.querySelectorAll('#notifBody tr.unread');
+        for (const row of unreadRows) {
+            const id = parseInt(row.dataset.id);
+            const btn = row.querySelector('.btn-read-single');
+            if (id) await markRead(id, btn);
+        }
+        this.remove();
+    });
+
+    // ── Badge helpers ───────────────────────────────────────────────
+    function decrementBadge() {
+        const badge = document.getElementById('unreadBadge');
+        if (!badge) return;
+        let count = parseInt(badge.textContent) - 1;
+        if (count <= 0) {
+            badge.remove();
+            document.getElementById('markAllBtn')?.remove();
+        } else {
+            badge.textContent = count;
+        }
+    }
+
+    // ── Prepend new row từ SignalR ──────────────────────────────────
+    function prependNotificationRow(n) {
+        document.getElementById('emptyState')?.remove();
+
+        let table = document.getElementById('notifTable');
+        if (!table) {
+            const container = document.querySelector('.notif-page');
+            container.insertAdjacentHTML('beforeend', `
+                <table class="notif-table" id="notifTable">
+                    <thead><tr>
+                        <th style="width:40%">Title &amp; Content</th>
+                        <th>Status</th>
+                        <th>Time</th>
+                        <th></th>
+                    </tr></thead>
+                    <tbody id="notifBody"></tbody>
+                </table>`);
+        }
+
+        const date      = new Date(n.createdAt);
+        const shortFmt  = date.toLocaleString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+        const row = document.createElement('tr');
+        row.className = 'unread';
+        row.id = `notif-${n.notificationId}`;
+        row.dataset.id      = n.notificationId;
+        row.dataset.title   = JSON.stringify(n.title);
+        row.dataset.content = JSON.stringify(n.content);
+        row.dataset.time    = shortFmt;
+        row.dataset.read    = 'false';
+        row.setAttribute('onclick', 'openDetail(this)');
+        row.innerHTML = `
+            <td>
+                <div style="display:flex;align-items:flex-start;gap:4px;">
+                    <span class="dot-unread" style="margin-top:5px;"></span>
+                    <div>
+                        <div class="notif-title">${esc(n.title)}</div>
+                        <div class="notif-content">${esc(n.content)}</div>
+                    </div>
+                </div>
+            </td>
+            <td><span style="font-size:0.8rem;color:var(--color-primary,#6366f1);font-weight:600;">New</span></td>
+            <td class="notif-time">${shortFmt}</td>
+            <td><button class="btn-read-single" onclick="event.stopPropagation(); markRead(${n.notificationId}, this)">Mark read</button></td>`;
+
+        document.getElementById('notifBody').insertAdjacentElement('afterbegin', row);
+
+        const badge = document.getElementById('unreadBadge');
+        const h1    = document.querySelector('.notif-header h1');
+        if (badge) {
+            badge.textContent = parseInt(badge.textContent) + 1;
+        } else if (h1) {
+            const span = document.createElement('span');
+            span.className = 'badge-unread';
+            span.id = 'unreadBadge';
+            span.textContent = '1';
+            h1.appendChild(span);
+        }
+    }
+
+    function esc(str) {
+        return String(str)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // ── SignalR ─────────────────────────────────────────────────────
+    const notifConn = new signalR.HubConnectionBuilder()
+        .withUrl("/hubs/notifications")
+        .withAutomaticReconnect()
+        .build();
+
+    notifConn.on("NotificationReceived", function (n) {
+        prependNotificationRow(n);
+        if (window.notyf) {
+            window.notyf.open({ type: 'info', message: `🔔 ${n.title}` });
+        }
+    });
+
+    notifConn.start().catch(err => console.error("NotificationHub error:", err));
+</script>
+}
+g

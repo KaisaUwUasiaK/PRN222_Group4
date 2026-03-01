@@ -45,6 +45,7 @@ namespace Group4_ReadingComicWeb
 
             builder.Services.AddScoped<IAdminService, AdminService>();
             builder.Services.AddScoped<IReportService, ReportService>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
 
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSignalR();
@@ -109,6 +110,7 @@ namespace Group4_ReadingComicWeb
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
             app.MapHub<UserStatusHub>("/hubs/userStatus");
+            app.MapHub<NotificationHub>("/hubs/notifications");
 
             await app.RunAsync();
         }

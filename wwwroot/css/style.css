@@ -497,6 +497,29 @@ h6 {
     border-radius: 50%;
 }
 
+
+.notif-bell-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.notif-bell-wrapper .notif-dot {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 9px;
+    height: 9px;
+    background: #ef4444;
+    border-radius: 50%;
+    border: 2px solid var(--color-bg, #13131f);
+    display: none;
+}
+
+.notif-bell-wrapper .notif-dot.visible {
+    display: block;
+}
+
 .badge-online  { background: rgba(16,185,129,0.12); color: #34D399; }
 .badge-offline { background: rgba(100,116,139,0.15); color: #94A3B8; }
 .badge-banned  { background: rgba(244,63,94,0.12);  color: #FB7185; }

@@ -17,8 +17,9 @@ namespace Group4_ReadingComicWeb.Models
         public DbSet<ComicModeration> ComicModerations { get; set; }
         public DbSet<Log> Logs => Set<Log>();
         public DbSet<Report> Reports => Set<Report>();
-
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<Notification> Notifications => Set<Notification>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -106,10 +107,22 @@ namespace Group4_ReadingComicWeb.Models
                 .HasForeignKey(r => r.ProcessedById)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // Notification configuration
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Notification>()
+                .Property(n => n.Title)
+                .HasMaxLength(255);
+
             // Table configurations
             modelBuilder.Entity<Role>().ToTable("Role");
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<Log>().ToTable("Log");
+            modelBuilder.Entity<Notification>().ToTable("Notification");
 
             // Seed roles
             modelBuilder.Entity<Role>().HasData(

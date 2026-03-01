@@ -7,7 +7,7 @@ namespace Group4_ReadingComicWeb.Data
     public static class DbInitializer
     {
         /// <summary>
-        /// Seed dữ liệu mặc định cho hệ thống (Admin + Moderator).
+        /// Seed dữ liệu mặc định cho hệ thống (Admin + Moderator + User).
         /// Chỉ chạy khi application start.
         /// </summary>
         public static async Task SeedAsync(IServiceProvider serviceProvider)
@@ -24,6 +24,9 @@ namespace Group4_ReadingComicWeb.Data
 
             var moderatorRole = await context.Roles
                 .FirstOrDefaultAsync(r => r.RoleName == "Moderator");
+
+            var userRole = await context.Roles
+                .FirstOrDefaultAsync(r => r.RoleName == "User");
 
             // =========================
             // SEED ADMIN
@@ -50,8 +53,7 @@ namespace Group4_ReadingComicWeb.Data
 
                     context.Users.Add(admin);
                     await context.SaveChangesAsync();
-
-                    Console.WriteLine($"Created default Admin: {adminEmail}");
+                    Console.WriteLine($"[Seed] Created Admin: {adminEmail}");
                 }
             }
 
@@ -80,8 +82,36 @@ namespace Group4_ReadingComicWeb.Data
 
                     context.Users.Add(moderator);
                     await context.SaveChangesAsync();
+                    Console.WriteLine($"[Seed] Created Moderator: {moderatorEmail}");
+                }
+            }
 
-                    Console.WriteLine($"Created default Moderator: {moderatorEmail}");
+            // =========================
+            // SEED USER
+            // =========================
+            var userEmail = config["SeedAccounts:UserEmail"];
+            var userPassword = config["SeedAccounts:UserPassword"];
+
+            if (!string.IsNullOrWhiteSpace(userEmail) && userRole != null)
+            {
+                var userExists = await context.Users
+                    .AnyAsync(u => u.Email == userEmail);
+
+                if (!userExists)
+                {
+                    var user = new User
+                    {
+                        Username = "TestUser",
+                        Email = userEmail,
+                        PasswordHash = BCrypt.Net.BCrypt.HashPassword(userPassword),
+                        RoleId = userRole.RoleId,
+                        Status = AccountStatus.Offline,
+                        Bio = "Default Test User Account"
+                    };
+
+                    context.Users.Add(user);
+                    await context.SaveChangesAsync();
+                    Console.WriteLine($"[Seed] Created User: {userEmail}");
                 }
             }
         }
