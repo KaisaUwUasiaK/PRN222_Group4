@@ -216,9 +216,32 @@
                                     <i class="ph-fill ph-play mr-2"></i> Read Now
                                 </a>
                             }
-                            <button class="btn btn-ghost bg-white/5 hover:bg-white/10 border-white/10 text-white px-8">
-                                <i class="ph-fill ph-heart mr-2 text-red-500"></i> Favorite
-                            </button>
+                            @if (User.Identity != null && User.Identity.IsAuthenticated)
+                            {
+                                var isFavorited = ViewBag.IsFavorited as bool? ?? false;
+
+                                <form action="@Url.Action("ToggleFavorite", "Comic")" method="post" class="m-0">
+                                    <input type="hidden" name="comicId" value="@Model.ComicId" />
+                                    <button type="submit" class="btn btn-ghost bg-white/5 hover:bg-white/10 border-white/10 text-white px-8 transition-colors flex items-center h-full group">
+                                        @if (isFavorited)
+                                        {
+                                            <i class="ph-fill ph-heart mr-2 text-red-500 text-xl"></i>
+                                            <span>Favorited</span>
+                                        }
+                                        else
+                                        {
+                                            <i class="ph ph-heart mr-2 text-gray-400 group-hover:text-red-500 transition-colors text-xl"></i>
+                                            <span>Favorite</span>
+                                        }
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <a href="@Url.Action("Login", "Authentication")" class="btn btn-ghost bg-white/5 hover:bg-white/10 border-white/10 text-white px-8 flex items-center h-full" onclick="alert('Please login to add to favorites!');">
+                                    <i class="ph ph-heart mr-2 text-gray-400 text-xl"></i> Favorite
+                                </a>
+                            }
                         </div>
                     </div>
                 </div>
@@ -274,16 +297,14 @@
 
                 <div class="space-y-4 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
                     @{
-                        var allComments = Model.Chapters
-                        .Where(c => c.Comments != null)
-                        .SelectMany(c => c.Comments)
-                        .OrderByDescending(c => c.CreatedAt)
-                        .ToList();
+                        var paginatedComments = ViewBag.PaginatedComments as List<Group4_ReadingComicWeb.Models.Comment> ?? new List<Group4_ReadingComicWeb.Models.Comment>();
+                        int currentPage = ViewBag.CurrentCommentPage ?? 1;
+                        int totalPages = ViewBag.TotalCommentPages ?? 1;
                     }
 
-                    @if (allComments.Any())
+                    @if (paginatedComments.Any())
                     {
-                        @foreach (var comment in allComments)
+                        @foreach (var comment in paginatedComments)
                         {
                             <div class="comment-wrapper">
                                 <div class="shrink-0">
@@ -333,7 +354,7 @@
                     {
                         <div class="bg-white/5 rounded-xl p-8 text-center text-gray-500">
                             <i class="ph ph-chat-teardrop-text text-4xl mb-2 opacity-50 block"></i>
-                            <p>Chưa có bình luận nào.</p>
+                            <p>There is no comment yet</p>
                         </div>
                     }
                 </div>

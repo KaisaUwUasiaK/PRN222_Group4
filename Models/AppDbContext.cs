@@ -19,6 +19,8 @@ namespace Group4_ReadingComicWeb.Models
         public DbSet<Report> Reports => Set<Report>();
 
         public DbSet<Comment> Comments { get; set; }
+
+        public DbSet<Favorite> Favorites { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

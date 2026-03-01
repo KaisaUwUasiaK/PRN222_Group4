@@ -16,12 +16,16 @@ namespace Group4_ReadingComicWeb.Controllers
         private readonly ICommentService _commentService;
 
         private readonly IMemoryCache _memoryCache;
-        public ComicController(IComicService comicService, ICommentService commentService, IMemoryCache memoryCache)
+        private readonly IFavoriteService _favoriteService;
+
+        public ComicController(IComicService comicService, ICommentService commentService, IMemoryCache memoryCache, IFavoriteService favoriteService)
         {
             _comicService = comicService;
             _commentService = commentService;
             _memoryCache = memoryCache;
+            _favoriteService = favoriteService;
         }
+
 
         // List all public comics
         public async Task<IActionResult> Index(int page = 1)
@@ -37,7 +41,7 @@ namespace Group4_ReadingComicWeb.Controllers
             return View(comics);
         }
 
-      
+
         // View comic detail
         public async Task<IActionResult> Detail(int id, int commentPage = 1)
         {
@@ -45,7 +49,15 @@ namespace Group4_ReadingComicWeb.Controllers
 
             if (comic == null) return NotFound();
 
-            // Logic phân trang comment
+            bool isFavorited = false;
+            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (int.TryParse(userIdString, out int userId))
+            {
+                isFavorited = await _favoriteService.IsFavoritedAsync(id, userId);
+            }
+            ViewBag.IsFavorited = isFavorited;
+
             int commentPageSize = 10;
             var allComments = comic.Chapters
                 .Where(c => c.Comments != null)
@@ -56,6 +68,7 @@ namespace Group4_ReadingComicWeb.Controllers
             ViewBag.TotalComments = allComments.Count;
             ViewBag.TotalCommentPages = (int)Math.Ceiling((double)allComments.Count / commentPageSize);
             ViewBag.CurrentCommentPage = commentPage;
+
             ViewBag.PaginatedComments = allComments
                 .Skip((commentPage - 1) * commentPageSize)
                 .Take(commentPageSize)
@@ -140,6 +153,25 @@ namespace Group4_ReadingComicWeb.Controllers
             }
 
             return RedirectToAction("Read", new { id = chapterId });
+        }
+       
+
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> ToggleFavorite(int comicId)
+        {
+            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdString, out int userId))
+            {
+                bool isAdded = await _favoriteService.ToggleFavoriteAsync(comicId, userId);
+
+                if (isAdded)
+                    TempData["Success"] = "Added to your favorites!";
+                else
+                    TempData["Info"] = "Removed from favorites.";
+            }
+
+            return RedirectToAction("Detail", new { id = comicId });
         }
     }
 }
