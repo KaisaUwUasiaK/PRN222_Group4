@@ -218,6 +218,9 @@ namespace Group4_ReadingComicWeb.Migrations
                     b.Property<int?>("ActionTaken")
                         .HasColumnType("int");
 
+                    b.Property<int?>("CommentId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -250,6 +253,8 @@ namespace Group4_ReadingComicWeb.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("ReportId");
+
+                    b.HasIndex("CommentId");
 
                     b.HasIndex("ProcessedById");
 
@@ -448,6 +453,11 @@ namespace Group4_ReadingComicWeb.Migrations
 
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.Report", b =>
                 {
+                    b.HasOne("Group4_ReadingComicWeb.Models.Comment", "Comment")
+                        .WithMany()
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Group4_ReadingComicWeb.Models.User", "ProcessedBy")
                         .WithMany()
                         .HasForeignKey("ProcessedById")
@@ -464,6 +474,8 @@ namespace Group4_ReadingComicWeb.Migrations
                         .HasForeignKey("TargetUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Comment");
 
                     b.Navigation("ProcessedBy");
 

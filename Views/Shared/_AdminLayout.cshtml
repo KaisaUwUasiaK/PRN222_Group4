@@ -52,7 +52,7 @@
         <div class="nav-group">
             <div class="nav-group-label">Overview</div>
             <a href="@Url.Action("Dashboard", "Admin")"
-               class="nav-item @(currentAction == "Dashboard" ? "active" : "")">
+               class="nav-item @(currentAction == "Dashboard" && currentController == "Admin" ? "active" : "")">
                 <i class="ph ph-squares-four"></i>
                 <span>Dashboard</span>
             </a>
@@ -66,10 +66,14 @@
                 <i class="ph ph-shield-star"></i>
                 <span>Moderators</span>
             </a>
-            <a href="#" class="nav-item">
+            <a href="@Url.Action("ModeratorReports", "Report")"
+               class="nav-item @(currentAction == "ModeratorReports" || (currentController == "Report" && currentAction == "Details") ? "active" : "")">
                 <i class="ph ph-flag"></i>
-                <span>Reports</span>
-                <span class="nav-badge">3</span>
+                <span>Moderator Reports</span>
+                @if (ViewBag.PendingModeratorReportsCount != null && ViewBag.PendingModeratorReportsCount > 0)
+                {
+                    <span class="nav-badge">@ViewBag.PendingModeratorReportsCount</span>
+                }
             </a>
         </div>
 
@@ -145,6 +149,18 @@
         {
             <text>notyf.error("@TempData["Error"]");</text>
         }
+    });
+
+    // Dropdown toggle
+    document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
+        trigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.closest('.dropdown').classList.toggle('active');
+        });
+    });
+
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.dropdown.active').forEach(d => d.classList.remove('active'));
     });
 </script>
 

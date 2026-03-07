@@ -15,33 +15,34 @@ namespace Group4_ReadingComicWeb.Services.Contracts
         /// <summary>
         /// Tạo report mới từ người dùng.
         /// Kiểm tra: không được tự report chính mình,
-        /// không được report trùng (đã có report Pending cho cùng target).
+        /// không được report trùng (đã có report Pending cho cùng target + cùng comment).
+        /// commentId nullable — chỉ truyền khi report comment, null khi report user.
         /// </summary>
         /// <param name="reporterId">UserId của người gửi report.</param>
         /// <param name="targetUserId">UserId của người bị report.</param>
         /// <param name="reason">Lý do report (bắt buộc).</param>
         /// <param name="description">Mô tả chi tiết bổ sung (tùy chọn).</param>
+        /// <param name="commentId">CommentId bị report (nullable, chỉ khi report comment).</param>
         /// <returns>true nếu tạo thành công, false nếu vi phạm ràng buộc.</returns>
-        Task<bool> CreateReportAsync(int reporterId, int targetUserId, string reason, string? description);
+        Task<bool> CreateReportAsync(int reporterId, int targetUserId, string reason, string? description, int? commentId = null);
 
         /// <summary>
-        /// Lấy danh sách report nhắm vào User thường (role = "User") đang ở trạng thái Pending.
+        /// Lấy danh sách report nhắm vào User thường (role = "User") đang Pending.
+        /// Include Reporter, TargetUser → Role, Comment, ProcessedBy.
         /// Dùng cho trang UserReports của Moderator.
-        /// Include Reporter, TargetUser → Role, ProcessedBy.
-        /// Sắp xếp theo CreatedAt giảm dần (report mới nhất lên trước).
         /// </summary>
         Task<List<Report>> GetUserReportsAsync();
 
         /// <summary>
-        /// Lấy danh sách report nhắm vào Moderator (role = "Moderator") đang ở trạng thái Pending.
+        /// Lấy danh sách report nhắm vào Moderator (role = "Moderator") đang Pending.
+        /// Include Reporter, TargetUser → Role, Comment, ProcessedBy.
         /// Dùng cho trang ModeratorReports của Admin.
-        /// Include Reporter, TargetUser → Role, ProcessedBy.
         /// </summary>
         Task<List<Report>> GetModeratorReportsAsync();
 
         /// <summary>
         /// Lấy chi tiết một report theo ID.
-        /// Include đầy đủ: Reporter, TargetUser → Role, ProcessedBy.
+        /// Include đầy đủ: Reporter, TargetUser → Role, Comment, ProcessedBy.
         /// Dùng cho trang Details khi review từng report.
         /// </summary>
         /// <param name="reportId">ID của report cần xem.</param>
@@ -55,6 +56,7 @@ namespace Group4_ReadingComicWeb.Services.Contracts
         /// - RemoveRole: hạ role Moderator xuống User (chỉ Admin dùng).
         /// - Dismiss: bỏ qua, không xử phạt.
         /// Cập nhật report: Status = Resolved, ghi ActionTaken, ProcessedById, ProcessedAt.
+        /// Include Role khi load targetUser để tránh NullReferenceException ở RemoveRole.
         /// </summary>
         /// <param name="reportId">ID report cần xử lý.</param>
         /// <param name="processedById">UserId của người xử lý (Moderator hoặc Admin).</param>

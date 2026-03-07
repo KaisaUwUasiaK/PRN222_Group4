@@ -1,4 +1,4 @@
-using Group4_ReadingComicWeb.Models;
+﻿using Group4_ReadingComicWeb.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Group4_ReadingComicWeb.Models
@@ -105,6 +105,13 @@ namespace Group4_ReadingComicWeb.Models
                 .WithMany()
                 .HasForeignKey(r => r.ProcessedById)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // Report → Comment (nullable FK, Restrict để tránh cascade cycle)
+            modelBuilder.Entity<Report>()
+                .HasOne(r => r.Comment)
+                .WithMany()
+                .HasForeignKey(r => r.CommentId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Table configurations
             modelBuilder.Entity<Role>().ToTable("Role");

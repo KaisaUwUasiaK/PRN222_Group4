@@ -57,6 +57,14 @@ namespace Group4_ReadingComicWeb.Services
             _context.Comics.Add(comic);
             await _context.SaveChangesAsync();
 
+            // Tạo bản ghi ComicModeration để Moderator thấy truyện trong danh sách chờ duyệt
+            _context.ComicModerations.Add(new ComicModeration
+            {
+                ComicId = comic.ComicId,
+                ModerationStatus = "Pending"
+            });
+            await _context.SaveChangesAsync();
+
             if (selectedTags != null)
             {
                 foreach (var tagId in selectedTags)

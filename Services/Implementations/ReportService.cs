@@ -25,7 +25,7 @@ namespace Group4_ReadingComicWeb.Services.Implementations
         /// <summary>
         /// Lấy danh sách report Pending nhắm vào User thường.
         /// Lọc: TargetUser.Role.RoleName == "User" AND Status == Pending.
-        /// Include đầy đủ quan hệ để view hiển thị thông tin.
+        /// Include Comment để Moderator biết comment nào bị report.
         /// </summary>
         public async Task<List<Report>> GetUserReportsAsync()
         {
@@ -34,6 +34,7 @@ namespace Group4_ReadingComicWeb.Services.Implementations
                 .Include(r => r.Reporter)
                 .Include(r => r.TargetUser)
                     .ThenInclude(u => u.Role)
+                .Include(r => r.Comment)
                 .Include(r => r.ProcessedBy)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
@@ -51,6 +52,7 @@ namespace Group4_ReadingComicWeb.Services.Implementations
                 .Include(r => r.Reporter)
                 .Include(r => r.TargetUser)
                     .ThenInclude(u => u.Role)
+                .Include(r => r.Comment)
                 .Include(r => r.ProcessedBy)
                 .OrderByDescending(r => r.CreatedAt)
                 .ToListAsync();
@@ -60,16 +62,18 @@ namespace Group4_ReadingComicWeb.Services.Implementations
         /// Tạo report mới.
         /// Ràng buộc:
         /// - Không tự report chính mình (reporterId == targetUserId → false).
-        /// - Không report trùng: nếu đã tồn tại report Pending cùng reporter + target → false.
-        /// Mặc định Status = Pending, CreatedAt = UTC now.
+        /// - Không report trùng: cùng reporter + target + cùng comment + Pending → false.
+        /// Tự động set ReportType: có commentId → Comment, không có → User.
         /// </summary>
-        public async Task<bool> CreateReportAsync(int reporterId, int targetUserId, string reason, string? description)
+        public async Task<bool> CreateReportAsync(int reporterId, int targetUserId, string reason, string? description, int? commentId = null)
         {
             if (reporterId == targetUserId) return false;
 
+            // Kiểm tra trùng: cùng reporter + target + cùng comment (hoặc cùng null) + Pending
             var existingReport = await _context.Reports
                 .FirstOrDefaultAsync(r => r.ReporterId == reporterId &&
                            r.TargetUserId == targetUserId &&
+                           r.CommentId == commentId &&
                            r.Status == ReportStatus.Pending);
 
             if (existingReport != null) return false;
@@ -78,8 +82,10 @@ namespace Group4_ReadingComicWeb.Services.Implementations
             {
                 ReporterId = reporterId,
                 TargetUserId = targetUserId,
+                CommentId = commentId,
                 Reason = reason,
                 Description = description,
+                ReportType = commentId.HasValue ? ReportType.Comment : ReportType.User,
                 Status = ReportStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             };
@@ -91,8 +97,7 @@ namespace Group4_ReadingComicWeb.Services.Implementations
 
         /// <summary>
         /// Lấy chi tiết report theo ID.
-        /// Include: Reporter, TargetUser → Role, ProcessedBy.
-        /// Dùng cho trang Details và kiểm tra quyền trước khi xử lý.
+        /// Include Comment để trang Details hiển thị nội dung comment bị report.
         /// </summary>
         public async Task<Report?> GetReportByIdAsync(int reportId)
         {
@@ -100,6 +105,7 @@ namespace Group4_ReadingComicWeb.Services.Implementations
                 .Include(r => r.Reporter)
                 .Include(r => r.TargetUser)
                     .ThenInclude(u => u.Role)
+                .Include(r => r.Comment)
                 .Include(r => r.ProcessedBy)
                 .FirstOrDefaultAsync(r => r.ReportId == reportId);
         }
@@ -107,19 +113,22 @@ namespace Group4_ReadingComicWeb.Services.Implementations
         /// <summary>
         /// Xử lý report theo hành động được chọn.
         /// Cập nhật Report: Status = Resolved, ghi ActionTaken, ProcessedById, ProcessedAt.
+        /// Include Role khi load targetUser — fix NullReferenceException ở case RemoveRole.
         /// Thực thi hành động lên TargetUser:
         /// - Warning: chỉ ghi log cảnh cáo (không thay đổi trạng thái user).
         /// - Ban: chuyển user.Status = Banned (user không thể đăng nhập).
-        /// - RemoveRole: hạ quyền Moderator → User (chỉ áp dụng nếu target là Moderator).
+        /// - RemoveRole: hạ quyền Moderator → User (chỉ Admin xử lý report Moderator).
         /// - Dismiss: không làm gì, chỉ đóng report.
-        /// Mỗi hành động đều ghi Log để audit trail.
         /// </summary>
         public async Task<bool> ProcessReportAsync(int reportId, int processedById, ReportAction action, string? note)
         {
             var report = await _context.Reports.FindAsync(reportId);
             if (report == null) return false;
 
-            var targetUser = await _context.Users.FindAsync(report.TargetUserId);
+            // Include Role để tránh NullReferenceException khi check RemoveRole
+            var targetUser = await _context.Users
+                .Include(u => u.Role)
+                .FirstOrDefaultAsync(u => u.UserId == report.TargetUserId);
             if (targetUser == null) return false;
 
             report.Status = ReportStatus.Resolved;
@@ -209,8 +218,6 @@ namespace Group4_ReadingComicWeb.Services.Implementations
         /// Phục vụ audit trail — theo dõi ai bị xử phạt gì, khi nào.
         /// Gọi nội bộ từ ProcessReportAsync khi thực thi Warning, Ban, RemoveRole.
         /// </summary>
-        /// <param name="userId">UserId của người bị xử phạt.</param>
-        /// <param name="action">Mô tả hành động (vd: "Banned: spam content").</param>
         private async Task LogActionAsync(int userId, string action)
         {
             var log = new Log
