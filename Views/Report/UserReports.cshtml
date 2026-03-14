@@ -32,8 +32,8 @@
                     <tr>
                         <th>Reporter</th>
                         <th>Target User</th>
+                        <th>Type</th>
                         <th>Reason</th>
-                        <th>Status</th>
                         <th>Created Date</th>
                         <th>Action</th>
                     </tr>
@@ -42,18 +42,17 @@
                     @foreach (var report in Model)
                     {
                         <tr>
-                            <td style="font-weight: 500;">@report.Reporter?.Username ?? "Unknown"</td>
-                            <td style="font-weight: 500;">@report.TargetUser?.Username ?? "Unknown"</td>
-                            <td>@report.Reason</td>
+                            <td style="font-weight: 500;">@(report.Reporter?.Username ?? "Unknown")</td>
+                            <td style="font-weight: 500;">@(report.TargetUser?.Username ?? "Unknown")</td>
                             <td>
-                                <span class="badge badge-@(report.Status == ReportStatus.Pending ? "warning" : report.Status == ReportStatus.Resolved ? "success" : "danger")">
-                                    <span class="badge-dot" style="background: @(report.Status == ReportStatus.Pending ? "#FBBF24" : report.Status == ReportStatus.Resolved ? "#34D399" : "#EF4444");"></span>
-                                    @report.Status
+                                <span class="badge" style="background: rgba(59,130,246,0.2); color: #60A5FA;">
+                                    @report.ReportType
                                 </span>
                             </td>
+                            <td>@report.Reason</td>
                             <td>@report.CreatedAt.ToString("MMM dd, yyyy")</td>
                             <td>
-                                <a href="@Url.Action("Details", "Report", new { id = report.ReportId })" 
+                                <a href="@Url.Action("Details", "Report", new { id = report.ReportId })"
                                    class="action-btn" style="color: var(--color-primary); border-color: rgba(124,58,237,0.3);">
                                     View
                                 </a>

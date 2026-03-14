@@ -16,6 +16,11 @@ namespace Group4_ReadingComicWeb.Models
         public int TargetUserId { get; set; }
         public virtual User TargetUser { get; set; } = null!;
 
+        // Comment bị report (nullable — chỉ có khi ReportType = Comment)
+        public int? CommentId { get; set; }
+        [ForeignKey("CommentId")]
+        public virtual Comment? Comment { get; set; }
+
         // Nội dung report
         public string Reason { get; set; } = null!;
         public string? Description { get; set; }

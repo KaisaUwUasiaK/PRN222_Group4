@@ -1,0 +1,145 @@
+﻿@using Group4_ReadingComicWeb.Models.Enum
+@model Group4_ReadingComicWeb.Models.Report
+
+@{
+    var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+    var isModerator = userRole == "Moderator";
+
+    ViewData["Title"] = "Report Details";
+    ViewData["Breadcrumb"] = "Report Details";
+    Layout = isModerator
+        ? "~/Views/Shared/_ModeratorLayout.cshtml"
+        : "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>Report #@Model.ReportId</h1>
+        <p>Review report details and take action</p>
+    </div>
+    <a href="@(isModerator ? Url.Action("UserReports", "Report") : Url.Action("ModeratorReports", "Report"))"
+       class="action-btn" style="padding: 8px 16px;">
+        <i class="ph ph-arrow-left"></i> Back to list
+    </a>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+
+    <!-- Report Info -->
+    <div class="data-card">
+        <div class="data-card-header">
+            <h3 class="data-card-title">Report Information</h3>
+            <span class="badge badge-warning">
+                <span class="badge-dot" style="background: #FBBF24;"></span>
+                @Model.Status
+            </span>
+        </div>
+        <div style="padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem;">
+            <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Reporter</span>
+                <p style="color: var(--text-primary); font-weight: 500; margin-top: 2px;">@Model.Reporter.Username</p>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Target User</span>
+                <p style="color: #FB7185; font-weight: 600; margin-top: 2px;">@Model.TargetUser.Username (@Model.TargetUser.Role.RoleName)</p>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Report Type</span>
+                <p style="color: var(--text-primary); margin-top: 2px;">@Model.ReportType</p>
+            </div>
+            <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Reason</span>
+                <p style="color: var(--text-primary); margin-top: 2px;">@Model.Reason</p>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <div>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Description</span>
+                    <p style="color: var(--text-secondary); margin-top: 2px; white-space: pre-wrap;">@Model.Description</p>
+                </div>
+            }
+            <div>
+                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Submitted</span>
+                <p style="color: var(--text-secondary); margin-top: 2px;">@Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reported Comment (if any) -->
+    <div class="data-card">
+        <div class="data-card-header">
+            <h3 class="data-card-title">Reported Comment</h3>
+        </div>
+        <div style="padding: 1.25rem;">
+            @if (Model.Comment != null)
+            {
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="color: #60a5fa; font-weight: 600;">@Model.TargetUser.Username</span>
+                        <span style="color: var(--text-muted); font-size: 0.75rem;">@Model.Comment.CreatedAt.ToString("MMM dd, yyyy HH:mm")</span>
+                    </div>
+                    <p style="color: var(--text-secondary); white-space: pre-wrap; line-height: 1.6;">@Model.Comment.Content</p>
+                </div>
+            }
+            else
+            {
+                <div style="text-align: center; padding: 2rem 0; color: var(--text-muted);">
+                    <i class="ph ph-chat-teardrop-slash" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+                    <p>This is a user report — no specific comment attached.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Action Panel -->
+@if (Model.Status == ReportStatus.Pending)
+{
+    <div class="data-card">
+        <div class="data-card-header">
+            <h3 class="data-card-title">Take Action</h3>
+        </div>
+        <div style="padding: 1.25rem;">
+            <!-- Process Form -->
+            <form action="@Url.Action("ProcessReport", "Report", new { id = Model.ReportId })" method="post" style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; margin-bottom: 6px; display: block;">Action</label>
+                    <select name="action" required
+                            style="width: 100%; padding: 10px 14px; background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 0.9rem;">
+                        <option value="" disabled selected>Select action...</option>
+                        <option value="@((int)ReportAction.Warning)">⚠️ Warning — Send a warning</option>
+                        <option value="@((int)ReportAction.Ban)">🚫 Ban — Ban this user</option>
+                        @if (!isModerator)
+                        {
+                            <option value="@((int)ReportAction.RemoveRole)">⬇️ Remove Role — Demote to User</option>
+                        }
+                        <option value="@((int)ReportAction.Dismiss)">✅ Dismiss — No action needed</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500; margin-bottom: 6px; display: block;">Note (optional)</label>
+                    <textarea name="note" rows="3"
+                              style="width: 100%; padding: 10px 14px; background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-size: 0.9rem; resize: vertical;"
+                              placeholder="Add a note about your decision..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="submit" class="action-btn" style="color: var(--color-primary); border-color: rgba(124,58,237,0.3); padding: 8px 20px; font-weight: 600;">
+                        <i class="ph ph-check"></i> Process Report
+                    </button>
+                </div>
+            </form>
+
+            <!-- Reject Form — tách riêng, không lồng trong form Process -->
+            <form action="@Url.Action("RejectReport", "Report", new { id = Model.ReportId })" method="post"
+                  style="display: flex; justify-content: flex-end; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                <input type="hidden" name="note" value="Report rejected as invalid." />
+                <button type="submit" class="action-btn" style="color: var(--text-muted); border-color: var(--border-color); padding: 8px 16px;"
+                        onclick="return confirm('Reject this report as invalid?')">
+                    <i class="ph ph-x"></i> Reject Report
+                </button>
+            </form>
+        </div>
+    </div>
+}

@@ -1,20 +1,19 @@
-@model List<Report>
+@using Group4_ReadingComicWeb.Models.Enum
+@model List<Group4_ReadingComicWeb.Models.Report>
 
 @{
-    ViewData["Title"] = "User Reports";
-    ViewData["Breadcrumb"] = "User Reports";
-    Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
+    ViewData["Title"] = "Moderator Reports";
+    ViewData["Breadcrumb"] = "Moderator Reports";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<!-- Page Header -->
 <div class="page-header">
     <div class="page-header-left">
-        <h1>User Reports</h1>
-        <p>Review and take action on reports submitted against users</p>
+        <h1>Moderator Reports</h1>
+        <p>Review and take action on reports submitted against moderators.</p>
     </div>
 </div>
 
-<!-- Reports List -->
 <div class="data-card">
     <div class="data-card-header">
         <h3 class="data-card-title">Pending Reports</h3>
@@ -30,9 +29,9 @@
                 <thead>
                     <tr>
                         <th>Reporter</th>
-                        <th>Target User</th>
+                        <th>Target Moderator</th>
+                        <th>Type</th>
                         <th>Reason</th>
-                        <th>Description</th>
                         <th>Date</th>
                         <th>Action</th>
                     </tr>
@@ -41,15 +40,17 @@
                     @foreach (var report in Model)
                     {
                         <tr>
-                            <td>@report.Reporter.Username</td>
-                            <td style="font-weight: 600;">@report.TargetUser.Username</td>
-                            <td>@report.Reason</td>
-                            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis;">
-                                @(string.IsNullOrEmpty(report.Description) ? "N/A" : report.Description)
+                            <td style="font-weight: 500;">@(report.Reporter?.Username ?? "Unknown")</td>
+                            <td style="font-weight: 600; color: #FB7185;">@(report.TargetUser?.Username ?? "Unknown")</td>
+                            <td>
+                                <span class="badge" style="background: rgba(59,130,246,0.2); color: #60A5FA;">
+                                    @report.ReportType
+                                </span>
                             </td>
+                            <td>@report.Reason</td>
                             <td>@report.CreatedAt.ToString("MMM dd, yyyy")</td>
                             <td>
-                                <a href="@Url.Action("Details", "Report", new { id = report.ReportId })" 
+                                <a href="@Url.Action("Details", "Report", new { id = report.ReportId })"
                                    class="action-btn" style="color: var(--color-primary); border-color: rgba(124,58,237,0.3);">
                                     Review
                                 </a>
@@ -65,7 +66,7 @@
         <div style="padding: 3rem 1rem; text-align: center;">
             <i class="ph ph-check-circle" style="font-size: 3rem; color: var(--color-accent); margin-bottom: 1rem; display: block;"></i>
             <p style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">No pending reports!</p>
-            <p style="color: var(--text-secondary); font-size: 0.95rem;">All user reports have been reviewed.</p>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">All moderator reports have been reviewed.</p>
         </div>
     }
 </div>

@@ -126,7 +126,7 @@ namespace Group4_ReadingComicWeb.Services.Implementations
             moderation.Note = reason;
             moderation.ProcessedAt = DateTime.Now;
 
-            moderation.Comic.Status = nameof(ModerationStatus.Rejected);
+            moderation.Comic.Status = nameof(ComicStatus.Rejected);
 
             await _context.SaveChangesAsync();
             return true;
@@ -153,7 +153,7 @@ namespace Group4_ReadingComicWeb.Services.Implementations
             moderation.Note = reason;
             moderation.ProcessedAt = DateTime.Now;
 
-            moderation.Comic.Status = nameof(ModerationStatus.Hidden);
+            moderation.Comic.Status = nameof(ComicStatus.Canceled);
 
             await _context.SaveChangesAsync();
             return true;

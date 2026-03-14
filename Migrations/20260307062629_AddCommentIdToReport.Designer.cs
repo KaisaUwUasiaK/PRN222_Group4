@@ -4,6 +4,7 @@ using Group4_ReadingComicWeb.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Group4_ReadingComicWeb.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260307062629_AddCommentIdToReport")]
+    partial class AddCommentIdToReport
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -179,32 +182,6 @@ namespace Group4_ReadingComicWeb.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Comment");
-                });
-
-            modelBuilder.Entity("Group4_ReadingComicWeb.Models.Favorite", b =>
-                {
-                    b.Property<int>("FavoriteId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FavoriteId"));
-
-                    b.Property<int>("ComicId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("FavoriteId");
-
-                    b.HasIndex("ComicId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Favorite");
                 });
 
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.Log", b =>
@@ -462,25 +439,6 @@ namespace Group4_ReadingComicWeb.Migrations
                         .IsRequired();
 
                     b.Navigation("Chapter");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Group4_ReadingComicWeb.Models.Favorite", b =>
-                {
-                    b.HasOne("Group4_ReadingComicWeb.Models.Comic", "Comic")
-                        .WithMany()
-                        .HasForeignKey("ComicId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Group4_ReadingComicWeb.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Comic");
 
                     b.Navigation("User");
                 });
