@@ -100,7 +100,7 @@ namespace Group4_ReadingComicWeb.Services.Implementations
             moderation.ModeratorId = moderatorId;
             moderation.ProcessedAt = DateTime.Now;
 
-            moderation.Comic.Status = nameof(ModerationStatus.Approved);
+            moderation.Comic.Status = nameof(ComicStatus.OnWorking);
 
             await _context.SaveChangesAsync();
             return true;

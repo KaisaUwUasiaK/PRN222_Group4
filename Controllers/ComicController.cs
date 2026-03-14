@@ -155,7 +155,7 @@ namespace Group4_ReadingComicWeb.Controllers
             return RedirectToAction("Read", new { id = chapterId });
         }
        
-
+        //Add/Delete Favorite
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> ToggleFavorite(int comicId)
