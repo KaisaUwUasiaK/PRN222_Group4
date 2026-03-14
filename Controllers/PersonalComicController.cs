@@ -1,12 +1,13 @@
 ﻿using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Services;
+using Group4_ReadingComicWeb.Services.Contracts;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Linq;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Http;
 
 namespace Group4_ReadingComicWeb.Controllers
 {
@@ -15,10 +16,15 @@ namespace Group4_ReadingComicWeb.Controllers
     {
         private readonly IPersonalComicService _comicService;
 
-        public PersonalComicController(IPersonalComicService comicService)
+        private readonly IFavoriteService _favoriteService;
+
+        public PersonalComicController(IPersonalComicService comicService, IFavoriteService favoriteService)
         {
             _comicService = comicService;
+            _favoriteService = favoriteService;
         }
+
+
 
         //Get current user authorize to system
         private int GetCurrentUserId()
@@ -183,6 +189,30 @@ namespace Group4_ReadingComicWeb.Controllers
             if (comicId == null) return NotFound();
 
             return RedirectToAction("Chapters", new { id = comicId });
+        }
+        [Authorize]
+        public async Task<IActionResult> Favorites()
+        {
+            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdString, out int userId))
+            {
+                var favComics = await _favoriteService.GetUserFavoritesAsync(userId);
+                return View(favComics);
+            }
+            return RedirectToAction("Login", "Authentication");
+        }
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> RemoveFavorite(int comicId)
+        {
+            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdString, out int userId))
+            {
+                await _favoriteService.ToggleFavoriteAsync(comicId, userId);
+                TempData["Info"] = "Removed from your favorites.";
+            }
+
+            return RedirectToAction("Favorites");
         }
     }
 }

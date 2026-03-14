@@ -42,7 +42,7 @@ namespace Group4_ReadingComicWeb
             builder.Services.AddScoped<IComicService, ComicService>();
             builder.Services.AddScoped<ICommentService, CommentService>();
             builder.Services.AddScoped<IPersonalComicService, PersonalComicService>();
-
+            builder.Services.AddScoped<IFavoriteService, FavoriteService>();
             builder.Services.AddScoped<IAdminService, AdminService>();
             builder.Services.AddScoped<IReportService, ReportService>();
 

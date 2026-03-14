@@ -1,4 +1,5 @@
 ﻿using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models.Enum;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -40,7 +41,7 @@ namespace Group4_ReadingComicWeb.Services
         {
             comic.AuthorId = userId;
             comic.CreatedAt = DateTime.Now;
-            comic.Status = "Pending";
+            comic.Status = ComicStatus.Pending.ToString();
 
             var fileName = Guid.NewGuid().ToString() + Path.GetExtension(coverImage.FileName);
             var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "covers");
@@ -57,7 +58,6 @@ namespace Group4_ReadingComicWeb.Services
             _context.Comics.Add(comic);
             await _context.SaveChangesAsync();
 
-            // Tạo bản ghi ComicModeration để Moderator thấy truyện trong danh sách chờ duyệt
             _context.ComicModerations.Add(new ComicModeration
             {
                 ComicId = comic.ComicId,
