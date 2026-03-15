@@ -1,390 +1,293 @@
-﻿/* ── Bell button wrapper ────────────────────────────────── */
-.notif - bell - wrapper {
-    position: relative;
-    display: inline - flex;
-    align - items: center;
-}
+﻿/**
+ * notification.js — ComicVerse
+ * Quản lý UI notification panel + SignalR real-time.
+ * Yêu cầu: signalr.min.js và notyf.min.js phải load TRƯỚC file này.
+ */
+(function () {
+    'use strict';
 
-.notif - badge {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    background: var(--color - danger);
-    color: #fff;
-    font - size: 0.6rem;
-    font - weight: 700;
-    border - radius: var(--radius - full);
-    padding: 1px 4px;
-    min - width: 16px;
-    text - align: center;
-    line - height: 1.4;
-    pointer - events: none;
-    display: none; /* ẩn khi = 0 */
-}
+    const ICON_MAP = {
+        comic_approved: 'ph ph-check-circle',
+        comic_rejected: 'ph ph-x-circle',
+        comic_hidden: 'ph ph-eye-slash',
+        new_chapter: 'ph ph-book-open',
+        new_pending: 'ph ph-hourglass',
+        new_report: 'ph ph-flag',
+        account_warning: 'ph ph-warning',
+        account_banned: 'ph ph-lock',
+        account_unbanned: 'ph ph-lock-open',
+        system: 'ph ph-info',
+    };
 
-.notif - badge.visible {
-    display: block;
-}
+    let notifData = [];
 
-/* ── Dropdown container ─────────────────────────────────── */
-.notif - dropdown {
-    position: absolute;
-    top: calc(100 % + 10px);
-    right: 0;
-    width: 380px;
-    background: var(--bg - surface);
-    border: 1px solid var(--border - color);
-    border - radius: var(--radius - md);
-    box - shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
-    z - index: 9999;
-    display: none;
-    flex - direction: column;
-    max - height: 520px;
-    overflow: hidden;
-}
+    const $ = (sel, ctx) => (ctx || document).querySelector(sel);
+    const $$ = (sel, ctx) => (ctx || document).querySelectorAll(sel);
 
-.notif - dropdown.open {
-    display: flex;
-}
+    document.addEventListener('DOMContentLoaded', function () {
+        setupBell();
+        setupSignalR();
+        loadBadgeCount();
+    });
 
-/* ── Header ─────────────────────────────────────────────── */
-.notif - header {
-    display: flex;
-    align - items: center;
-    justify - content: space - between;
-    padding: 14px 16px 10px;
-    border - bottom: 1px solid var(--border - color);
-    flex - shrink: 0;
-}
+    function setupBell() {
+        const btn = $('.notif-bell-btn');
+        const dropdown = $('.notif-dropdown');
+        if (!btn || !dropdown) return;
 
-.notif - header - title {
-    font - size: 0.95rem;
-    font - weight: 600;
-    color: var(--text - primary);
-    display: flex;
-    align - items: center;
-    gap: 8px;
-}
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isOpen = dropdown.classList.toggle('open');
+            if (isOpen) {
+                closeDetail();
+                loadNotifications();
+            }
+        });
 
-.notif - header - title i {
-    color: var(--color - primary);
-    font - size: 1.1rem;
-}
+        const markAllBtn = $('.notif-mark-all');
+        if (markAllBtn) markAllBtn.addEventListener('click', markAllRead);
 
-.notif - mark - all {
-    font - size: 0.75rem;
-    color: var(--color - primary);
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    font - weight: 500;
-    transition: opacity 0.2s;
-}
+        document.addEventListener('click', function (e) {
+            if (!dropdown.contains(e.target) && !btn.contains(e.target)) {
+                dropdown.classList.remove('open');
+                closeDetail();
+            }
+        });
+    }
 
-.notif - mark - all:hover {
-    opacity: 0.7;
-    text - decoration: underline;
-}
+    // Load chỉ số đếm — dùng khi page mới mở
+    function loadBadgeCount() {
+        fetch('/Notification/List')
+            .then(r => r.json())
+            .then(data => {
+                notifData = data.notifications || [];
+                updateBadge(data.unreadCount || 0);
+            })
+            .catch(() => { });
+    }
 
-/* ── List ───────────────────────────────────────────────── */
-.notif - list {
-    overflow - y: auto;
-    flex: 1;
-    /* Scrollbar style */
-    scrollbar - width: thin;
-    scrollbar - color: var(--border - color) transparent;
-}
+    // Load đầy đủ — dùng khi mở panel
+    function loadNotifications() {
+        const list = $('.notif-list');
+        if (!list) return;
 
-.notif - list:: -webkit - scrollbar { width: 4px; }
-.notif - list:: -webkit - scrollbar - track { background: transparent; }
-.notif - list:: -webkit - scrollbar - thumb { background: var(--border - color); border - radius: 4px; }
+        list.innerHTML = skeletonHTML();
 
-/* ── Item ───────────────────────────────────────────────── */
-.notif - item {
-    display: flex;
-    gap: 10px;
-    padding: 12px 16px;
-    border - bottom: 1px solid rgba(51, 65, 85, 0.5);
-    cursor: pointer;
-    transition: background 0.15s;
-    position: relative;
-}
+        fetch('/Notification/List')
+            .then(r => r.json())
+            .then(data => {
+                notifData = data.notifications || [];
+                renderList(notifData);
+                updateBadge(data.unreadCount || 0);
+            })
+            .catch(() => {
+                list.innerHTML = '<div class="notif-empty"><i class="ph ph-wifi-slash"></i><span>Không thể tải thông báo</span></div>';
+            });
+    }
 
-.notif - item:hover {
-    background: var(--bg - surface - hover);
-}
+    function renderList(notifications) {
+        const list = $('.notif-list');
+        if (!list) return;
 
-.notif - item: last - child {
-    border - bottom: none;
-}
+        if (!notifications.length) {
+            list.innerHTML = '<div class="notif-empty"><i class="ph ph-bell-slash"></i><span>Bạn chưa có thông báo nào</span></div>';
+            return;
+        }
 
-/* Chỉ thị chưa đọc — viền trái violet */
-.notif - item.unread {
-    background: rgba(124, 58, 237, 0.06);
-}
+        list.innerHTML = notifications.map(n => itemHTML(n)).join('');
 
-.notif - item.unread::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: var(--color - primary);
-    border - radius: 0 2px 2px 0;
-}
+        $$('.notif-item', list).forEach(el => {
+            el.addEventListener('click', function () {
+                openDetail(parseInt(this.dataset.id));
+            });
+        });
+    }
 
-/* ── Icon bubble ────────────────────────────────────────── */
-.notif - icon {
-    width: 36px;
-    height: 36px;
-    border - radius: 50 %;
-    display: flex;
-    align - items: center;
-    justify - content: center;
-    flex - shrink: 0;
-    font - size: 1rem;
-    margin - top: 1px;
-}
+    function itemHTML(n) {
+        const icon = ICON_MAP[n.notificationType] || ICON_MAP.system;
+        const readClass = n.isRead ? 'read' : 'unread';
+        const preview = (n.content || '').replace(/<[^>]+>/g, '').substring(0, 60);
 
-.notif - icon.type - comic_approved  { background: rgba(16, 185, 129, 0.15); color: #10B981; }
-.notif - icon.type - comic_rejected  { background: rgba(244, 63, 94, 0.15); color: #F43F5E; }
-.notif - icon.type - comic_hidden    { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
-.notif - icon.type - new_chapter     { background: rgba(99, 102, 241, 0.15); color: #6366F1; }
-.notif - icon.type - new_pending     { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
-.notif - icon.type - new_report      { background: rgba(244, 63, 94, 0.15); color: #F43F5E; }
-.notif - icon.type - account_warning { background: rgba(245, 158, 11, 0.15); color: #F59E0B; }
-.notif - icon.type - account_banned  { background: rgba(244, 63, 94, 0.15); color: #F43F5E; }
-.notif - icon.type - account_unbanned{ background: rgba(16, 185, 129, 0.15); color: #10B981; }
-.notif - icon.type - system          { background: rgba(148, 163, 184, 0.15); color: #94A3B8; }
+        return `
+        <div class="notif-item ${readClass}" data-id="${n.notificationId}">
+            <div class="notif-icon type-${n.notificationType}">
+                <i class="${icon}"></i>
+            </div>
+            <div class="notif-body">
+                <div class="notif-item-title">${escHtml(n.title)}</div>
+                <div class="notif-item-preview">${escHtml(preview)}${preview.length >= 60 ? '…' : ''}</div>
+                <div class="notif-item-time">
+                    ${!n.isRead ? '<span class="notif-dot"></span>' : ''}
+                    <i class="ph ph-clock" style="font-size:0.75rem"></i>
+                    ${n.createdAt}
+                </div>
+            </div>
+        </div>`;
+    }
 
-/* ── Item body ──────────────────────────────────────────── */
-.notif - body {
-    flex: 1;
-    min - width: 0;
-}
+    function openDetail(id) {
+        const n = notifData.find(x => x.notificationId === id);
+        if (!n) return;
 
-.notif - item - title {
-    font - size: 0.85rem;
-    font - weight: 600;
-    color: var(--text - primary);
-    white - space: nowrap;
-    overflow: hidden;
-    text - overflow: ellipsis;
-    margin - bottom: 3px;
-}
+        const detail = $('.notif-detail');
+        if (!detail) return;
 
-.notif - item.read.notif - item - title {
-    font - weight: 400;
-    color: var(--text - secondary);
-}
+        const icon = ICON_MAP[n.notificationType] || ICON_MAP.system;
 
-.notif - item - preview {
-    font - size: 0.78rem;
-    color: var(--text - muted);
-    white - space: nowrap;
-    overflow: hidden;
-    text - overflow: ellipsis;
-}
+        detail.innerHTML = `
+            <div class="notif-detail-header">
+                <button class="notif-detail-back" onclick="window._notifBack()">
+                    <i class="ph ph-arrow-left"></i> Quay lại
+                </button>
+                <button class="notif-detail-del" title="Xoá" onclick="window._notifDelete(${id})">
+                    <i class="ph ph-trash"></i>
+                </button>
+            </div>
+            <div class="notif-detail-title">${escHtml(n.title)}</div>
+            <div class="notif-detail-meta">
+                <i class="${icon}" style="font-size:0.85rem"></i>
+                <span>${n.createdAt}</span>
+            </div>
+            <div class="notif-detail-body">${(n.content || '').replace(/\n/g, '<br>')}</div>
+            <div class="notif-detail-actions">
+                ${n.actionUrl
+                ? `<a href="${n.actionUrl}" class="notif-btn-action primary"><i class="ph ph-arrow-square-out"></i> Xem chi tiết</a>`
+                : ''}
+                <button class="notif-btn-action ghost" onclick="window._notifBack()">
+                    <i class="ph ph-x"></i> Đóng
+                </button>
+            </div>`;
 
-.notif - item - time {
-    font - size: 0.72rem;
-    color: var(--text - muted);
-    white - space: nowrap;
-    margin - top: 4px;
-    display: flex;
-    align - items: center;
-    gap: 4px;
-}
+        detail.classList.add('open');
 
-/* Chấm xanh unread indicator */
-.notif - dot {
-    width: 7px;
-    height: 7px;
-    border - radius: 50 %;
-    background: var(--color - primary);
-    flex - shrink: 0;
-    align - self: center;
-}
+        const listEl = $('.notif-list');
+        const headerEl = $('.notif-header');
+        if (listEl) listEl.style.display = 'none';
+        if (headerEl) headerEl.style.display = 'none';
 
-/* ── Detail panel ───────────────────────────────────────── */
-.notif - detail {
-    display: none;
-    flex - direction: column;
-    border - top: 1px solid var(--border - color);
-    background: var(--bg - surface);
-    flex - shrink: 0;
-    max - height: 260px;
-}
+        if (!n.isRead) markRead(id);
+    }
 
-.notif - detail.open {
-    display: flex;
-}
+    function closeDetail() {
+        const detail = $('.notif-detail');
+        const listEl = $('.notif-list');
+        const headerEl = $('.notif-header');
+        if (detail) detail.classList.remove('open');
+        if (listEl) listEl.style.display = '';
+        if (headerEl) headerEl.style.display = '';
+    }
 
-.notif - detail - header {
-    display: flex;
-    align - items: center;
-    justify - content: space - between;
-    padding: 10px 16px 6px;
-    gap: 8px;
-}
+    window._notifBack = closeDetail;
 
-.notif - detail - back {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text - muted);
-    padding: 4px;
-    border - radius: var(--radius - sm);
-    display: flex;
-    align - items: center;
-    gap: 6px;
-    font - size: 0.8rem;
-    transition: color 0.2s;
-}
+    window._notifDelete = function (id) {
+        fetch(`/Notification/Delete/${id}`, {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': getAntiForgery() }
+        })
+            .then(r => r.json())
+            .then(data => {
+                notifData = notifData.filter(n => n.notificationId !== id);
+                closeDetail();
+                renderList(notifData);
+                updateBadge(data.unreadCount);
+            });
+    };
 
-.notif - detail - back:hover { color: var(--text - primary); }
+    function markRead(id) {
+        fetch(`/Notification/MarkRead/${id}`, {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': getAntiForgery() }
+        })
+            .then(r => r.json())
+            .then(data => {
+                const n = notifData.find(x => x.notificationId === id);
+                if (n) n.isRead = true;
+                updateBadge(data.unreadCount);
 
-.notif - detail - del {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text - muted);
-    padding: 4px;
-    border - radius: var(--radius - sm);
-    font - size: 1rem;
-    display: flex;
-    align - items: center;
-    transition: color 0.2s;
-}
+                const el = $(`.notif-item[data-id="${id}"]`);
+                if (el) {
+                    el.classList.remove('unread');
+                    el.classList.add('read');
+                    const dot = el.querySelector('.notif-dot');
+                    if (dot) dot.remove();
+                }
+            });
+    }
 
-.notif - detail - del:hover { color: var(--color - danger); }
+    function markAllRead() {
+        fetch('/Notification/MarkAllRead', {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': getAntiForgery() }
+        })
+            .then(r => r.json())
+            .then(() => {
+                notifData.forEach(n => n.isRead = true);
+                renderList(notifData);
+                updateBadge(0);
+            });
+    }
 
-.notif - detail - title {
-    font - size: 0.9rem;
-    font - weight: 600;
-    color: var(--text - primary);
-    padding: 0 16px 6px;
-    line - height: 1.4;
-}
+    function updateBadge(count) {
+        const badge = $('.notif-badge');
+        if (!badge) return;
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.classList.add('visible');
+        } else {
+            badge.classList.remove('visible');
+        }
+    }
 
-.notif - detail - meta {
-    font - size: 0.75rem;
-    color: var(--text - muted);
-    padding: 0 16px 8px;
-    display: flex;
-    align - items: center;
-    gap: 6px;
-}
+    function setupSignalR() {
+        if (typeof signalR === 'undefined') return;
 
-.notif - detail - body {
-    font - size: 0.82rem;
-    color: var(--text - secondary);
-    line - height: 1.65;
-    padding: 0 16px;
-    overflow - y: auto;
-    flex: 1;
-    scrollbar - width: thin;
-    scrollbar - color: var(--border - color) transparent;
-}
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl('/hubs/notification')
+            .withAutomaticReconnect()
+            .build();
 
-.notif - detail - body b { color: var(--text - primary); }
+        connection.on('ReceiveNotification', function (notif) {
+            notifData.unshift(notif);
 
-.notif - detail - actions {
-    padding: 10px 16px 14px;
-    display: flex;
-    gap: 8px;
-}
+            const badge = $('.notif-badge');
+            const current = badge ? (parseInt(badge.textContent) || 0) : 0;
+            updateBadge(current + 1);
 
-.notif - btn - action {
-    font - size: 0.78rem;
-    padding: 6px 14px;
-    border - radius: var(--radius - sm);
-    border: none;
-    cursor: pointer;
-    font - weight: 500;
-    text - decoration: none;
-    display: inline - flex;
-    align - items: center;
-    gap: 6px;
-    transition: background 0.15s, color 0.15s;
-}
+            const dropdown = $('.notif-dropdown');
+            if (dropdown && dropdown.classList.contains('open') && !$('.notif-detail.open')) {
+                renderList(notifData);
+            }
 
-.notif - btn - action.primary {
-    background: var(--color - primary);
-    color: #fff;
-}
+            if (typeof notyf !== 'undefined') {
+                notyf.open({
+                    type: 'info',
+                    message: `<i class="ph ph-bell" style="margin-right:6px"></i>${notif.title}`
+                });
+            }
+        });
 
-.notif - btn - action.primary:hover {
-    background: var(--color - primary - hover);
-}
+        connection.start().catch(err => console.warn('NotificationHub error:', err));
+    }
 
-.notif - btn - action.ghost {
-    background: var(--bg - surface - hover);
-    color: var(--text - secondary);
-}
+    function escHtml(str) {
+        return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
 
-.notif - btn - action.ghost:hover {
-    color: var(--text - primary);
-}
+    function getAntiForgery() {
+        const el = document.querySelector('input[name="__RequestVerificationToken"]');
+        return el ? el.value : '';
+    }
 
-/* ── Empty state ────────────────────────────────────────── */
-.notif - empty {
-    display: flex;
-    flex - direction: column;
-    align - items: center;
-    justify - content: center;
-    gap: 10px;
-    padding: 40px 20px;
-    color: var(--text - muted);
-}
+    function skeletonHTML() {
+        return [1, 2, 3].map(() => `
+            <div class="notif-skeleton">
+                <div class="sk-circle"></div>
+                <div class="sk-lines">
+                    <div class="sk-line"></div>
+                    <div class="sk-line short"></div>
+                    <div class="sk-line shorter"></div>
+                </div>
+            </div>`).join('');
+    }
 
-.notif - empty i {
-    font - size: 2.5rem;
-    opacity: 0.4;
-}
-
-.notif - empty span {
-    font - size: 0.85rem;
-}
-
-/* ── Loading skeleton ───────────────────────────────────── */
-.notif - skeleton {
-    padding: 12px 16px;
-    display: flex;
-    gap: 10px;
-    border - bottom: 1px solid rgba(51, 65, 85, 0.5);
-}
-
-.sk - circle {
-    width: 36px;
-    height: 36px;
-    border - radius: 50 %;
-    background: var(--bg - surface - hover);
-    flex - shrink: 0;
-    animation: sk - pulse 1.5s ease -in -out infinite;
-}
-
-.sk - lines {
-    flex: 1;
-    display: flex;
-    flex - direction: column;
-    gap: 6px;
-    justify - content: center;
-}
-
-.sk - line {
-    height: 10px;
-    border - radius: 4px;
-    background: var(--bg - surface - hover);
-    animation: sk - pulse 1.5s ease -in -out infinite;
-}
-
-.sk - line.short { width: 55 %; }
-.sk - line.shorter { width: 35 %; }
-
-@keyframes sk - pulse {
-    0 %, 100 % { opacity: 0.6; }
-    50 % { opacity: 0.3; }
-}
+})();
