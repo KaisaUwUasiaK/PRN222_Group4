@@ -1,0 +1,208 @@
+@model List<Group4_ReadingComicWeb.ViewModels.TagListItemViewModel>
+
+@{
+    ViewData["Title"] = "Tag Management";
+    ViewData["Breadcrumb"] = "Tag Management";
+    Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
+}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>Tag Management</h1>
+        <p>Create, edit and remove comic tags.</p>
+    </div>
+    <div>
+        <a href="@Url.Action("Create", "Tag")" class="btn btn-primary">
+            <i class="ph ph-plus"></i> New Tag
+        </a>
+    </div>
+</div>
+
+<div class="data-card">
+    <div class="data-card-header">
+        <h3 class="data-card-title">All Tags</h3>
+        <span class="badge" style="background: rgba(59,130,246,0.2); color: #60A5FA;">@Model.Count</span>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Tag Name</th>
+                        <th>Used By Comics</th>
+                        <th style="width: 260px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var tag in Model)
+                    {
+                        var formId = $"delete-tag-form-{tag.TagId}";
+
+                        <tr>
+                            <td style="font-weight: 600; color: var(--text-primary);">@tag.TagName</td>
+                            <td>
+                                @if (tag.ComicCount > 0)
+                                {
+                                    <span class="badge" style="background: rgba(245,158,11,0.2); color: #f59e0b;">@tag.ComicCount</span>
+                                }
+                                else
+                                {
+                                    <span>0</span>
+                                }
+                            </td>
+                            <td>
+                                <div style="display: flex; gap: 8px;">
+                                    <a href="@Url.Action("Edit", "Tag", new { id = tag.TagId })"
+                                       class="action-btn js-confirm-edit"
+                                       data-tag-name="@tag.TagName"
+                                       style="color: var(--color-primary); border-color: rgba(124,58,237,0.3);">
+                                        <i class="ph ph-pencil-simple"></i> Edit
+                                    </a>
+
+                                    <form id="@formId" asp-action="Delete" asp-controller="Tag" asp-route-id="@tag.TagId" method="post" style="display: inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="button"
+                                                class="action-btn js-confirm-delete"
+                                                data-tag-name="@tag.TagName"
+                                                data-usage-count="@tag.ComicCount"
+                                                data-form-id="@formId"
+                                                style="color: #ef4444; border-color: rgba(239,68,68,0.3);">
+                                            <i class="ph ph-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div style="padding: 3rem 1rem; text-align: center;">
+            <i class="ph ph-tag" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem; display: block;"></i>
+            <p style="font-size: 1.1rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">No tags found.</p>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">Create your first tag to start categorizing comics.</p>
+        </div>
+    }
+</div>
+
+<div id="tagConfirmModal" class="modal-overlay">
+    <div class="modal-card" style="max-width: 460px;">
+        <div class="modal-header">
+            <h2 class="modal-title" id="tagConfirmTitle">Confirm Action</h2>
+            <button class="modal-close" type="button" id="tagConfirmCloseBtn">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+
+        <div style="padding: 0 1.25rem 1rem;">
+            <p id="tagConfirmMessage" style="color: var(--text-secondary); line-height: 1.6; margin: 0;"></p>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end; padding: 0 1.25rem 1.25rem;">
+            <button type="button" class="btn btn-ghost" id="tagConfirmCancelBtn" style="border: 1px solid var(--border-color);">Cancel</button>
+            <button type="button" class="btn btn-primary" id="tagConfirmOkBtn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const modal = document.getElementById('tagConfirmModal');
+            const titleEl = document.getElementById('tagConfirmTitle');
+            const messageEl = document.getElementById('tagConfirmMessage');
+            const cancelBtn = document.getElementById('tagConfirmCancelBtn');
+            const closeBtn = document.getElementById('tagConfirmCloseBtn');
+            const okBtn = document.getElementById('tagConfirmOkBtn');
+
+            let onConfirm = null;
+
+            function openModal(options) {
+                titleEl.textContent = options.title;
+                messageEl.textContent = options.message;
+                okBtn.textContent = options.okText || 'Confirm';
+                okBtn.className = options.okClass || 'btn btn-primary';
+                cancelBtn.style.display = options.showCancel === false ? 'none' : 'inline-flex';
+                onConfirm = options.onConfirm || null;
+                modal.classList.add('active');
+            }
+
+            function closeModal() {
+                modal.classList.remove('active');
+                onConfirm = null;
+            }
+
+            okBtn.addEventListener('click', function () {
+                if (onConfirm) {
+                    onConfirm();
+                }
+                closeModal();
+            });
+
+            cancelBtn.addEventListener('click', closeModal);
+            closeBtn.addEventListener('click', closeModal);
+
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            document.querySelectorAll('.js-confirm-edit').forEach(function (btn) {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    const tagName = btn.dataset.tagName || 'this tag';
+                    const targetUrl = btn.getAttribute('href');
+
+                    openModal({
+                        title: 'Open Edit Form',
+                        message: `You are about to edit tag "${tagName}". Please review changes carefully before saving.`,
+                        okText: 'Continue',
+                        okClass: 'btn btn-primary',
+                        onConfirm: function () {
+                            window.location.href = targetUrl;
+                        }
+                    });
+                });
+            });
+
+            document.querySelectorAll('.js-confirm-delete').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    const tagName = btn.dataset.tagName || 'this tag';
+                    const usageCount = parseInt(btn.dataset.usageCount || '0', 10);
+                    const formId = btn.dataset.formId;
+
+                    if (usageCount > 0) {
+                        openModal({
+                            title: 'Delete Blocked',
+                            message: `Tag "${tagName}" is currently used by ${usageCount} comic(s). Remove this tag from related comics before deleting.`,
+                            okText: 'Understood',
+                            okClass: 'btn btn-ghost',
+                            showCancel: false
+                        });
+                        return;
+                    }
+
+                    openModal({
+                        title: 'Confirm Delete',
+                        message: `Delete tag "${tagName}"? This action cannot be undone.`,
+                        okText: 'Delete Tag',
+                        okClass: 'btn btn-primary',
+                        onConfirm: function () {
+                            const form = document.getElementById(formId);
+                            if (form) {
+                                form.submit();
+                            }
+                        }
+                    });
+                });
+            });
+        })();
+    </script>
+}

@@ -45,6 +45,7 @@ namespace Group4_ReadingComicWeb
             builder.Services.AddScoped<IFavoriteService, FavoriteService>();
             builder.Services.AddScoped<IAdminService, AdminService>();
             builder.Services.AddScoped<IReportService, ReportService>();
+            builder.Services.AddScoped<ITagService, TagService>();
 
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSignalR();

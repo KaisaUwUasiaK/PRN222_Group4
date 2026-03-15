@@ -18,13 +18,16 @@ namespace Group4_ReadingComicWeb.Controllers
     {
         private readonly IModerationService _moderationService;
         private readonly IReportService _reportService;
+        private readonly ITagService _tagService;
 
         public ModerationController(
             IModerationService moderationService,
-            IReportService reportService)
+            IReportService reportService,
+            ITagService tagService)
         {
             _moderationService = moderationService;
             _reportService = reportService;
+            _tagService = tagService;
         }
 
         /// <summary>
@@ -48,6 +51,8 @@ namespace Group4_ReadingComicWeb.Controllers
         public async Task<IActionResult> Dashboard()
         {
             await SetSidebarBadgesAsync();
+            ViewBag.TotalTagsCount = await _tagService.GetTotalTagsCountAsync();
+
             var pendingComics = await _moderationService.GetPendingComicsAsync();
             return View(pendingComics);
         }
@@ -101,7 +106,6 @@ namespace Group4_ReadingComicWeb.Controllers
             if (chapter == null)
                 return NotFound();
 
-            // Đọc danh sách ảnh từ folder vật lý
             var relativePath = chapter.Path.TrimStart('/');
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativePath);
 
