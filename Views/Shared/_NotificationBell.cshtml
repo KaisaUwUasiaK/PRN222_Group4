@@ -1,0 +1,43 @@
+@*
+*@
+@model string
+
+@{
+    var role = Model ?? "user";
+    // Màu accent theo role — khớp với màu sidebar hiện có
+    var accentColor = role switch {
+        "admin"     => "#7C3AED",   // violet (var(--color-primary))
+        "moderator" => "#8B5CF6",   // violet nhạt hơn
+        _           => "#6366F1"    // indigo cho user
+    };
+}
+
+<div class="notif-bell-wrapper">
+    <!-- Bell button -->
+    <button class="btn btn-ghost notif-bell-btn" style="padding: 8px; position: relative;" title="Thông báo">
+        <i class="ph ph-bell" style="font-size: 1.1rem;"></i>
+    </button>
+    <span class="notif-badge" id="notifBadge"></span>
+
+    <!-- Dropdown panel -->
+    <div class="notif-dropdown">
+
+        <!-- Header -->
+        <div class="notif-header">
+            <span class="notif-header-title">
+                <i class="ph-fill ph-bell" style="color: @accentColor;"></i>
+                Thông báo
+            </span>
+            <button class="notif-mark-all" style="color: @accentColor;">Đánh dấu đã đọc</button>
+        </div>
+
+        <!-- List -->
+        <div class="notif-list">
+            {{-- Nội dung load bằng JS --}}
+        </div>
+
+        <!-- Detail (toggle ẩn/hiện bằng JS) -->
+        <div class="notif-detail"></div>
+
+    </div>
+</div>

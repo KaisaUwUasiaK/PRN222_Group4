@@ -3,59 +3,43 @@ using Microsoft.AspNetCore.Mvc;
 using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Models.Enum;
 using Group4_ReadingComicWeb.Services.Contracts;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace Group4_ReadingComicWeb.Controllers
 {
-    /// <summary>
-    /// Controller xử lý luồng report (báo cáo vi phạm).
-    /// Dùng chung cho cả Moderator và Admin, phân quyền theo role:
-    /// - Moderator: xem/xử lý report User (route: /Reports/Users).
-    /// - Admin: xem/xử lý report Moderator (route: /Reports/Moderators).
-    /// - Mọi user đăng nhập: tạo report mới (route: POST /Reports/Create).
-    /// Route gốc: /Reports
-    /// </summary>
     [Authorize]
     [Route("Reports")]
     public class ReportController : Controller
     {
         private readonly IReportService _reportService;
         private readonly IModerationService _moderationService;
+        private readonly INotificationService _notifService;
+        private readonly AppDbContext _db;
 
         public ReportController(
             IReportService reportService,
-            IModerationService moderationService)
+            IModerationService moderationService,
+            INotificationService notifService,
+            AppDbContext db)
         {
             _reportService = reportService;
             _moderationService = moderationService;
+            _notifService = notifService;
+            _db = db;
         }
 
-        /// <summary>
-        /// Set ViewBag cho sidebar badges trên layout moderator.
-        /// Gọi ở các action mà Moderator truy cập (dùng _ModeratorLayout).
-        /// Không gọi ở action Admin (dùng _AdminLayout riêng).
-        /// </summary>
         private async Task SetSidebarBadgesAsync()
         {
             ViewBag.PendingComicsCount = await _moderationService.GetPendingCountAsync();
             ViewBag.PendingUserReportsCount = await _reportService.GetPendingUserReportsCountAsync();
         }
 
-        /// <summary>
-        /// Set ViewBag cho sidebar badges trên layout admin.
-        /// Gọi ở các action mà Admin truy cập (dùng _AdminLayout).
-        /// </summary>
         private async Task SetAdminSidebarBadgesAsync()
         {
             ViewBag.PendingModeratorReportsCount = await _reportService.GetPendingModeratorReportsCountAsync();
         }
 
-        /// <summary>
-        /// GET: /Reports/Users
-        /// [Moderator only] Danh sách report Pending nhắm vào User thường.
-        /// Hiển thị: Reporter, Target User, Reason, Comment content, Date, nút Review.
-        /// Model: List&lt;Report&gt;.
-        /// </summary>
         [Authorize(Roles = "Moderator")]
         [HttpGet("Users")]
         public async Task<IActionResult> UserReports()
@@ -65,11 +49,6 @@ namespace Group4_ReadingComicWeb.Controllers
             return View(reports);
         }
 
-        /// <summary>
-        /// GET: /Reports/Moderators
-        /// [Admin only] Danh sách report Pending nhắm vào Moderator.
-        /// Model: List&lt;Report&gt;. Dùng layout Admin.
-        /// </summary>
         [Authorize(Roles = "Admin")]
         [HttpGet("Moderators")]
         public async Task<IActionResult> ModeratorReports()
@@ -79,66 +58,53 @@ namespace Group4_ReadingComicWeb.Controllers
             return View(reports);
         }
 
-        /// <summary>
-        /// GET: /Reports/{id}
-        /// Chi tiết một report. Phân quyền:
-        /// - Moderator chỉ xem report nhắm vào User (target role = "User").
-        /// - Admin chỉ xem report nhắm vào Moderator (target role = "Moderator").
-        /// Set sidebar badges tương ứng theo role.
-        /// </summary>
-        /// <param name="id">ReportId cần xem chi tiết.</param>
         [HttpGet("{id}")]
         public async Task<IActionResult> Details(int id)
         {
             var report = await _reportService.GetReportByIdAsync(id);
-            if (report == null)
-                return NotFound();
+            if (report == null) return NotFound();
 
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
-            if (userRole == "Moderator" && report.TargetUser.Role.RoleName != "User")
-                return Forbid();
+            if (userRole == "Moderator" && report.TargetUser.Role.RoleName != "User") return Forbid();
+            if (userRole == "Admin" && report.TargetUser.Role.RoleName == "User") return Forbid();
 
-            if (userRole == "Admin" && report.TargetUser.Role.RoleName == "User")
-                return Forbid();
-
-            // Set sidebar badges theo role
-            if (userRole == "Moderator")
-                await SetSidebarBadgesAsync();
-            else if (userRole == "Admin")
-                await SetAdminSidebarBadgesAsync();
+            if (userRole == "Moderator") await SetSidebarBadgesAsync();
+            else if (userRole == "Admin") await SetAdminSidebarBadgesAsync();
 
             return View(report);
         }
 
-        /// <summary>
-        /// POST: /Reports/{id}/Process
-        /// Xử lý report với hành động: Warning, Ban, RemoveRole, hoặc Dismiss.
-        /// Phân quyền tương tự Details (Moderator → User, Admin → Moderator).
-        /// Sau khi xử lý → redirect về danh sách report tương ứng.
-        /// </summary>
-        /// <param name="id">ReportId cần xử lý.</param>
-        /// <param name="action">Hành động xử lý (enum ReportAction).</param>
-        /// <param name="note">Ghi chú xử lý (tùy chọn).</param>
         [HttpPost("{id}/Process")]
         public async Task<IActionResult> ProcessReport(int id, ReportAction action, string? note)
         {
             var report = await _reportService.GetReportByIdAsync(id);
-            if (report == null)
-                return NotFound();
+            if (report == null) return NotFound();
 
             var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
 
-            if (userRole == "Moderator" && report.TargetUser.Role.RoleName != "User")
-                return Forbid();
-
-            if (userRole == "Admin" && report.TargetUser.Role.RoleName == "User")
-                return Forbid();
+            if (userRole == "Moderator" && report.TargetUser.Role.RoleName != "User") return Forbid();
+            if (userRole == "Admin" && report.TargetUser.Role.RoleName == "User") return Forbid();
 
             var success = await _reportService.ProcessReportAsync(id, userId, action, note);
 
             if (success)
             {
+                // Gửi thông báo cho user bị xử lý tuỳ theo hành động
+                switch (action)
+                {
+                    case ReportAction.Ban:
+                        await _notifService.AccountBannedAsync(
+                            report.TargetUserId,
+                            note ?? "Vi phạm điều khoản cộng đồng.");
+                        break;
+                    case ReportAction.Warning:
+                        await _notifService.AccountWarningAsync(
+                            report.TargetUserId,
+                            note ?? "Vi phạm điều khoản cộng đồng.");
+                        break;
+                }
+
                 TempData["Success"] = "Report processed successfully.";
                 return userRole == "Admin"
                     ? RedirectToAction("ModeratorReports")
@@ -149,13 +115,6 @@ namespace Group4_ReadingComicWeb.Controllers
             return RedirectToAction("Details", new { id });
         }
 
-        /// <summary>
-        /// POST: /Reports/{id}/Reject
-        /// Từ chối report (đánh dấu không hợp lệ, không xử phạt target user).
-        /// Sau khi reject → redirect về danh sách report tương ứng theo role.
-        /// </summary>
-        /// <param name="id">ReportId cần reject.</param>
-        /// <param name="note">Ghi chú lý do reject (tùy chọn).</param>
         [HttpPost("{id}/Reject")]
         public async Task<IActionResult> RejectReport(int id, string? note)
         {
@@ -175,18 +134,6 @@ namespace Group4_ReadingComicWeb.Controllers
             return RedirectToAction("Details", new { id });
         }
 
-        /// <summary>
-        /// POST: /Reports/Create
-        /// Tạo report mới từ bất kỳ user đã đăng nhập.
-        /// Lấy reporterId từ claim NameIdentifier.
-        /// commentId là optional — chỉ truyền khi report comment trên trang đọc truyện.
-        /// Thành công/thất bại đều redirect về trang trước (Referer).
-        /// Lỗi có thể do: tự report mình, hoặc đã có report Pending trùng.
-        /// </summary>
-        /// <param name="targetUserId">UserId của người bị report.</param>
-        /// <param name="reason">Lý do report.</param>
-        /// <param name="description">Mô tả bổ sung (tùy chọn).</param>
-        /// <param name="commentId">CommentId bị report (nullable, chỉ khi report comment).</param>
         [HttpPost("Create")]
         public async Task<IActionResult> CreateReport(int targetUserId, string reason, string? description, int? commentId)
         {
@@ -196,6 +143,28 @@ namespace Group4_ReadingComicWeb.Controllers
 
             if (success)
             {
+                // Lấy report vừa tạo để có ReportId
+                var newReport = await _db.Reports
+                    .Where(r => r.ReporterId == reporterId && r.TargetUserId == targetUserId)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .FirstOrDefaultAsync();
+
+                if (newReport != null)
+                {
+                    // Gửi thông báo cho TẤT CẢ Moderator
+                    var moderators = await _db.Users
+                        .Where(u => u.Role.RoleName == "Moderator")
+                        .Select(u => u.UserId)
+                        .ToListAsync();
+
+                    // Lấy tên target user để điền vào nội dung thông báo
+                    var targetUser = await _db.Users.FindAsync(targetUserId);
+                    var targetName = targetUser?.Username ?? $"User #{targetUserId}";
+
+                    foreach (var modId in moderators)
+                        await _notifService.NewReportAsync(modId, newReport.ReportId, $"bình luận của @{targetName}");
+                }
+
                 TempData["Success"] = "Report submitted successfully.";
             }
             else
@@ -203,7 +172,6 @@ namespace Group4_ReadingComicWeb.Controllers
                 TempData["Error"] = "Failed to submit report. You may have already reported this user.";
             }
 
-            // Redirect về trang đọc truyện thay vì Home
             return Redirect(Request.Headers["Referer"].ToString());
         }
     }

@@ -45,9 +45,11 @@ namespace Group4_ReadingComicWeb
             builder.Services.AddScoped<IFavoriteService, FavoriteService>();
             builder.Services.AddScoped<IAdminService, AdminService>();
             builder.Services.AddScoped<IReportService, ReportService>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
 
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSignalR();
+
 
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
@@ -109,6 +111,7 @@ namespace Group4_ReadingComicWeb
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
             app.MapHub<UserStatusHub>("/hubs/userStatus");
+            app.MapHub<NotificationHub>("/hubs/notification");
 
             await app.RunAsync();
         }

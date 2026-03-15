@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="~/css/style.css">
     <link rel="stylesheet" href="~/css/admin.css">
     <link rel="stylesheet" href="~/css/moderator.css">
+    <link rel="stylesheet" href="~/css/notification.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
 
     @await RenderSectionAsync("Styles", required: false)
@@ -114,9 +115,11 @@
             </div>
 
             <div class="topbar-actions">
-                <button class="btn btn-ghost" style="padding: 8px; position: relative;" title="Notifications">
+                @* <button class="btn btn-ghost" style="padding: 8px; position: relative;" title="Notifications">
                     <i class="ph ph-bell" style="font-size: 1.1rem;"></i>
-                </button>
+                </button> *@
+                @await Html.PartialAsync("_NotificationBell", "moderator")
+
 
                 <div class="dropdown">
                     <div class="dropdown-trigger" style="gap: 8px; padding: 4px 8px; border-radius: var(--radius-sm);">
@@ -143,6 +146,7 @@
 
 <!-- Scripts -->
 <script src="~/js/script.js"></script>
+<script src="~/js/notification.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
 
