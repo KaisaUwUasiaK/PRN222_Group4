@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Group4_ReadingComicWeb.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260219125757_DbMigrate2")]
-    partial class DbMigrate2
+    [Migration("20260317160201_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -154,6 +154,62 @@ namespace Group4_ReadingComicWeb.Migrations
                     b.ToTable("ComicTag");
                 });
 
+            modelBuilder.Entity("Group4_ReadingComicWeb.Models.Comment", b =>
+                {
+                    b.Property<int>("CommentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CommentId"));
+
+                    b.Property<int>("ChapterId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("ntext");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CommentId");
+
+                    b.HasIndex("ChapterId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Comment");
+                });
+
+            modelBuilder.Entity("Group4_ReadingComicWeb.Models.Favorite", b =>
+                {
+                    b.Property<int>("FavoriteId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FavoriteId"));
+
+                    b.Property<int>("ComicId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("FavoriteId");
+
+                    b.HasIndex("ComicId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Favorite");
+                });
+
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.Log", b =>
                 {
                     b.Property<int>("LogId")
@@ -178,6 +234,64 @@ namespace Group4_ReadingComicWeb.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Log", (string)null);
+                });
+
+            modelBuilder.Entity("Group4_ReadingComicWeb.Models.Report", b =>
+                {
+                    b.Property<int>("ReportId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportId"));
+
+                    b.Property<int?>("ActionTaken")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CommentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ProcessedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ReportType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ReporterId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ResolutionNote")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TargetUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ReportId");
+
+                    b.HasIndex("CommentId");
+
+                    b.HasIndex("ProcessedById");
+
+                    b.HasIndex("ReporterId");
+
+                    b.HasIndex("TargetUserId");
+
+                    b.ToTable("Reports");
                 });
 
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.Role", b =>
@@ -336,6 +450,44 @@ namespace Group4_ReadingComicWeb.Migrations
                     b.Navigation("Tag");
                 });
 
+            modelBuilder.Entity("Group4_ReadingComicWeb.Models.Comment", b =>
+                {
+                    b.HasOne("Group4_ReadingComicWeb.Models.Chapter", "Chapter")
+                        .WithMany("Comments")
+                        .HasForeignKey("ChapterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Group4_ReadingComicWeb.Models.User", "User")
+                        .WithMany("Comments")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Chapter");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Group4_ReadingComicWeb.Models.Favorite", b =>
+                {
+                    b.HasOne("Group4_ReadingComicWeb.Models.Comic", "Comic")
+                        .WithMany()
+                        .HasForeignKey("ComicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Group4_ReadingComicWeb.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Comic");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.Log", b =>
                 {
                     b.HasOne("Group4_ReadingComicWeb.Models.User", "User")
@@ -347,6 +499,39 @@ namespace Group4_ReadingComicWeb.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Group4_ReadingComicWeb.Models.Report", b =>
+                {
+                    b.HasOne("Group4_ReadingComicWeb.Models.Comment", "Comment")
+                        .WithMany()
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Group4_ReadingComicWeb.Models.User", "ProcessedBy")
+                        .WithMany()
+                        .HasForeignKey("ProcessedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Group4_ReadingComicWeb.Models.User", "Reporter")
+                        .WithMany()
+                        .HasForeignKey("ReporterId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Group4_ReadingComicWeb.Models.User", "TargetUser")
+                        .WithMany()
+                        .HasForeignKey("TargetUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Comment");
+
+                    b.Navigation("ProcessedBy");
+
+                    b.Navigation("Reporter");
+
+                    b.Navigation("TargetUser");
+                });
+
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.User", b =>
                 {
                     b.HasOne("Group4_ReadingComicWeb.Models.Role", "Role")
@@ -356,6 +541,11 @@ namespace Group4_ReadingComicWeb.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("Group4_ReadingComicWeb.Models.Chapter", b =>
+                {
+                    b.Navigation("Comments");
                 });
 
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.Comic", b =>
@@ -378,6 +568,8 @@ namespace Group4_ReadingComicWeb.Migrations
             modelBuilder.Entity("Group4_ReadingComicWeb.Models.User", b =>
                 {
                     b.Navigation("Comics");
+
+                    b.Navigation("Comments");
 
                     b.Navigation("Logs");
                 });

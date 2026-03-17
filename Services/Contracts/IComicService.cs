@@ -11,5 +11,7 @@ namespace Group4_ReadingComicWeb.Services
         Task<Comic?> GetComicDetailAsync(int comicId);
 
         Task<(Chapter? CurrentChapter, int? PrevChapterId, int? NextChapterId)> GetChapterForReadingAsync(int chapterId);
+
+        Task IncrementViewCountAsync(int comicId);
     }
 }
