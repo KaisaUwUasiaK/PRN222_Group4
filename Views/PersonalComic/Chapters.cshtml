@@ -1,58 +1,323 @@
-﻿@model Group4_ReadingComicWeb.Models.Comic
+@model Group4_ReadingComicWeb.Models.Comic
 
 @{
-    ViewData["Title"] = "Chapter management - " + Model.Title;
+    ViewData["Title"] = "Chapter Management - " + Model.Title;
 }
 
-<div class="container" style="margin-top: 2rem; margin-bottom: 3rem;">
-    <div style="margin-bottom: 1.5rem;">
-        <a href="@Url.Action("Index")" class="text-muted hover:text-white">My Comic</a>
-        <span class="text-muted" style="margin: 0 8px;">/</span>
-        <span style="color: var(--text-primary); font-weight: 600;">@Model.Title</span>
-    </div>
+@section Styles {
+    <style>
+        .page-container {
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 20px;
+        }
 
-    <div style="display: grid; grid-template-columns: 2fr 1.2fr; gap: 2rem;">
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 24px;
+            transition: var(--transition);
+        }
 
-        <div class="bg-surface rounded-md" style="padding: 1.5rem; border: 1px solid var(--border-color); height: fit-content;">
-            <div class="flex justify-between items-center" style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
-                <h3>Chapter List</h3>
-                <span class="text-muted">Tổng: @(Model.Chapters?.Count ?? 0)</span>
+        .back-link:hover {
+            color: white;
+            transform: translateX(-4px);
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+        }
+
+
+        .panel-card {
+            background: var(--surface-color);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 32px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel-header h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .chapter-count {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-color);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+        }
+
+        /* Chapter List */
+        .chapter-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chapter-item {
+            background: rgba(11, 14, 20, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .chapter-item:hover {
+            background: rgba(11, 14, 20, 0.8);
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .chapter-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .chapter-number {
+            font-weight: 700;
+            color: var(--primary-color);
+            min-width: 90px;
+        }
+
+        .chapter-title {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .chapter-date {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .chapter-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: var(--border-color);
+        }
+
+        .btn-icon.delete:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #EF4444;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10B981;
+        }
+
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(11, 14, 20, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: var(--bg-color);
+        }
+
+        /* Warning Box */
+        .warning-box {
+            background: rgba(234, 179, 8, 0.08);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        .warning-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .warning-header i { color: #EAB308; font-size: 16px; }
+        .warning-header strong { color: #EAB308; font-size: 14px; }
+
+        .warning-text {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .naming-guide {
+            display: flex;
+            gap: 16px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-family: monospace;
+            align-items: center;
+        }
+
+        .naming-guide .divider {
+            width: 1px;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .naming-good { color: var(--text-primary); }
+        .naming-good i { color: #10B981; margin-right: 6px; font-size: 14px; }
+        
+        .naming-bad { color: var(--text-secondary); text-decoration: line-through; }
+        .naming-bad i { color: #EF4444; margin-right: 6px; font-size: 14px; text-decoration: none; display: inline-block; }
+
+        .sticky-col {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+    </style>
+}
+
+<div class="page-container">
+    <a href="@Url.Action("Index")" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i> Back to My Comics / <span style="color: var(--text-primary);">@Model.Title</span>
+    </a>
+
+    <div class="layout-grid">
+        <!-- Left Panel: Chapter List -->
+        <div class="panel-card">
+            <div class="panel-header">
+                <h3><i class="fa-solid fa-list-ul" style="margin-right: 8px; color: var(--primary-color);"></i> Chapter List</h3>
+                <span class="chapter-count">Total: @(Model.Chapters?.Count ?? 0)</span>
             </div>
 
             @if (Model.Chapters == null || !Model.Chapters.Any())
             {
-                <div class="text-center" style="padding: 2rem 0;">
-                    <i class="ph-duotone ph-files" style="font-size: 3rem; color: var(--text-muted); opacity: 0.5;"></i>
-                    <p class="text-muted mt-2">None of chapter</p>
+                <div class="empty-state">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <p>No chapters uploaded yet.</p>
                 </div>
             }
             else
             {
-                <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                <div class="chapter-list">
                     @foreach (var chap in Model.Chapters.OrderByDescending(c => c.ChapterNumber))
                     {
-                        <div class="bg-surface rounded-md flex justify-between items-center" style="padding: 12px 16px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.02); margin-bottom: 10px;">
-
-                            <div class="flex items-center gap-4">
-                                <span style="font-weight: 600; color: var(--color-primary); min-width: 80px;">Chapter @chap.ChapterNumber</span>
-                                <span style="font-weight: 500;">@chap.Title</span>
-                                <span class="text-muted" style="font-size: 0.8rem;">(@chap.CreatedAt.ToString("dd/MM"))</span>
+                        <div class="chapter-item">
+                            <div class="chapter-info">
+                                <span class="chapter-number">Chapter @chap.ChapterNumber</span>
+                                <span class="chapter-title">@chap.Title</span>
+                                <span class="chapter-date"><i class="fa-regular fa-clock"></i> @chap.CreatedAt.ToString("MMM dd")</span>
                             </div>
 
-                            <div class="flex items-center gap-2">
-                                <a href="@Url.Action("Read", new { id = chap.ChapterId })" class="btn btn-ghost btn-sm" title="Xem nội dung">
-                                    <i class="ph-fill ph-eye"></i>
+                            <div class="chapter-actions">
+                                <a href="@Url.Action("Read", new { id = chap.ChapterId })" class="btn-icon" title="Read Chapter">
+                                    <i class="fa-solid fa-eye"></i>
                                 </a>
 
-                                <a href="@Url.Action("EditChapter", new { id = chap.ChapterId })" class="btn btn-ghost btn-sm" title="Sửa">
-                                    <i class="ph-fill ph-pencil-simple"></i>
+                                <a href="@Url.Action("EditChapter", new { id = chap.ChapterId })" class="btn-icon" title="Edit Chapter">
+                                    <i class="fa-solid fa-pen"></i>
                                 </a>
 
                                 <form asp-action="DeleteChapter" asp-route-id="@chap.ChapterId" method="post"
-                                      onsubmit="return confirm('Bạn có chắc chắn muốn xóa Chapter @chap.ChapterNumber không? Hành động này sẽ xóa toàn bộ ảnh của chapter.');"
-                                      style="display: inline;">
-                                    <button type="submit" class="btn btn-ghost btn-sm" style="color: #ef4444;" title="Xóa">
-                                        <i class="ph-fill ph-trash"></i>
+                                      onsubmit="return confirm('Are you sure you want to delete Chapter @chap.ChapterNumber? This will securely delete all images belonging to this chapter.');"
+                                      style="display: inline; margin: 0;">
+                                    <button type="submit" class="btn-icon delete" title="Delete Chapter">
+                                        <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </form>
                             </div>
@@ -62,99 +327,117 @@
             }
         </div>
 
-        <div class="bg-surface rounded-md" style="padding: 1.5rem; border: 1px solid var(--border-color); position: sticky; top: 100px;">
-            <h3 style="margin-bottom: 1.5rem; color: var(--text-primary);">Upload New Chapter</h3>
-            @if (TempData["ErrorMessage"] != null)
-            {
-                <div class="alert alert-danger" style="background-color: #fef2f2; border: 1px solid #ef4444; color: #b91c1c; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                    <i class="ph-bold ph-warning-circle" style="font-size: 1.2rem;"></i>
-                    <span>@TempData["ErrorMessage"]</span>
+        <!-- Right Panel: Upload Form -->
+        <div class="sticky-col">
+            <div class="panel-card">
+                <div class="panel-header">
+                    <h3><i class="fa-solid fa-cloud-arrow-up" style="margin-right: 8px; color: var(--primary-color);"></i> Upload New Chapter</h3>
                 </div>
-            }
 
-            @if (TempData["SuccessMessage"] != null)
-            {
-                <div class="alert alert-success" style="background-color: #f0fdf4; border: 1px solid #22c55e; color: #15803d; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
-                    <i class="ph-bold ph-check-circle" style="font-size: 1.2rem;"></i>
-                    <span>@TempData["SuccessMessage"]</span>
-                </div>
-            }
-            <form asp-action="CreateChapter" method="post" enctype="multipart/form-data">
-                <input type="hidden" name="comicId" value="@Model.ComicId" />
-
-                <div class="grid grid-cols-2 gap-2" style="margin-bottom: 1rem;">
-                    <div>
-                        <label class="text-muted" style="font-size: 0.9rem; margin-bottom: 4px; display: block;">Chapter Number</label>
-                        <input type="number" name="chapterNumber" class="search-input" style="width: 100%; border-radius: 6px; padding: 8px 12px;" placeholder="Ex: 1" required />
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>@TempData["ErrorMessage"]</span>
                     </div>
-                    <div>
-                        <label class="text-muted" style="font-size: 0.9rem; margin-bottom: 4px; display: block;">Chapter Name</label>
-                        <input type="text" name="title" class="search-input" style="width: 100%; border-radius: 6px; padding: 8px 12px;" placeholder="Title..."/>
+                }
+
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>@TempData["SuccessMessage"]</span>
                     </div>
-                </div>
+                }
 
-                <div style="margin-bottom: 1.5rem;">
-                    <label class="text-muted" style="font-size: 0.9rem; margin-bottom: 4px; display: block;">Content (Choose many images)</label>
-                    <input type="file" name="pages" id="fileInput" class="search-input"
-                           multiple accept="image/*"
-                           style="width: 100%; border-radius: 6px; padding: 10px; margin-bottom: 12px;" required />
+                <form asp-action="CreateChapter" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="comicId" value="@Model.ComicId" />
 
-                    <div style="background: rgba(234, 179, 8, 0.1); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: 6px; padding: 12px;">
-                        <div class="flex items-center gap-2" style="margin-bottom: 6px;">
-                            <i class="ph-fill ph-warning-circle" style="color: #eab308; font-size: 1.1rem;"></i>
-                            <strong style="color: #eab308; font-size: 0.9rem;">Note:</strong>
+                    <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 16px;">
+                        <div class="form-group">
+                            <label class="form-label">Chapter No.</label>
+                            <input type="number" name="chapterNumber" class="form-control" placeholder="E.g: 1" required />
                         </div>
-
-                        <p class="text-muted" style="font-size: 0.8rem; margin-bottom: 8px; line-height: 1.4;color: white">
-                            System sort by <strong>file name</strong>. Please name with order (001.jpg, 002.jpg...).
-                        </p>
-
-                        <div class="flex gap-4" style="font-size: 0.75rem; font-family: 'Noto Sans JP'; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 4px;">
-                            <div><span style="color: #22c55e;">✔</span> 001.jpg, 002.jpg</div>
-                            <div style="opacity: 0.3; border-left: 1px solid #fff;"></div>
-                            <div><span style="color: #ef4444;">✘</span> trang1.jpg, trang2.jpg</div>
+                        <div class="form-group">
+                            <label class="form-label">Chapter Title</label>
+                            <input type="text" name="title" class="form-control" placeholder="Optional title..." />
                         </div>
                     </div>
 
-                    <div id="fileListPreview" style="margin-top: 10px; font-size: 0.85rem; color: var(--text-muted); max-height: 150px; overflow-y: auto; padding-right: 5px;"></div>
-                </div>
+                    <div class="form-group">
+                        <label class="form-label">Content (Multiple Images)</label>
+                        <input type="file" name="pages" id="fileInput" class="form-control"
+                               multiple accept="image/*" required />
 
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    <i class="ph-bold ph-upload-simple" style="margin-right: 8px;"></i> Upload & Send to moderator
-                </button>
-            </form>
+                        <div class="warning-box">
+                            <div class="warning-header">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                <strong>Important Note</strong>
+                            </div>
+
+                            <p class="warning-text">
+                                The system sorts images by <strong>file name</strong>. Ensure they are numbered correctly so pages appear in order.
+                            </p>
+
+                            <div class="naming-guide">
+                                <div class="naming-good">
+                                    <i class="fa-solid fa-circle-check"></i> 001.jpg, 002.jpg
+                                </div>
+                                <div class="divider"></div>
+                                <div class="naming-bad">
+                                    <i class="fa-solid fa-circle-xmark"></i> page1.jpg, ...
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="fileListPreview" style="margin-top: 16px; font-size: 13px; color: var(--text-secondary); max-height: 150px; overflow-y: auto;"></div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px;">
+                        <i class="fa-solid fa-upload"></i> Upload & Submit
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
 
-<script>
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        const fileList = document.getElementById('fileListPreview');
-        fileList.innerHTML = ''; // Clear old content
-
-        if (this.files.length > 0) {
-            // Convert to Array to sort by name
-            const filesArray = Array.from(this.files).sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'}));
-
-            const countInfo = document.createElement('div');
-            countInfo.innerHTML = `<span style="color: var(--color-primary)">Đã chọn ${this.files.length} ảnh.</span> Thứ tự upload:`;
-            countInfo.style.marginBottom = '6px';
-            fileList.appendChild(countInfo);
-
-            const ul = document.createElement('ul');
-            ul.style.listStyle = 'none';
-            ul.style.paddingLeft = '0';
-
-            filesArray.forEach((file, index) => {
-                const li = document.createElement('li');
-                li.innerHTML = `<span style="opacity: 0.5; margin-right: 8px;">${index + 1}.</span> 📄 ${file.name}`;
-                li.style.marginBottom = '2px';
-                li.style.borderBottom = '1px dashed rgba(255,255,255,0.1)';
-                li.style.paddingBottom = '2px';
-                ul.appendChild(li);
-            });
-
-            fileList.appendChild(ul);
-        }
-    });
-</script>
+@section Scripts {
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const preview = document.getElementById('fileListPreview');
+            preview.innerHTML = '';
+            
+            if (this.files && this.files.length > 0) {
+                const filesArray = Array.from(this.files).sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'}));
+                
+                const fileCount = filesArray.length;
+                preview.innerHTML = `<div style="margin-bottom: 8px; color: var(--text-primary); font-weight: 500;">Selected ${fileCount} files in order:</div>`;
+                
+                const maxDisplay = 5;
+                const ul = document.createElement('ul');
+                ul.style.listStyle = 'none';
+                ul.style.padding = '0';
+                
+                for (let i = 0; i < Math.min(fileCount, maxDisplay); i++) {
+                    const li = document.createElement('li');
+                    li.style.marginBottom = '6px';
+                    li.style.paddingBottom = '6px';
+                    li.style.borderBottom = '1px dashed rgba(255,255,255,0.1)';
+                    li.innerHTML = `<span style="opacity: 0.5; margin-right: 8px; font-family: monospace;">${String(i + 1).padStart(2, '0')}.</span> <i class="fa-solid fa-image" style="margin-right: 6px; color: var(--text-muted);"></i> ${filesArray[i].name}`;
+                    ul.appendChild(li);
+                }
+                
+                if (fileCount > maxDisplay) {
+                    const li = document.createElement('li');
+                    li.style.marginTop = '6px';
+                    li.style.fontStyle = 'italic';
+                    li.innerHTML = `...and ${fileCount - maxDisplay} more files.`;
+                    ul.appendChild(li);
+                }
+                
+                preview.appendChild(ul);
+            }
+        });
+    </script>
+}

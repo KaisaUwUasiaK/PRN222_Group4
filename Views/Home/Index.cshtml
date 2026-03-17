@@ -72,7 +72,17 @@
                             <div class="comic-info">
                                 <h3><a asp-controller="Comic" asp-action="Detail" asp-route-id="@comic.ComicId">@comic.Title</a>
                                 </h3>
-                                <p>@comic.Status</p>
+                                @{
+                                    var latestChapter1 = comic.Chapters?.OrderByDescending(c => c.ChapterNumber).FirstOrDefault();
+                                }
+                                @if (latestChapter1 != null)
+                                {
+                                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Chapter @latestChapter1.ChapterNumber</p>
+                                }
+                                else
+                                {
+                                    <p>No chapters yet</p>
+                                }
                             </div>
                         </div>
                     }
@@ -99,7 +109,17 @@
                             <div class="comic-info">
                                 <h3><a asp-controller="Comic" asp-action="Detail" asp-route-id="@comic.ComicId">@comic.Title</a>
                                 </h3>
-                                <p>@comic.Status</p>
+                                @{
+                                    var latestChapter2 = comic.Chapters?.OrderByDescending(c => c.ChapterNumber).FirstOrDefault();
+                                }
+                                @if (latestChapter2 != null)
+                                {
+                                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Chapter @latestChapter2.ChapterNumber</p>
+                                }
+                                else
+                                {
+                                    <p>No chapters yet</p>
+                                }
                             </div>
                         </div>
                     }
@@ -126,7 +146,17 @@
                             <div class="comic-info">
                                 <h3><a asp-controller="Comic" asp-action="Detail" asp-route-id="@comic.ComicId">@comic.Title</a>
                                 </h3>
-                                <p>@comic.Status</p>
+                                @{
+                                    var latestChapter3 = comic.Chapters?.OrderByDescending(c => c.ChapterNumber).FirstOrDefault();
+                                }
+                                @if (latestChapter3 != null)
+                                {
+                                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Chapter @latestChapter3.ChapterNumber</p>
+                                }
+                                else
+                                {
+                                    <p>No chapters yet</p>
+                                }
                             </div>
                         </div>
                     }

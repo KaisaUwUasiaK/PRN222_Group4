@@ -8,7 +8,7 @@ namespace Group4_ReadingComicWeb.Services
 {
     public class ComicService : IComicService
     {
-        private readonly AppDbContext _context; 
+        private readonly AppDbContext _context;
 
         public ComicService(AppDbContext context)
         {
@@ -27,25 +27,25 @@ namespace Group4_ReadingComicWeb.Services
         }
 
         //Get comic detail (With Tags, Chapters, Comments and User's Comment)
-        public async Task<Comic> GetComicDetailAsync(int comicId)
+        public async Task<Comic?> GetComicDetailAsync(int comicId)
         {
             var comic = await _context.Comics
                 .Include(c => c.ComicTags)
                     .ThenInclude(ct => ct.Tag)
                 .Include(c => c.Chapters)
-                    .ThenInclude(ch => ch.Comments) 
-                        .ThenInclude(cmt => cmt.User) 
+                    .ThenInclude(ch => ch.Comments)
+                        .ThenInclude(cmt => cmt.User)
                 .FirstOrDefaultAsync(c => c.ComicId == comicId);
 
             return comic;
         }
 
         // 3. Get Chapter and get prev/after chapter
-        public async Task<(Chapter CurrentChapter, int? PrevChapterId, int? NextChapterId)> GetChapterForReadingAsync(int chapterId)
+        public async Task<(Chapter? CurrentChapter, int? PrevChapterId, int? NextChapterId)> GetChapterForReadingAsync(int chapterId)
         {
             var currentChapter = await _context.Chapters
                 .Include(ch => ch.Comic)
-                .Include(ch => ch.Comments) 
+                .Include(ch => ch.Comments)
                     .ThenInclude(cmt => cmt.User)
                 .FirstOrDefaultAsync(ch => ch.ChapterId == chapterId);
 
@@ -83,8 +83,8 @@ namespace Group4_ReadingComicWeb.Services
                 .Include(c => c.ComicTags)
                     .ThenInclude(ct => ct.Tag)
                 .OrderByDescending(c => c.CreatedAt)
-                .Skip((page - 1) * pageSize) 
-                .Take(pageSize)              
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             return (comics, totalCount);

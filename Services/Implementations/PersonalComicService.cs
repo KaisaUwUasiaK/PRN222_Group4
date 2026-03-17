@@ -37,13 +37,13 @@ namespace Group4_ReadingComicWeb.Services
             return await _context.Tags.ToListAsync();
         }
 
-        public async Task CreateComicAsync(int userId, Comic comic, int[] selectedTags, IFormFile coverImage)
+        public async Task CreateComicAsync(int userId, Comic comic, int[] selectedTags, IFormFile? coverImage)
         {
             comic.AuthorId = userId;
             comic.CreatedAt = DateTime.Now;
             comic.Status = ComicStatus.Pending.ToString();
 
-            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(coverImage.FileName);
+            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(coverImage?.FileName);
             var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "covers");
 
             if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
@@ -51,7 +51,14 @@ namespace Group4_ReadingComicWeb.Services
             var filePath = Path.Combine(uploadPath, fileName);
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
-                await coverImage.CopyToAsync(stream);
+                if (coverImage != null)
+                {
+                    await coverImage.CopyToAsync(stream);
+                }
+                else
+                {
+
+                }
             }
             comic.CoverImage = "/uploads/covers/" + fileName;
 
@@ -75,7 +82,7 @@ namespace Group4_ReadingComicWeb.Services
             }
         }
 
-        public async Task<Comic> GetComicWithChaptersAsync(int comicId, int userId)
+        public async Task<Comic?> GetComicWithChaptersAsync(int comicId, int userId)
         {
             return await _context.Comics
                 .Include(c => c.Chapters.OrderBy(ch => ch.ChapterNumber))
@@ -129,14 +136,14 @@ namespace Group4_ReadingComicWeb.Services
             return (true, string.Empty);
         }
 
-        public async Task<Comic> GetComicForEditAsync(int comicId, int userId)
+        public async Task<Comic?> GetComicForEditAsync(int comicId, int userId)
         {
             return await _context.Comics
                 .Include(c => c.ComicTags)
                 .FirstOrDefaultAsync(c => c.ComicId == comicId && c.AuthorId == userId);
         }
 
-        public async Task<bool> EditComicAsync(int userId, int id, Comic comic, int[] selectedTags, IFormFile coverImage)
+        public async Task<bool> EditComicAsync(int userId, int id, Comic comic, int[] selectedTags, IFormFile? coverImage)
         {
             var existingComic = await _context.Comics
                 .Include(c => c.ComicTags)
@@ -211,7 +218,7 @@ namespace Group4_ReadingComicWeb.Services
             return true;
         }
 
-        public async Task<(Chapter Chapter, List<string> Images)> GetChapterForReadAsync(int chapterId, int userId)
+        public async Task<(Chapter? Chapter, List<string>? Images)> GetChapterForReadAsync(int chapterId, int userId)
         {
             var chapter = await _context.Chapters
                 .Include(c => c.Comic)
@@ -240,7 +247,7 @@ namespace Group4_ReadingComicWeb.Services
             return (chapter, imageList);
         }
 
-        public async Task<Chapter> GetChapterAsync(int chapterId, int userId)
+        public async Task<Chapter?> GetChapterAsync(int chapterId, int userId)
         {
             return await _context.Chapters
                 .Include(c => c.Comic)

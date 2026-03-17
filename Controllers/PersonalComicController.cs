@@ -1,4 +1,4 @@
-﻿using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Services;
 using Group4_ReadingComicWeb.Services.Contracts;
 using Microsoft.AspNetCore.Authorization;
@@ -53,7 +53,7 @@ namespace Group4_ReadingComicWeb.Controllers
         //Upload comic
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Comic comic, int[] selectedTags, IFormFile coverImage)
+        public async Task<IActionResult> Create(Comic comic, int[] selectedTags, IFormFile? coverImage)
         {
             ModelState.Remove("CoverImage");
             ModelState.Remove("AuthorId");
@@ -119,7 +119,7 @@ namespace Group4_ReadingComicWeb.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Comic comic, int[] selectedTags, IFormFile coverImage)
+        public async Task<IActionResult> Edit(int id, Comic comic, int[] selectedTags, IFormFile? coverImage)
         {
             ModelState.Remove("AuthorId");
             ModelState.Remove("Status");

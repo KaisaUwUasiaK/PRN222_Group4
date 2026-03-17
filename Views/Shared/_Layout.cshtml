@@ -36,88 +36,85 @@
                             @if (User.Identity?.IsAuthenticated == true)
                             {
                                 <li><a asp-area="" asp-controller="PersonalComic" asp-action="Favorites"
-                                           class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "PersonalComic" && ViewContext.RouteData.Values["Action"]?.ToString() == "Favorites" ? "active" : "")">My Library</a></li>
-                            }
-                        </ul>
-                        <div class="search-bar">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" placeholder="Search comics, authors...">
-                        </div>
-                        <div class="nav-auth">
-                            @if (User.Identity?.IsAuthenticated == true)
-                            {
-                                <div class="nav-actions">
-                                    @if (!User.IsInRole("Moderator"))
-                                    {
-                                        <a asp-controller="PersonalComic" asp-action="Create" class="btn btn-primary" style="padding: 6px 16px; font-size: 13px; height: 36px;">
-                                            <i class="fa-solid fa-upload"></i> Upload
-                                        </a>
-                                    }
-                                    <div class="nav-icon-btn">
-                                        <i class="fa-regular fa-bell"></i>
-                                        <span class="notification-badge"></span>
-                                    </div>
+                                       class="@(ViewContext.RouteData.Values["Controller"]?.ToString() == "PersonalComic" && ViewContext.RouteData.Values["Action"]?.ToString() == "Favorites" ? "active" : "")">My
+                                    Library</a></li>
+                                }
+                            </ul>
+                            <div class="search-bar">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" placeholder="Search comics, authors...">
+                            </div>
+                            <div class="nav-auth">
+                                @if (User.Identity?.IsAuthenticated == true)
+                                {
+                                    <div class="nav-actions">
+                                        @if (!User.IsInRole("Moderator"))
+                                        {
+                                            <a asp-controller="PersonalComic" asp-action="Create" class="btn btn-primary"
+                                                   style="padding: 6px 16px; font-size: 13px; height: 36px;">
+                                                <i class="fa-solid fa-upload"></i> Upload
+                                            </a>
+                                        }
+                                        <div class="nav-icon-btn">
+                                            <i class="fa-regular fa-bell"></i>
+                                            <span class="notification-badge"></span>
+                                        </div>
                                     
-                                    <div class="nav-user">
-                                        <div class="user-trigger">
-                                            <span class="user-name">@displayName</span>
-                                            <img src="@headerAvatarUrl" class="user-avatar" alt="Avatar">
-                                        </div>
-                                        
-                                        <div class="user-dropdown">
-                                            <div class="dropdown-header">
-                                                <span class="dropdown-user-name">@displayName</span>
-                                                <span class="dropdown-user-email">@User.Identity.Name</span>
+                                        <div class="nav-user">
+                                            <div class="user-trigger">
+                                                <span class="user-name">@displayName</span>
+                                                <img src="@headerAvatarUrl" class="user-avatar" alt="Avatar">
                                             </div>
-                                            
-                                            <a asp-controller="User" asp-action="Profile" class="dropdown-item">
-                                                <i class="fa-regular fa-user"></i> My Profile
-                                            </a>
-                                            
-                                            @if (User.IsInRole("Admin"))
-                                            {
-                                                <a asp-controller="Admin" asp-action="Dashboard" class="dropdown-item">
-                                                    <i class="fa-solid fa-gauge-high"></i> Admin Dashboard
+                                        
+                                            <div class="user-dropdown">
+                                                <a asp-controller="User" asp-action="Profile" class="dropdown-item">
+                                                    <i class="fa-regular fa-user"></i> My Profile
                                                 </a>
-                                            }
-                                            else if (User.IsInRole("Moderator"))
-                                            {
-                                                <a asp-controller="Moderation" asp-action="Dashboard" class="dropdown-item">
-                                                    <i class="fa-solid fa-shield-halved"></i> Mod Dashboard
-                                                </a>
-                                            }
+                                            
+                                                @if (User.IsInRole("Admin"))
+                                                {
+                                                    <a asp-controller="Admin" asp-action="Dashboard" class="dropdown-item">
+                                                        <i class="fa-solid fa-gauge-high"></i> Admin Dashboard
+                                                    </a>
+                                                }
+                                                else if (User.IsInRole("Moderator"))
+                                                {
+                                                    <a asp-controller="Moderation" asp-action="Dashboard" class="dropdown-item">
+                                                        <i class="fa-solid fa-shield-halved"></i> Mod Dashboard
+                                                    </a>
+                                                }
 
-                                            @if (!User.IsInRole("Moderator"))
-                                            {
-                                                <a asp-controller="PersonalComic" asp-action="Index" class="dropdown-item">
-                                                    <i class="fa-solid fa-book-open"></i> My Comics
-                                                </a>
-                                                <a asp-controller="PersonalComic" asp-action="Favorites" class="dropdown-item">
-                                                    <i class="fa-regular fa-heart"></i> My Favorites
-                                                </a>
-                                            }
+                                                @if (!User.IsInRole("Moderator"))
+                                                {
+                                                    <a asp-controller="PersonalComic" asp-action="Index" class="dropdown-item">
+                                                        <i class="fa-solid fa-book-open"></i> My Comics
+                                                    </a>
+                                                    <a asp-controller="PersonalComic" asp-action="Favorites" class="dropdown-item">
+                                                        <i class="fa-regular fa-heart"></i> My Favorites
+                                                    </a>
+                                                }
                                             
-                                            <div class="dropdown-divider"></div>
+                                                <div class="dropdown-divider"></div>
                                             
-                                            <a asp-controller="Authentication" asp-action="Logout" class="dropdown-item danger">
-                                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
-                                            </a>
+                                                <a asp-controller="Authentication" asp-action="Logout" class="dropdown-item danger">
+                                                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            }
-                            else
-                            {
-                                <a asp-controller="Authentication" asp-action="Login" class="btn-text">Sign In</a>
-                                <a asp-controller="Authentication" asp-action="Register" class="btn btn-outline">Sign Up</a>
-                            }
+                                }
+                                else
+                                {
+                                    <a asp-controller="Authentication" asp-action="Login" class="btn-text">Sign In</a>
+                                    <a asp-controller="Authentication" asp-action="Register" class="btn btn-outline">Sign Up</a>
+                                }
+                            </div>
                         </div>
                     </div>
-                </div>
-            </nav>
-        </header>
+                </nav>
+            </header>
 
-        @RenderBody()
+            @RenderBody()
 
             <footer class="footer">
                 <div class="container footer-container">
@@ -149,49 +146,61 @@
                 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
                 <script>
                     document.addEventListener('DOMContentLoaded', function () {
-                        const notyf = new Notyf({
-                            duration: 4000,
-                            position: { x: 'right', y: 'top' },
-                            dismissible: true,
-                            types: [
-                                {
-                                    type: 'success',
-                                    background: '#10B981',
-                                    icon: { className: 'fa-solid fa-circle-check', tagName: 'i', color: 'white' }
-                                },
-                                {
-                                    type: 'error',
-                                    background: '#EF4444',
-                                    icon: { className: 'fa-solid fa-circle-xmark', tagName: 'i', color: 'white' }
-                                },
-                                {
-                                    type: 'info',
-                                    background: '#6366F1',
-                                    icon: { className: 'fa-solid fa-circle-info', tagName: 'i', color: 'white' }
-                                },
-                                {
-                                    type: 'warning',
-                                    background: '#F59E0B',
-                                    icon: { className: 'fa-solid fa-triangle-exclamation', tagName: 'i', color: 'white' }
-                                }
-                            ]
-                        });
+                    const notyf = new Notyf({
+                    duration: 4000,
+                    position: { x: 'right', y: 'top' },
+                    dismissible: true,
+                    types: [
+                    {
+                    type: 'success',
+                    background: '#10B981',
+                    icon: { className: 'fa-solid fa-circle-check', tagName: 'i', color: 'white' }
+                    },
+                    {
+                    type: 'error',
+                    background: '#EF4444',
+                    icon: { className: 'fa-solid fa-circle-xmark', tagName: 'i', color: 'white' }
+                    },
+                    {
+                    type: 'info',
+                    background: '#6366F1',
+                    icon: { className: 'fa-solid fa-circle-info', tagName: 'i', color: 'white' }
+                    },
+                    {
+                    type: 'warning',
+                    background: '#F59E0B',
+                    icon: { className: 'fa-solid fa-triangle-exclamation', tagName: 'i', color: 'white' }
+                    }
+                    ]
+                    });
 
-                        @if (TempData["Success"] != null) { <text>notyf.success("@TempData["Success"]");</text> }
-                        @if (TempData["Error"] != null) { <text>notyf.error("@TempData["Error"]");</text> }
-                        @if (TempData["Warning"] != null) { <text>notyf.open({ type: 'warning', message: "@TempData["Warning"]" });</text> }
-                        @if (TempData["Info"] != null) { <text>notyf.open({ type: 'info', message: "@TempData["Info"]" });</text> }
+                    @if (TempData["Success"] != null)
+                    {
+                        <text>notyf.success("@TempData["Success"]");</text>
+                    }
+                    @if (TempData["Error"] != null)
+                    {
+                        <text>notyf.error("@TempData["Error"]");</text>
+                    }
+                    @if (TempData["Warning"] != null)
+                    {
+                        <text>notyf.open({type: 'warning', message: "@TempData["Warning"]" });</text>
+                    }
+                    @if (TempData["Info"] != null)
+                    {
+                        <text>notyf.open({type: 'info', message: "@TempData["Info"]" });</text>
+                    }
                     });
 
                     @if (User.Identity?.IsAuthenticated == true)
                     {
                         <text>
-                        const statusConnection = new signalR.HubConnectionBuilder()
+                            const statusConnection = new signalR.HubConnectionBuilder()
                             .withUrl("/hubs/userStatus")
                             .withAutomaticReconnect()
                             .build();
 
-                        statusConnection.start().catch(err => console.error("SignalR connection error:", err));
+                            statusConnection.start().catch(err => console.error("SignalR connection error:", err));
                         </text>
                     }
                 </script>
