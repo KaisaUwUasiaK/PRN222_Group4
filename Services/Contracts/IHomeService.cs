@@ -6,7 +6,11 @@ namespace Group4_ReadingComicWeb.Services.Contracts
     {
         Task<List<Comic>> GetNewComicsAsync();
 
-        Task<Comic> GetTrendingComicAsync();
+        Task<Comic?> GetTrendingComicAsync();
+
+        Task<List<Comic?>> GetTrendingComicsAsync();
+
+        Task<List<Comic?>> GetMaybeYouLikeComicsAsync();
 
     }
 }

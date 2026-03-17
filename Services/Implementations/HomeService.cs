@@ -19,11 +19,29 @@ namespace Group4_ReadingComicWeb.Services.Implementations
             return await _context.Comics
             .Where(c => c.Status == ComicStatus.OnWorking.ToString() || c.Status == ComicStatus.Completed.ToString())
             .OrderByDescending(c => c.CreatedAt)
-            .Take(12)
+            .Take(5)
             .ToListAsync();
         }
 
-        public async Task<Comic> GetTrendingComicAsync()
+        public async Task<List<Comic?>> GetTrendingComicsAsync()
+        {
+            return await _context.Comics
+            .Where(c => c.Status == ComicStatus.OnWorking.ToString() || c.Status == ComicStatus.Completed.ToString())
+            .OrderByDescending(c => c.ViewCount)
+            .Take(5)
+            .ToListAsync();
+        }
+
+        public async Task<List<Comic?>> GetMaybeYouLikeComicsAsync()
+        {
+            return await _context.Comics
+            .Where(c => c.Status == ComicStatus.OnWorking.ToString() || c.Status == ComicStatus.Completed.ToString())
+            .OrderByDescending(c => c.ViewCount)
+            .Take(5)
+            .ToListAsync();
+        }
+
+        public async Task<Comic?> GetTrendingComicAsync()
         {
             return await _context.Comics
             .Include(c => c.ComicTags).ThenInclude(ct => ct.Tag)

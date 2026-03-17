@@ -1,4 +1,4 @@
-﻿using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Services;
 using Group4_ReadingComicWeb.Services.Contracts;
 using Microsoft.AspNetCore.Authorization;
@@ -158,7 +158,7 @@ namespace Group4_ReadingComicWeb.Controllers
         //Add/Delete Favorite
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> ToggleFavorite(int comicId)
+        public async Task<IActionResult> ToggleFavorite(int comicId, string source)
         {
             var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (int.TryParse(userIdString, out int userId))
@@ -169,6 +169,11 @@ namespace Group4_ReadingComicWeb.Controllers
                     TempData["Success"] = "Added to your favorites!";
                 else
                     TempData["Info"] = "Removed from favorites.";
+            }
+
+            if (source == "Index")
+            {
+                return RedirectToAction("Index", "Home");
             }
 
             return RedirectToAction("Detail", new { id = comicId });

@@ -1,0 +1,216 @@
+@{
+    ViewData["Title"] = "Detail";
+}
+
+<main>
+    <section class="detail-hero">
+        <div class="container detail-container">
+            <div class="detail-thumb">
+                <img src="~/assets/hero-comic.png" alt="Solo Leveling">
+            </div>
+            <div class="detail-info">
+                <h1>The Legend of the Northern Blade</h1>
+                <div class="detail-meta">
+                    By <span>Hae-Min</span> • <span>Action, Fantasy</span> • <span>2.4M Views</span>
+                </div>
+                <p class="detail-description">
+                    Jin Mu-Won, the last successor of the Northern Heavenly Sect. After years of isolation, he emerges to reclaim his sect's honor...
+                </p>
+                <a href="#" class="btn btn-fav"><i class="fa-regular fa-heart"></i> Add to Favorites</a>
+                
+                <div class="chapters-section">
+                    <h2>Chapters</h2>
+                    <div class="chapters-list">
+                        <a asp-action="Read" class="chapter-item">
+                            <span class="chapter-name">Chapter 179</span>
+                            <span class="chapter-time">2 hours ago</span>
+                        </a>
+                        <div class="chapter-item">
+                            <span class="chapter-name">Chapter 178</span>
+                            <span class="chapter-time">1 day ago</span>
+                        </div>
+                        <div class="chapter-item">
+                            <span class="chapter-name">Chapter 177</span>
+                            <span class="chapter-time">1 day ago</span>
+                        </div>
+                        <div class="chapter-item">
+                            <span class="chapter-name">Chapter 176</span>
+                            <span class="chapter-time">1 day ago</span>
+                        </div>
+                        <div class="chapter-item">
+                            <span class="chapter-name">Chapter 175</span>
+                            <span class="chapter-time">1 day ago</span>
+                        </div>
+                    </div>
+                    <a href="javascript:void(0)" class="view-all-btn" id="openChaptersModal">
+                        <i class="fa-solid fa-list-ul"></i> View all chapters
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="comments-section">
+        <div class="container">
+            <div class="comments-header">
+                <h2>User Comments</h2>
+            </div>
+            <div class="comments-list">
+                <div class="comment-card">
+                    <div class="comment-header">
+                        <div class="comment-avatar"></div>
+                        <div class="comment-author-info">
+                            <span class="comment-author">Alex_Hunter</span>
+                            <span class="comment-meta">Chapter 179 • 15 mins ago</span>
+                        </div>
+                    </div>
+                    <p class="comment-text">This chapter was absolutely massive! The art style keeps getting better and better. Can't wait for next week.</p>
+                </div>
+
+                <div class="comment-card">
+                    <div class="comment-header">
+                        <div class="comment-avatar"></div>
+                        <div class="comment-author-info">
+                            <span class="comment-author">Donald Trump</span>
+                            <span class="comment-meta">Chapter 179 • 2 hours ago</span>
+                        </div>
+                    </div>
+                    <p class="comment-text">Far a bit worried about the protagonist's development, but the fight orchestration is top-tier.</p>
+                </div>
+
+                <div class="comment-card">
+                    <div class="comment-header">
+                        <div class="comment-avatar"></div>
+                        <div class="comment-author-info">
+                            <span class="comment-author">Joe mama</span>
+                            <span class="comment-meta">Chapter 179 • 3 hours ago</span>
+                        </div>
+                    </div>
+                    <p class="comment-text">Far a bit worried about the protagonist's development, but the fight orchestration is top-tier.</p>
+                </div>
+
+                <div class="comment-card">
+                    <div class="comment-header">
+                        <div class="comment-avatar"></div>
+                        <div class="comment-author-info">
+                            <span class="comment-author">Joe Biden</span>
+                            <span class="comment-meta">Chapter 179 • 3 hours ago</span>
+                        </div>
+                    </div>
+                    <p class="comment-text">Far a bit worried about the protagonist's development, but the fight orchestration is top-tier.</p>
+                </div>
+
+                <div class="comment-card">
+                    <div class="comment-header">
+                        <div class="comment-avatar"></div>
+                        <div class="comment-author-info">
+                            <span class="comment-author">Hell.na</span>
+                            <span class="comment-meta">Chapter 179 • 5 hours ago</span>
+                        </div>
+                    </div>
+                    <p class="comment-text">Far a bit worried about the protagonist's development, but the fight orchestration is top-tier.</p>
+                </div>
+
+                <div class="comment-card">
+                    <div class="comment-header">
+                        <div class="comment-avatar"></div>
+                        <div class="comment-author-info">
+                            <span class="comment-author">Mangalover99</span>
+                            <span class="comment-meta">Chapter 179 • 8 hours ago</span>
+                        </div>
+                    </div>
+                    <p class="comment-text">Far a bit worried about the protagonist's development, but the fight orchestration is top-tier.</p>
+                </div>
+            </div>
+
+            <div class="pagination">
+                <a href="#" class="page-link"><i class="fa-solid fa-chevron-left"></i></a>
+                <a href="#" class="page-link active">1</a>
+                <a href="#" class="page-link">2</a>
+                <a href="#" class="page-link">3</a>
+                <span style="color: var(--text-muted); display: flex; align-items: center;">...</span>
+                <a href="#" class="page-link">12</a>
+                <a href="#" class="page-link"><i class="fa-solid fa-chevron-right"></i></a>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Chapters Modal -->
+<div id="chaptersModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeChaptersModal">&times;</span>
+        <div class="modal-header">
+            <h2>All Chapters</h2>
+        </div>
+        <div class="modal-chapters-list">
+            <a asp-action="Read" class="chapter-item">
+                <span class="chapter-name">Chapter 179</span>
+                <span class="chapter-time">2 hours ago</span>
+            </a>
+            <div class="chapter-item">
+                <span class="chapter-name">Chapter 178</span>
+                <span class="chapter-time">1 day ago</span>
+            </div>
+            <div class="chapter-item">
+                <span class="chapter-name">Chapter 177</span>
+                <span class="chapter-time">1 day ago</span>
+            </div>
+            <div class="chapter-item">
+                <span class="chapter-name">Chapter 176</span>
+                <span class="chapter-time">1 day ago</span>
+            </div>
+            <div class="chapter-item">
+                <span class="chapter-name">Chapter 175</span>
+                <span class="chapter-time">1 day ago</span>
+            </div>
+            <div class="chapter-item">
+                <span class="chapter-name">Chapter 174</span>
+                <span class="chapter-time">1 day ago</span>
+            </div>
+            <div class="chapter-item">
+                <span class="chapter-name">Chapter 173</span>
+                <span class="chapter-time">1 day ago</span>
+            </div>
+            <div class="chapter-item">
+                <span class="chapter-name">Chapter 172</span>
+                <span class="chapter-time">2 days ago</span>
+            </div>
+            <div class="chapter-item">
+                <span class="chapter-name">Chapter 171</span>
+                <span class="chapter-time">3 days ago</span>
+            </div>
+            <div class="chapter-item">
+                <span class="chapter-name">Chapter 170</span>
+                <span class="chapter-time">4 days ago</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById("chaptersModal");
+        const btn = document.getElementById("openChaptersModal");
+        const span = document.getElementById("closeChaptersModal");
+
+        if (btn && modal && span) {
+            btn.onclick = function() {
+                modal.classList.add("show");
+                document.body.style.overflow = "hidden";
+            }
+
+            span.onclick = function() {
+                modal.classList.remove("show");
+                document.body.style.overflow = "auto";
+            }
+
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.classList.remove("show");
+                    document.body.style.overflow = "auto";
+                }
+            }
+        }
+    });
+</script>

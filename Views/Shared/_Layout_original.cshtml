@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - ComicVerse</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Icons -->
+    <script src="https://unpkg.com/%40phosphor-icons/web"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="~/css/variables.css">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
+    <style>
+        .validation-summary-errors {
+            display: none;
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body>
+
+    @{
+        var displayName = User.Identity?.Name ?? "U";
+        var avatarUrlClaim = User.Claims.FirstOrDefault(c => c.Type == "AvatarUrl")?.Value;
+        var headerAvatarUrl = !string.IsNullOrEmpty(avatarUrlClaim)
+            ? avatarUrlClaim
+            : $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(displayName)}&background=6366f1&color=fff&size=40";
+    }
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container flex items-center justify-between">
+            <!-- Logo -->
+            <a href="@Url.Action("Index", "Home")" class="logo flex items-center gap-2">
+                <i class="ph-fill ph-book-open-text text-primary" style="font-size: 2rem;"></i>
+                <span style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 700;">ComicVerse</span>
+            </a>
+    
+            <!-- Search -->
+            <div class="search-bar">
+                <i class="ph ph-magnifying-glass search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search comics, authors, genres...">
+            </div>
+    
+            <!-- Header Actions -->
+            <div class="flex items-center gap-4">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    @* Hide Upload button for Moderator *@
+                    if (!User.IsInRole("Moderator"))
+                    {
+                        <a href="@Url.Action("Create", "PersonalComic")" class="btn btn-primary" style="text-decoration: none; color: white;">
+                            <i class="ph ph-upload-simple" style="margin-right: 8px;"></i> Upload
+                        </a>
+                    }
+                    <button class="btn btn-ghost" style="padding: 8px;">
+                        <i class="ph ph-bell" style="font-size: 1.25rem;"></i>
+                    </button>
+                    <div class="dropdown">
+                        <div class="dropdown-trigger">
+                            <div class="profile-avatar flex items-center justify-center gap-2" style="min-width: 40px; height: 40px;">
+                                <img src="@headerAvatarUrl" alt="Avatar" style="width: 32px; height: 32px; border-radius: 50%; border: none; box-shadow: none;">
+                                <span class="text-muted" style="font-size: 0.9rem; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">@displayName</span>
+                            </div>
+                            <i class="ph-bold ph-caret-down dropdown-arrow"></i>
+                        </div>
+                        <div class="dropdown-content">
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a href="@Url.Action("Dashboard", "Admin")" class="dropdown-item">
+                                    <i class="ph ph-squares-four"></i> Admin Panel
+                                </a>
+                                <div class="dropdown-divider"></div>
+                            }
+                            @if (User.IsInRole("Moderator"))
+                            {
+                                <a href="@Url.Action("Dashboard", "Moderation")" class="dropdown-item">
+                                    <i class="ph ph-squares-four"></i> Mod Panel
+                                </a>
+                                <div class="dropdown-divider"></div>
+                            }
+                            <a href="@Url.Action("Profile", "User")" class="dropdown-item">
+                                <i class="ph ph-user"></i> My Profile
+                            </a>
+                            @*Hide My Comics menu for Moderator*@
+                            @if (!User.IsInRole("Moderator"))
+                            {
+                                <a href="@Url.Action("Index", "PersonalComic")" class="dropdown-item">
+                                    <i class="ph ph-books"></i> My Comics
+                                </a>
+                                <a href="@Url.Action("Favorites", "PersonalComic")" class="dropdown-item">
+                                    <i class="ph ph-heart"></i> My Favorites
+                                </a>
+                            }
+                            <div class="dropdown-divider"></div>
+                            <a href="@Url.Action("Logout", "Authentication")" class="dropdown-item" style="color: var(--color-danger);">
+                                <i class="ph ph-sign-out"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <a href="@Url.Action("Register", "Authentication")" class="btn btn-ghost text-muted" style="font-size: 0.9rem;">
+                        Sign up
+                    </a>
+                    <a href="@Url.Action("Login", "Authentication")" class="btn btn-primary">
+                        Sign in
+                    </a>
+                }
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    @RenderBody()
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container" style="text-align: center;">
+            <div class="flex items-center justify-center gap-2" style="margin-bottom: 1rem;">
+                <i class="ph-fill ph-book-open-text text-primary" style="font-size: 1.5rem;"></i>
+                <span style="font-family: var(--font-heading); font-size: 1.25rem; font-weight: 700;">ComicVerse</span>
+            </div>
+            <p>&copy; 2026 ComicVerse. All rights reserved.</p>
+            <div class="flex justify-center gap-4" style="margin-top: 1rem;">
+                <a href="#" class="text-muted hover:text-primary">Privacy Policy</a>
+                <a href="#" class="text-muted hover:text-primary">Terms of Service</a>
+                <a href="#" class="text-muted hover:text-primary">DMCA</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="~/js/script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const notyf = new Notyf({
+                duration: 4000,
+                position: { x: 'right', y: 'top' },
+                dismissible: true
+            });
+
+            @* TempData-based notifications *@
+            @if (TempData["Success"] != null)
+            {
+                <text>notyf.success("@TempData["Success"]");</text>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <text>notyf.error("@TempData["Error"]");</text>
+            }
+            @if (TempData["Warning"] != null)
+            {
+                <text>notyf.open({ type: 'warning', message: "@TempData["Warning"]" });</text>
+            }
+            @if (TempData["Info"] != null)
+            {
+                <text>notyf.open({ type: 'info', message: "@TempData["Info"]" });</text>
+            }
+
+            // Model validation errors (anywhere in the app)
+            var errorItems = document.querySelectorAll('.validation-summary-errors li');
+            if (errorItems.length) {
+                errorItems.forEach(function (item) {
+                    var msg = item.textContent.trim();
+                    if (msg) {
+                        notyf.error(msg);
+                    }
+                });
+            }
+        });
+    </script>
+    <script>
+        // Connect to SignalR Hub to broadcast/listen online/offline status
+        const statusConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/userStatus")
+            .withAutomaticReconnect()
+            .build();
+
+        statusConnection.start().catch(err => console.error("SignalR connection error:", err));
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+
+</html>
