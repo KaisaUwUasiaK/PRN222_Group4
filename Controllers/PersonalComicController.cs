@@ -67,8 +67,10 @@ namespace Group4_ReadingComicWeb.Controllers
             {
                 ModelState.AddModelError("coverImage", "Please choose cover image!");
             }
-
-            //Handle uploaded file
+            if (selectedTags == null || selectedTags.Length == 0)
+            {
+                ModelState.AddModelError("selectedTags", "Please choose at least 1 tag");
+            }
             if (ModelState.IsValid)
             {
                 await _comicService.CreateComicAsync(GetCurrentUserId(), comic, selectedTags, coverImage);
@@ -77,32 +79,6 @@ namespace Group4_ReadingComicWeb.Controllers
 
             ViewBag.Tags = await _comicService.GetAllTagsAsync();
             return View(comic);
-        }
-
-        //Get chapter list
-        public async Task<IActionResult> Chapters(int id)
-        {
-            var comic = await _comicService.GetComicWithChaptersAsync(id, GetCurrentUserId());
-            if (comic == null) return NotFound();
-            return View(comic);
-        }
-
-
-        //Upload chapter
-        [HttpPost]
-        public async Task<IActionResult> CreateChapter(int comicId, int chapterNumber, string title, List<IFormFile> pages)
-        {
-            var result = await _comicService.CreateChapterAsync(GetCurrentUserId(), comicId, chapterNumber, title, pages);
-
-            if (!result.IsSuccess)
-            {
-                if (result.ErrorMessage == "Forbidden") return Forbid();
-
-                TempData["ErrorMessage"] = result.ErrorMessage;
-                return RedirectToAction("Chapters", new { id = comicId });
-            }
-
-            return RedirectToAction(nameof(Chapters), new { id = comicId });
         }
         //Get comic to update
         public async Task<IActionResult> Edit(int id)
@@ -153,7 +129,13 @@ namespace Group4_ReadingComicWeb.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-
+        //Get chapter list
+        public async Task<IActionResult> Chapters(int id)
+        {
+            var comic = await _comicService.GetComicWithChaptersAsync(id, GetCurrentUserId());
+            if (comic == null) return NotFound();
+            return View(comic);
+        }
         public async Task<IActionResult> Read(int id)
         {
             var result = await _comicService.GetChapterForReadAsync(id, GetCurrentUserId());
@@ -162,7 +144,24 @@ namespace Group4_ReadingComicWeb.Controllers
             ViewBag.Images = result.Images;
             return View(result.Chapter);
         }
-        //Get chpater to update
+
+        //Upload chapter
+        [HttpPost]
+        public async Task<IActionResult> CreateChapter(int comicId, int chapterNumber, string title, List<IFormFile> pages)
+        {
+            var result = await _comicService.CreateChapterAsync(GetCurrentUserId(), comicId, chapterNumber, title, pages);
+
+            if (!result.IsSuccess)
+            {
+                if (result.ErrorMessage == "Forbidden") return Forbid();
+
+                TempData["ErrorMessage"] = result.ErrorMessage;
+                return RedirectToAction("Chapters", new { id = comicId });
+            }
+
+            return RedirectToAction(nameof(Chapters), new { id = comicId });
+        }
+        //Get chapter to update
         public async Task<IActionResult> EditChapter(int id)
         {
             var chapter = await _comicService.GetChapterAsync(id, GetCurrentUserId());
@@ -175,20 +174,35 @@ namespace Group4_ReadingComicWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditChapter(int id, Chapter model, List<IFormFile> newPages)
         {
+            // 1. Check Id and model valid
+            if (id != model.ChapterId) return BadRequest();
+
+            // 2. Vlaidate form valid
+            if (!ModelState.IsValid)
+            {
+                return View(model); 
+            }
+
+            // 3. Check file validation
+            if (newPages != null && newPages.Any())
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                foreach (var file in newPages)
+                {
+                    var ext = System.IO.Path.GetExtension(file.FileName).ToLowerInvariant();
+                    if (string.IsNullOrEmpty(ext) || !allowedExtensions.Contains(ext))
+                    {
+                        ModelState.AddModelError("", $"File '{file.FileName}' is invalid. Only JPG, PNG, WEBP are allowed.");
+                        return View(model);
+                    }
+                }
+            }
+
+            // 4. Call service
             bool success = await _comicService.EditChapterAsync(GetCurrentUserId(), id, model, newPages);
             if (!success) return NotFound();
 
-            return RedirectToAction("Chapters", new { id = model.ComicId }); 
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteChapter(int id)
-        {
-            var comicId = await _comicService.DeleteChapterAsync(GetCurrentUserId(), id);
-            if (comicId == null) return NotFound();
-
-            return RedirectToAction("Chapters", new { id = comicId });
+            return RedirectToAction("Chapters", new { id = model.ComicId });
         }
         [Authorize]
         public async Task<IActionResult> Favorites()
@@ -202,11 +216,10 @@ namespace Group4_ReadingComicWeb.Controllers
             return RedirectToAction("Login", "Authentication");
         }
         [HttpPost]
-        [Authorize]
-        public async Task<IActionResult> RemoveFavorite(int comicId)
+     public async Task<IActionResult> RemoveFavorite(int comicId)
         {
-            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (int.TryParse(userIdString, out int userId))
+            int userId = GetCurrentUserId(); 
+            if (userId > 0)
             {
                 await _favoriteService.ToggleFavoriteAsync(comicId, userId);
                 TempData["Info"] = "Removed from your favorites.";

@@ -40,7 +40,7 @@ namespace Group4_ReadingComicWeb.Services
             return comic;
         }
 
-        // 3. Get Chapter and get prev/after chapter
+        //Get Chapter and get prev/after chapter
         public async Task<(Chapter? CurrentChapter, int? PrevChapterId, int? NextChapterId)> GetChapterForReadingAsync(int chapterId)
         {
             var currentChapter = await _context.Chapters
@@ -72,6 +72,7 @@ namespace Group4_ReadingComicWeb.Services
                     prevChapterId == 0 ? (int?)null : prevChapterId,
                     nextChapterId == 0 ? (int?)null : nextChapterId);
         }
+        //Get public comic
         public async Task<(List<Comic> Comics, int TotalCount)> GetPublicComicsPagedAsync(int page, int pageSize)
         {
             var query = _context.Comics
@@ -88,6 +89,20 @@ namespace Group4_ReadingComicWeb.Services
                 .ToListAsync();
 
             return (comics, totalCount);
+        }
+        //increase view count
+        async Task IComicService.IncrementViewCountAsync(int comicId)
+        {
+           
+            var comic = await _context.Comics.FindAsync(comicId);
+
+            if (comic != null)
+            {
+                comic.ViewCount += 1;
+
+                _context.Comics.Update(comic);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 
