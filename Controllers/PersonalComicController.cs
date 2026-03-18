@@ -73,7 +73,7 @@ namespace Group4_ReadingComicWeb.Controllers
             }
             if (ModelState.IsValid)
             {
-                await _comicService.CreateComicAsync(GetCurrentUserId(), comic, selectedTags, coverImage);
+                await _comicService.CreateComicAsync(GetCurrentUserId(), comic, selectedTags ?? new int[0], coverImage);
                 return RedirectToAction(nameof(Index));
             }
 
@@ -180,7 +180,7 @@ namespace Group4_ReadingComicWeb.Controllers
             // 2. Vlaidate form valid
             if (!ModelState.IsValid)
             {
-                return View(model); 
+                return View(model);
             }
 
             // 3. Check file validation
@@ -199,7 +199,7 @@ namespace Group4_ReadingComicWeb.Controllers
             }
 
             // 4. Call service
-            bool success = await _comicService.EditChapterAsync(GetCurrentUserId(), id, model, newPages);
+            bool success = await _comicService.EditChapterAsync(GetCurrentUserId(), id, model, newPages ?? new List<IFormFile>());
             if (!success) return NotFound();
 
             return RedirectToAction("Chapters", new { id = model.ComicId });
@@ -216,9 +216,9 @@ namespace Group4_ReadingComicWeb.Controllers
             return RedirectToAction("Login", "Authentication");
         }
         [HttpPost]
-     public async Task<IActionResult> RemoveFavorite(int comicId)
+        public async Task<IActionResult> RemoveFavorite(int comicId)
         {
-            int userId = GetCurrentUserId(); 
+            int userId = GetCurrentUserId();
             if (userId > 0)
             {
                 await _favoriteService.ToggleFavoriteAsync(comicId, userId);
