@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Group4_ReadingComicWeb.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260318025231_InitCreate")]
+    [Migration("20260318032951_InitCreate")]
     partial class InitCreate
     {
         /// <inheritdoc />
