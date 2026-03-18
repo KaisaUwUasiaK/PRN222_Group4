@@ -74,6 +74,7 @@
                                 </h3>
                                 @{
                                     var latestChapter1 = comic.Chapters?.OrderByDescending(c => c.ChapterNumber).FirstOrDefault();
+                                    var randomTag1 = comic.ComicTags?.OrderBy(x => Guid.NewGuid()).FirstOrDefault();
                                 }
                                 @if (latestChapter1 != null)
                                 {
@@ -83,6 +84,14 @@
                                 else
                                     {
                                         <p>No chapters yet</p>
+                                    }
+
+                                    @if (randomTag1 != null)
+                                    {
+                                        <span
+                                            style="font-size: 0.7rem; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 4px; display: inline-block; margin-top: 5px;">
+                                            @randomTag1.Tag.TagName
+                                        </span>
                                     }
                                 </div>
                             </div>
@@ -112,15 +121,24 @@
                                     </h3>
                                     @{
                                         var latestChapter2 = comic.Chapters?.OrderByDescending(c => c.ChapterNumber).FirstOrDefault();
+                                        var randomTag2 = comic.ComicTags?.OrderBy(x => Guid.NewGuid()).FirstOrDefault();
                                     }
                                     @if (latestChapter2 != null)
                                     {
                                         <p style="color: var(--text-secondary); font-size: 0.85rem;">Chapter
                                             @latestChapter2.ChapterNumber</p>
                                         }
-                                else
+                                    else
                                         {
                                             <p>No chapters yet</p>
+                                        }
+
+                                        @if (randomTag2 != null)
+                                        {
+                                            <span
+                                                style="font-size: 0.7rem; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 4px; display: inline-block; margin-top: 5px;">
+                                                @randomTag2.Tag.TagName
+                                            </span>
                                         }
                                     </div>
                                 </div>
@@ -150,15 +168,24 @@
                                         </h3>
                                         @{
                                             var latestChapter3 = comic.Chapters?.OrderByDescending(c => c.ChapterNumber).FirstOrDefault();
+                                            var randomTag3 = comic.ComicTags?.OrderBy(x => Guid.NewGuid()).FirstOrDefault();
                                         }
                                         @if (latestChapter3 != null)
                                         {
                                             <p style="color: var(--text-secondary); font-size: 0.85rem;">Chapter
                                                 @latestChapter3.ChapterNumber</p>
                                             }
-                                else
+                                        else
                                             {
                                                 <p>No chapters yet</p>
+                                            }
+
+                                            @if (randomTag3 != null)
+                                            {
+                                                <span
+                                                    style="font-size: 0.7rem; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 4px; display: inline-block; margin-top: 5px;">
+                                                    @randomTag3.Tag.TagName
+                                                </span>
                                             }
                                         </div>
                                     </div>

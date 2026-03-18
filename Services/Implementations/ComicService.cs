@@ -91,6 +91,7 @@ namespace Group4_ReadingComicWeb.Services
 
             var comics = await query
                 .Include(c => c.Author)
+                .Include(c => c.Chapters)
                 .Include(c => c.ComicTags)
                     .ThenInclude(ct => ct.Tag)
                 .OrderByDescending(c => c.CreatedAt)

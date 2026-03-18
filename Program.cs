@@ -4,7 +4,7 @@ using Group4_ReadingComicWeb.Services;
 using Group4_ReadingComicWeb.Hubs;
 using Group4_ReadingComicWeb.Services.Contracts;
 using Group4_ReadingComicWeb.Services.Implementations;
-using Group4_ReadingComicWeb.Data;
+// using Group4_ReadingComicWeb.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
@@ -67,7 +67,7 @@ namespace Group4_ReadingComicWeb
             // =============================
             // SEED DATA
             // =============================
-            await DbInitializer.SeedAsync(app.Services);
+            // await DbInitializer.SeedAsync(app.Services);
 
             // =============================
             // RESET ONLINE USERS ON START
