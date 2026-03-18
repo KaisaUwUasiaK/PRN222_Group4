@@ -28,15 +28,16 @@ namespace Group4_ReadingComicWeb.Controllers
 
 
         // List all public comics
-        public async Task<IActionResult> Index(int page = 1)
+        public async Task<IActionResult> Index(int page = 1, string? search = null)
         {
             int pageSize = 12; 
 
-            var (comics, totalCount) = await _comicService.GetPublicComicsPagedAsync(page, pageSize);
+            var (comics, totalCount) = await _comicService.GetPublicComicsPagedAsync(page, pageSize, search);
 
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
             ViewBag.PageSize = pageSize;
+            ViewBag.SearchTerm = search;
 
             return View(comics);
         }

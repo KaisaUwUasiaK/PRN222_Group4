@@ -1,4 +1,4 @@
-﻿@using System.IO
+@using System.IO
 @model Group4_ReadingComicWeb.Models.Chapter
 
 @{
@@ -285,7 +285,7 @@
                         var isOwnComment = currentUserId == comment.UserId.ToString();
 
                         <div class="flex gap-4 group">
-                            <div class="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 font-bold overflow-hidden border border-white/10">
+                        <a href="@Url.Action("PublicProfile", "User", new { id = comment.UserId })" class="w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 font-bold overflow-hidden border border-white/10 hover:border-blue-400 transition-colors">
                                 @if (!string.IsNullOrEmpty(comment.User.AvatarUrl))
                                 {
                                     <img src="@comment.User.AvatarUrl" class="w-full h-full object-cover" alt="@comment.User.Username" onerror="this.style.display='none'" />
@@ -294,12 +294,12 @@
                                 {
                                     @comment.User.Username.Substring(0, 1).ToUpper()
                                 }
-                            </div>
+                        </a>
 
                             <div class="flex-1 w-full bg-[#161616] rounded-2xl rounded-tl-none p-4 border border-white/5">
                                 <div class="flex justify-between items-start w-full mb-2">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <span class="font-bold text-blue-400 text-sm md:text-base">@comment.User.Username</span>
+                                        <a href="@Url.Action("PublicProfile", "User", new { id = comment.UserId })" class="font-bold text-blue-400 hover:text-blue-300 transition-colors text-sm md:text-base">@comment.User.Username</a>
                                         <span class="text-xs text-gray-500 flex items-center gap-1">
                                             <i class="ph ph-clock"></i> @comment.CreatedAt.ToString("MMM dd, yyyy HH:mm")
                                         </span>

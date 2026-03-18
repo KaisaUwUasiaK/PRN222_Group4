@@ -64,7 +64,8 @@
                             </ul>
                             <div class="search-bar">
                                 <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" placeholder="Search comics, authors...">
+                                <input type="text" placeholder="Search comics, ..." onkeypress="handleSearchKeyPress(event)"
+                                       value="@ViewBag.SearchTerm">
                             </div>
                             <div class="nav-auth">
                                 @if (User.Identity?.IsAuthenticated == true)
@@ -346,6 +347,16 @@
 
                             statusConnection.start().catch(err => console.error("SignalR connection error:", err));
                         </text>
+                    }
+                </script>
+                <script>
+                    function handleSearchKeyPress(event) {
+                    if (event.key === 'Enter') {
+                    const query = event.target.value.trim();
+                    if (query) {
+                    window.location.href = '/Comic/Index?search=' + encodeURIComponent(query);
+                    }
+                    }
                     }
                 </script>
                 @await RenderSectionAsync("Scripts", required: false)

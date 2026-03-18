@@ -1,4 +1,4 @@
-﻿using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +19,7 @@ namespace Group4_ReadingComicWeb.Services
         public async Task<List<Comic>> GetPublicComicsAsync()
         {
             return await _context.Comics
+                .Include(c => c.Author)
                 .Where(c => c.Status == "Published" || c.Status == "Approved") // Tuỳ logic status của bạn
                 .Include(c => c.ComicTags)
                     .ThenInclude(ct => ct.Tag)
@@ -30,6 +31,7 @@ namespace Group4_ReadingComicWeb.Services
         public async Task<Comic?> GetComicDetailAsync(int comicId)
         {
             var comic = await _context.Comics
+                .Include(c => c.Author)
                 .Include(c => c.ComicTags)
                     .ThenInclude(ct => ct.Tag)
                 .Include(c => c.Chapters)
@@ -45,6 +47,7 @@ namespace Group4_ReadingComicWeb.Services
         {
             var currentChapter = await _context.Chapters
                 .Include(ch => ch.Comic)
+                    .ThenInclude(c => c.Author)
                 .Include(ch => ch.Comments)
                     .ThenInclude(cmt => cmt.User)
                 .FirstOrDefaultAsync(ch => ch.ChapterId == chapterId);
@@ -72,15 +75,23 @@ namespace Group4_ReadingComicWeb.Services
                     prevChapterId == 0 ? (int?)null : prevChapterId,
                     nextChapterId == 0 ? (int?)null : nextChapterId);
         }
-        //Get public comic
-        public async Task<(List<Comic> Comics, int TotalCount)> GetPublicComicsPagedAsync(int page, int pageSize)
+
+        public async Task<(List<Comic> Comics, int TotalCount)> GetPublicComicsPagedAsync(int page, int pageSize, string? searchTerm = null)
         {
             var query = _context.Comics
                 .Where(c => c.Status == "OnWorking" || c.Status == "Completed");
 
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                searchTerm = searchTerm.Trim();
+                query = query.Where(c => c.Title.Contains(searchTerm));
+            }
+
             int totalCount = await query.CountAsync();
 
             var comics = await query
+                .Include(c => c.Author)
+                .Include(c => c.Chapters)
                 .Include(c => c.ComicTags)
                     .ThenInclude(ct => ct.Tag)
                 .OrderByDescending(c => c.CreatedAt)

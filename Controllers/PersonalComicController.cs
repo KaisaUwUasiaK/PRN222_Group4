@@ -227,7 +227,7 @@ namespace Group4_ReadingComicWeb.Controllers
             }
 
             // 4. Call service
-            bool success = await _comicService.EditChapterAsync(GetCurrentUserId(), id, model, newPages);
+            bool success = await _comicService.EditChapterAsync(GetCurrentUserId(), id, model, newPages ?? new List<IFormFile>());
             if (!success) return NotFound();
 
             return RedirectToAction("Chapters", new { id = model.ComicId });
