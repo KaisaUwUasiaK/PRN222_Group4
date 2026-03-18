@@ -90,21 +90,6 @@ namespace Group4_ReadingComicWeb.Controllers
 
             if (success)
             {
-                // Gửi thông báo cho user bị xử lý tuỳ theo hành động
-                switch (action)
-                {
-                    case ReportAction.Ban:
-                        await _notifService.AccountBannedAsync(
-                            report.TargetUserId,
-                            note ?? "Vi phạm điều khoản cộng đồng.");
-                        break;
-                    case ReportAction.Warning:
-                        await _notifService.AccountWarningAsync(
-                            report.TargetUserId,
-                            note ?? "Vi phạm điều khoản cộng đồng.");
-                        break;
-                }
-
                 TempData["Success"] = "Report processed successfully.";
                 return userRole == "Admin"
                     ? RedirectToAction("ModeratorReports")
@@ -151,18 +136,21 @@ namespace Group4_ReadingComicWeb.Controllers
 
                 if (newReport != null)
                 {
-                    // Gửi thông báo cho TẤT CẢ Moderator
-                    var moderators = await _db.Users
-                        .Where(u => u.Role.RoleName == "Moderator")
-                        .Select(u => u.UserId)
-                        .ToListAsync();
-
-                    // Lấy tên target user để điền vào nội dung thông báo
+                    // Lấy tên target user cho nội dung thông báo
                     var targetUser = await _db.Users.FindAsync(targetUserId);
                     var targetName = targetUser?.Username ?? $"User #{targetUserId}";
 
-                    foreach (var modId in moderators)
-                        await _notifService.NewReportAsync(modId, newReport.ReportId, $"bình luận của @{targetName}");
+                    // Gửi thông báo cho Admin (không phải Moderator)
+                    var adminIds = await _db.Users
+                        .Where(u => u.Role.RoleName == "Admin")
+                        .Select(u => u.UserId)
+                        .ToListAsync();
+
+                    foreach (var adminId in adminIds)
+                        await _notifService.NewReportAsync(
+                            adminId,
+                            newReport.ReportId,
+                            $"bình luận của @{targetName}");
                 }
 
                 TempData["Success"] = "Report submitted successfully.";

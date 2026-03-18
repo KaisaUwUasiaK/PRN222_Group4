@@ -8,68 +8,72 @@
         .profile-container {
             max-width: 800px;
             margin: 4rem auto;
+            padding: 0 20px;
         }
 
         .profile-card {
-            background: var(--bg-surface);
-            border-radius: var(--radius-lg);
+            background: var(--surface-color);
+            border-radius: 16px;
             border: 1px solid var(--border-color);
             overflow: hidden;
-            box-shadow: var(--shadow-card);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .profile-header {
-            background: linear-gradient(135deg, var(--color-brand-start) 0%, var(--color-brand-end) 100%);
-            height: 160px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+            height: 180px;
             position: relative;
         }
 
         .profile-avatar-wrapper {
             position: absolute;
-            bottom: -60px;
+            bottom: -65px;
             left: 0;
             right: 0;
             display: flex;
             justify-content: center;
             align-items: center;
+            z-index: 10;
         }
 
         .profile-avatar-frame {
             position: relative;
-            width: 120px;
-            height: 120px;
+            width: 130px;
+            height: 130px;
         }
 
         .profile-avatar-lg {
-            width: 120px;
-            height: 120px;
+            width: 130px;
+            height: 130px;
             border-radius: 50%;
-            border: 4px solid var(--bg-surface);
+            border: 6px solid var(--surface-color);
             object-fit: cover;
-            background: var(--bg-main);
+            background: var(--bg-color);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
         }
 
         .avatar-upload-btn {
             position: absolute;
-            right: 6px;
-            bottom: 6px;
-            width: 38px;
-            height: 38px;
+            right: 0;
+            bottom: 4px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             border: none;
-            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            background: var(--primary-color);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-            transition: all 0.2s ease;
-            outline: 3px solid var(--bg-surface);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: var(--transition);
+            outline: 4px solid var(--surface-color);
         }
 
         .avatar-upload-btn:hover {
             transform: scale(1.1);
+            background: var(--primary-hover);
         }
 
         .avatar-upload-input {
@@ -77,69 +81,164 @@
         }
 
         .profile-body {
-            padding: 4rem 2rem 2rem;
+            padding: 6rem 3rem 4rem;
+        }
+
+        .profile-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .profile-title h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .profile-title p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
         }
 
         .form-group {
-            margin-bottom: 1.5rem;
+            margin-bottom: 24px;
         }
 
         .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
             font-weight: 500;
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: 14px;
+        }
+
+        .form-label i {
+            color: var(--primary-color);
+            font-size: 14px;
         }
 
         .form-input,
         .form-textarea {
             width: 100%;
-            padding: 12px 16px;
-            background: var(--bg-main);
+            padding: 14px 16px;
+            background: rgba(11, 14, 20, 0.6);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
+            border-radius: 8px;
             color: var(--text-primary);
-            font-family: var(--font-body);
-            transition: border-color 0.2s;
+            font-family: inherit;
+            font-size: 15px;
+            transition: var(--transition);
         }
 
         .form-input:focus,
         .form-textarea:focus {
             outline: none;
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.1);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            background: var(--bg-color);
+        }
+
+        .form-input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background: rgba(11, 14, 20, 0.8);
         }
 
         .form-textarea {
             resize: vertical;
-            min-height: 100px;
+            min-height: 120px;
         }
 
-        .btn-delete {
-            color: var(--color-danger);
-            background: rgba(244, 63, 94, 0.1);
-            border: none; 
-            padding: 10px 20px;
-            border-radius: var(--radius-sm);
-            font-weight: 500;
-            cursor: pointer;
+        .security-card {
+            margin: 2rem 0;
+            padding: 24px;
+            background: rgba(99, 102, 241, 0.05);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+            transition: var(--transition);
+        }
+        
+        .security-card:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            background: rgba(99, 102, 241, 0.08);
         }
 
-        .btn-delete:hover {
-            background: rgba(244, 63, 94, 0.2);
+        .security-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .security-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .security-text h4 {
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .security-text p {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .profile-actions {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .actions-right {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.4);
         }
 
         .text-danger {
-            color: var(--color-danger);
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
-        }
-
-        .text-success {
-            color: #10b981;
-            font-size: 0.875rem;
-            margin-top: 0.25rem;
+            color: #EF4444;
+            font-size: 13px;
+            margin-top: 6px;
+            display: block;
         }
 
         /* ── Delete Account Modal ── */
@@ -147,98 +246,124 @@
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 9999;
             align-items: center;
             justify-content: center;
         }
+
         .delete-modal-overlay.active {
             display: flex;
         }
+
         .delete-modal-card {
-            background: var(--bg-surface);
-            border: 1px solid rgba(244, 63, 94, 0.3);
-            border-radius: var(--radius-lg);
-            padding: 2rem;
+            background: var(--surface-color);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 20px;
+            padding: 40px;
             width: 100%;
-            max-width: 420px;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.5);
-            animation: modal-in 0.2s ease;
+            max-width: 460px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.8);
+            animation: modal-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+
         @@keyframes modal-in {
-            from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+            from { opacity: 0; transform: scale(0.9) translateY(20px); }
             to   { opacity: 1; transform: scale(1) translateY(0); }
         }
+
         .delete-modal-icon {
-            width: 56px;
-            height: 56px;
+            width: 72px;
+            height: 72px;
             border-radius: 50%;
-            background: rgba(244, 63, 94, 0.12);
+            background: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1.25rem;
+            margin: 0 auto 24px;
+            font-size: 32px;
         }
+
         .delete-modal-title {
-            font-family: var(--font-heading);
-            font-size: 1.25rem;
+            font-size: 26px;
             font-weight: 700;
             color: var(--text-primary);
             text-align: center;
-            margin-bottom: 0.5rem;
+            margin-bottom: 16px;
         }
+
         .delete-modal-desc {
-            color: var(--text-muted);
-            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-size: 15px;
             text-align: center;
             line-height: 1.6;
-            margin-bottom: 1.5rem;
+            margin-bottom: 24px;
         }
+
         .delete-modal-label {
-            font-size: 0.85rem;
+            font-size: 14px;
             font-weight: 500;
             color: var(--text-secondary);
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             display: block;
+            text-align: center;
         }
+
         .delete-modal-input {
             width: 100%;
-            padding: 10px 14px;
-            background: var(--bg-main);
+            padding: 14px;
+            background: rgba(11, 14, 20, 0.8);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
+            border-radius: 8px;
             color: var(--text-primary);
-            font-size: 0.95rem;
-            font-family: monospace;
-            letter-spacing: 0.05em;
-            transition: border-color 0.2s;
-            box-sizing: border-box;
+            font-size: 18px;
+            text-align: center;
+            letter-spacing: 2px;
+            font-weight: bold;
+            transition: var(--transition);
         }
+
         .delete-modal-input:focus {
             outline: none;
-            border-color: var(--color-danger);
-            box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.15);
+            border-color: #EF4444;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
         }
+
+        .delete-modal-input::placeholder {
+            color: rgba(255, 255, 255, 0.2);
+            font-weight: normal;
+        }
+
         .delete-modal-input.input-error {
-            border-color: var(--color-danger);
-            animation: shake 0.3s ease;
+            border-color: #EF4444;
+            animation: shake 0.4s ease;
         }
+
         @@keyframes shake {
             0%, 100% { transform: translateX(0); }
-            25%       { transform: translateX(-6px); }
-            75%       { transform: translateX(6px); }
+            25%       { transform: translateX(-8px); }
+            75%       { transform: translateX(8px); }
         }
+
         .delete-modal-error {
-            color: var(--color-danger);
-            font-size: 0.8rem;
-            margin-top: 6px;
-            min-height: 18px;
+            color: #EF4444;
+            font-size: 13px;
+            margin-top: 8px;
+            text-align: center;
+            min-height: 20px;
         }
+
         .delete-modal-actions {
             display: flex;
-            gap: 10px;
-            margin-top: 1.5rem;
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .delete-modal-actions .btn {
+            flex: 1;
+            padding: 12px;
         }
     </style>
 }
@@ -248,9 +373,9 @@
         <div class="profile-header">
             <div class="profile-avatar-wrapper">
                 <div class="profile-avatar-frame">
-                    <img id="avatarImage" src="@(string.IsNullOrWhiteSpace(Model.User.AvatarUrl) ? "https://ui-avatars.com/api/?name=" + Uri.EscapeDataString(Model.User.Username) + "&background=6366f1&color=fff&size=120" : Model.User.AvatarUrl)" alt="Profile" class="profile-avatar-lg">
+                    <img id="avatarImage" src="@(string.IsNullOrWhiteSpace(Model.User.AvatarUrl) ? "https://ui-avatars.com/api/?name=" + Uri.EscapeDataString(Model.User.Username) + "&background=3B82F6&color=fff&size=130" : Model.User.AvatarUrl)" alt="@Model.User.Username's Profile" class="profile-avatar-lg">
                     <label for="avatarFile" class="avatar-upload-btn" title="Change avatar">
-                        <i class="ph ph-camera"></i>
+                        <i class="fa-solid fa-camera"></i>
                     </label>
                     <input type="file" id="avatarFile" class="avatar-upload-input" accept="image/jpeg,image/jpg,image/png,image/gif">
                 </div>
@@ -258,55 +383,63 @@
         </div>
 
         <div class="profile-body">
-            <div style="text-align: center; margin-bottom: 3rem; margin-top: 1rem;">
-                <h2 style="font-size: 1.5rem;">Edit Profile</h2>
-                <p class="text-muted">Update your personal information</p>
+            <div class="profile-title">
+                <h2>Edit Profile</h2>
+                <p>Update your personal information and manage your account.</p>
             </div>
 
             <form asp-action="Profile" method="post" id="profileForm" novalidate>
                 @Html.AntiForgeryToken()
-                @Html.ValidationSummary(false, "", new { @class = "validation-summary-errors" })
+
                 
-                <div class="grid grid-cols-2 gap-6">
+                <div class="form-grid">
                     <div class="form-group">
-                        <label class="form-label" asp-for="Username">Display Name</label>
-                        <input asp-for="Username" class="form-input" />
+                        <label class="form-label" asp-for="Username">
+                            <i class="fa-solid fa-user"></i> Display Name
+                        </label>
+                        <input asp-for="Username" class="form-input" placeholder="Enter your display name" />
                         <span asp-validation-for="Username" class="text-danger"></span>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Email Address</label>
-                        <input type="email" class="form-input" value="@Model.User.Email" disabled
-                               style="opacity: 0.7; cursor: not-allowed;">
+                        <label class="form-label">
+                            <i class="fa-solid fa-envelope"></i> Email Address
+                        </label>
+                        <input type="email" class="form-input" value="@Model.User.Email" disabled />
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" asp-for="Bio">Bio</label>
-                    <textarea asp-for="Bio" class="form-textarea"></textarea>
+                    <label class="form-label" asp-for="Bio">
+                        <i class="fa-solid fa-pen-to-square"></i> Bio
+                    </label>
+                    <textarea asp-for="Bio" class="form-textarea" placeholder="Tell us a little bit about yourself..."></textarea>
                 </div>
 
-                <div style="margin: 2rem 0 1.5rem; padding: 16px 20px; background: rgba(124, 58, 237, 0.06); border: 1px solid rgba(124, 58, 237, 0.2); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between;">
-                    <div class="flex items-center gap-3">
-                        <i class="ph ph-shield-check" style="margin-right: 20px; font-size: 2.5rem; color: var(--color-primary);"></i>
-                        <div>
-                            <div style="font-weight: 600; font-size: 0.95rem;">Password &amp; Security</div>
-                            <div class="text-muted" style="font-size: 0.85rem;">Update your password to keep your account secure</div>
+                <div class="security-card">
+                    <div class="security-info">
+                        <div class="security-icon">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div class="security-text">
+                            <h4>Password &amp; Security</h4>
+                            <p>Update your password to keep your account secure</p>
                         </div>
                     </div>
-                    <a href="@Url.Action("ChangePassword", "User")" class="btn btn-outline" style="white-space: nowrap; flex-shrink: 0;">
-                        <i class="ph ph-lock-key" style="margin-right: 6px;"></i>
+                    <a href="@Url.Action("ChangePassword", "User")" class="btn btn-outline">
+                        <i class="fa-solid fa-lock"></i>
                         Change Password
                     </a>
                 </div>
 
-                <div class="flex justify-between items-center"
-                     style="margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-                    <button type="button" class="btn btn-delete" id="deleteAccountBtn">
-                        <i class="ph ph-trash" style="margin-right: 6px;"></i>Delete Account
+                <div class="profile-actions">
+                    <button type="button" class="btn btn-danger" id="deleteAccountBtn">
+                        <i class="fa-solid fa-trash-can"></i> Delete Account
                     </button>
-                    <div class="flex gap-4">
-                        <a href="@Url.Action("Index", "Home")" class="btn btn-ghost">Cancel</a>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <div class="actions-right">
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fa-solid fa-check"></i> Save Changes
+                        </button>
                     </div>
                 </div>
             </form>
@@ -325,32 +458,30 @@
     <div class="delete-modal-card">
         <!-- Icon -->
         <div class="delete-modal-icon">
-            <i class="ph-fill ph-warning" style="font-size: 1.75rem; color: var(--color-danger);"></i>
+            <i class="fa-solid fa-triangle-exclamation"></i>
         </div>
 
         <!-- Title & description -->
         <h2 class="delete-modal-title">Delete Account</h2>
         <p class="delete-modal-desc">
-            This action is <strong style="color: var(--color-danger);">permanent and irreversible</strong>.
-            All your data, comics, and settings will be deleted.<br><br>
-            To confirm, type <strong style="color: var(--text-primary); font-family: monospace;">DELETE</strong> below.
+            This action is <strong style="color: #EF4444;">permanent and irreversible</strong>.
+            All your data, comments, and settings will be permanently deleted.<br><br>
+            To confirm, please type <strong style="color: var(--text-primary); font-family: monospace;">DELETE</strong> below.
         </p>
 
         <!-- Input -->
         <label class="delete-modal-label" for="deleteModalInput">Confirmation phrase</label>
         <input id="deleteModalInput" class="delete-modal-input" type="text"
-               placeholder="Type DELETE here" autocomplete="off" spellcheck="false" />
+               placeholder="DELETE" autocomplete="off" spellcheck="false" />
         <div id="deleteModalError" class="delete-modal-error"></div>
 
         <!-- Actions -->
         <div class="delete-modal-actions">
-            <button type="button" id="deleteModalCancel"
-                    class="btn btn-ghost" style="flex: 1; border: 1px solid var(--border-color);">
+            <button type="button" id="deleteModalCancel" class="btn btn-secondary">
                 Cancel
             </button>
-            <button type="button" id="deleteModalConfirm"
-                    class="btn btn-delete" style="flex: 2; justify-content: center;">
-                <i class="ph ph-trash" style="margin-right: 6px;"></i> Delete My Account
+            <button type="button" id="deleteModalConfirm" class="btn btn-danger">
+                <i class="fa-solid fa-trash"></i> Confirm Deletion
             </button>
         </div>
     </div>
@@ -359,8 +490,9 @@
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
     <script>
-        // Initialize Notyf for toast notifications
-        const notyf = new Notyf({
+        // Use existing Notyf instance from Layout, or initialize a local one if needed.
+        // The layout currently initiates it, so we can just use it if available, else create one.
+        const notyfInstance = typeof notyf !== 'undefined' ? notyf : new Notyf({
             duration: 4000,
             position: { x: 'right', y: 'top' },
             dismissible: true
@@ -374,13 +506,13 @@
             // Validate file type
             const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
             if (!allowedTypes.includes(file.type)) {
-                notyf.error('Invalid file type. Only JPG, PNG, and GIF are allowed.');
+                notyfInstance.error('Invalid file type. Only JPG, PNG, and GIF are allowed.');
                 return;
             }
 
             // Validate file size (5MB)
             if (file.size > 5 * 1024 * 1024) {
-                notyf.error('File size exceeds 5MB limit.');
+                notyfInstance.error('File size exceeds 5MB limit.');
                 return;
             }
 
@@ -407,14 +539,17 @@
             .then(data => {
                 if (data.success) {
                     document.getElementById('avatarImage').src = data.avatarUrl;
-                    notyf.success('Avatar updated successfully!');
+                    notyfInstance.success('Avatar updated successfully!');
+                    
+                    // Trigger custom event so header avatar can update if script logic exists
+                    document.dispatchEvent(new CustomEvent('avatarUpdated', { detail: data.avatarUrl }));
                 } else {
-                    notyf.error(data.message || 'Failed to upload avatar.');
+                    notyfInstance.error(data.message || 'Failed to upload avatar.');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                notyf.error('An error occurred while uploading the avatar.');
+                notyfInstance.error('An error occurred while uploading the avatar.');
             });
         });
 
@@ -475,6 +610,7 @@
         // Clear error on input
         deleteModalInput.addEventListener('input', function () {
             deleteModalError.textContent = '';
+            deleteModalInput.classList.remove('input-error');
         });
     </script>
 }

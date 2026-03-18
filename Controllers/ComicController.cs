@@ -1,4 +1,4 @@
-﻿using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Services;
 using Group4_ReadingComicWeb.Services.Contracts;
 using Microsoft.AspNetCore.Authorization;
@@ -80,17 +80,16 @@ namespace Group4_ReadingComicWeb.Controllers
         // Read chapter in comic
         public async Task<IActionResult> Read(int id, int commentPage = 1)
         {
-            var result = await _comicService.GetChapterForReadingAsync(id);
+            var currentChapter = await _comicService.GetChapterForReadingAsync(id);
+            if (currentChapter.CurrentChapter == null) return NotFound();
+            await _comicService.IncrementViewCountAsync(currentChapter.CurrentChapter.ComicId);
+            ViewBag.PrevChapterId = currentChapter.PrevChapterId;
+            ViewBag.NextChapterId = currentChapter.NextChapterId;
 
-            if (result.CurrentChapter == null) return NotFound();
-
-            ViewBag.PrevChapterId = result.PrevChapterId;
-            ViewBag.NextChapterId = result.NextChapterId;
-
-            // Logic phân trang comment
+            // Logic separate comment
             int commentPageSize = 10;
-            var allComments = result.CurrentChapter.Comments != null
-                ? result.CurrentChapter.Comments.OrderByDescending(c => c.CreatedAt).ToList()
+            var allComments = currentChapter.CurrentChapter.Comments != null
+                ? currentChapter.CurrentChapter.Comments.OrderByDescending(c => c.CreatedAt).ToList()
                 : new List<Comment>();
 
             ViewBag.TotalComments = allComments.Count;
@@ -101,7 +100,7 @@ namespace Group4_ReadingComicWeb.Controllers
                 .Take(commentPageSize)
                 .ToList();
 
-            return View(result.CurrentChapter);
+            return View(currentChapter.CurrentChapter);
         }
         // Add comment 
         [HttpPost]
@@ -158,7 +157,7 @@ namespace Group4_ReadingComicWeb.Controllers
         //Add/Delete Favorite
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> ToggleFavorite(int comicId)
+        public async Task<IActionResult> ToggleFavorite(int comicId, string source)
         {
             var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if (int.TryParse(userIdString, out int userId))
@@ -169,6 +168,11 @@ namespace Group4_ReadingComicWeb.Controllers
                     TempData["Success"] = "Added to your favorites!";
                 else
                     TempData["Info"] = "Removed from favorites.";
+            }
+
+            if (source == "Index")
+            {
+                return RedirectToAction("Index", "Home");
             }
 
             return RedirectToAction("Detail", new { id = comicId });

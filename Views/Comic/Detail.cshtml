@@ -1,365 +1,211 @@
-﻿@model Group4_ReadingComicWeb.Models.Comic
+@model Group4_ReadingComicWeb.Models.Comic
 
 @{
     ViewData["Title"] = Model.Title;
+    var isFavorited = ViewBag.IsFavorited as bool? ?? false;
+    var paginatedComments = ViewBag.PaginatedComments as List<Group4_ReadingComicWeb.Models.Comment>;
+    var totalCommentPages = ViewBag.TotalCommentPages as int? ?? 1;
+    var currentCommentPage = ViewBag.CurrentCommentPage as int? ?? 1;
 }
 
-@section Styles {
-    <style>
-        :root {
-            --bg-main: #182939;
-            --bg-card: #1e2f43;
-            --bg-comment: #0d1117; /* Màu nền comment cực tối */
-            --primary-color: #6366f1;
-        }
-
-        .hero-banner {
-            position: relative;
-            height: 450px;
-            display: flex;
-            align-items: flex-end;
-            overflow: hidden;
-            background-color: #0b0c0f;
-        }
-
-
-
-        .hero-banner-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 0;
-            filter: brightness(0.3) blur(10px);
-            transform: scale(1.1);
-        }
-
-
-
-        .hero-content-wrapper {
-            position: relative;
-            z-index: 1;
-            padding-bottom: 3rem;
-            width: 100%;
-            background: linear-gradient(to top, #0b0c0f 0%, transparent 100%);
-        }
-
-
-
-        .comic-poster {
-            width: 240px;
-            border-radius: 12px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .tag-status {
-            background: var(--primary-color);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .section-title-line {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 2rem;
-            border-left: 4px solid var(--primary-color);
-            padding-left: 1rem;
-        }
-
-        .chapter-list-container {
-            background-color: var(--bg-card);
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            overflow: hidden; /* Giữ bo góc không bị tràn nội dung */
-        }
-
-        .chapter-link {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
-            text-decoration: none !important;
-            color: white;
-        }
-
-            .chapter-link:last-child {
-                border-bottom: none;
-            }
-
-            .chapter-link:hover {
-                background-color: rgba(99, 102, 241, 0.1);
-                transform: translateX(8px);
-            }
-
-        .comment-wrapper {
-            display: flex;
-            align-items: flex-start; /* Quan trọng: Cố định avatar luôn ở sát mép trên */
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .comment-content-box {
-            flex: 1;
-            background-color: var(--bg-comment);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            padding: 1rem 1.25rem;
-            min-width: 0;
-            display: flex;
-            flex-direction: column; /* Đảm bảo header và content xếp dọc chuẩn */
-        }
-
-        .comment-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center; /* Cân bằng thẳng hàng ngang giữa info và nút xóa */
-            margin-bottom: 0.75rem; /* Tăng nhẹ khoảng cách với chữ để thoáng hơn */
-        }
-
-        .comment-user-info {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-        }
-
-        .comment-username {
-            font-weight: 600;
-            color: #38bdf8;
-            font-size: 0.95rem;
-            line-height: 1; /* Giúp text không bị lệch cao/thấp */
-        }
-
-        .comment-meta {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            color: #6b7280;
-            font-size: 0.8rem;
-            line-height: 1;
-        }
-
-        .comment-chapter-link {
-            color: #818cf8;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-decoration: none;
-            padding: 2px 8px;
-            background-color: rgba(99, 102, 241, 0.1);
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-
-            .comment-chapter-link:hover {
-                background-color: rgba(99, 102, 241, 0.2);
-                color: #a5b4fc;
-            }
-
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 10px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                background: rgba(255, 255, 255, 0.2);
-            }
-    </style>
-}
-
-<div class="min-h-screen" style="background-color: var(--bg-main); color: #e2e8f0;">
-
-    <div class="hero-banner">
-        <img src="@Model.CoverImage" class="hero-banner-bg" alt="Blur Background">
-        <div class="hero-content-wrapper">
-            <div class="container mx-auto px-6" style="margin-left: 10px">
-                <div class="flex flex-col md:flex-row items-center md:items-end gap-8 text-center md:text-left">
-                    <div class="shrink-0">
-                        <img src="@Model.CoverImage" class="comic-poster" alt="@Model.Title">
+<main>
+    <section class="detail-hero">
+        <div class="container detail-container">
+            <div class="detail-thumb">
+                <img src="@Model.CoverImage" alt="@Model.Title">
+            </div>
+            <div class="detail-info">
+                <h1>@Model.Title</h1>
+                <div class="detail-meta">
+                    By <span>@(Model.Author?.Username ?? "Unknown")</span> •
+                    @if (Model.ComicTags != null)
+                    {
+                        @foreach (var ct in Model.ComicTags)
+                        {
+                            <span>@ct.Tag?.TagName</span>
+                        }
+                    }
+                    • <span>@Model.ViewCount Views</span>
+                </div>
+                <p class="detail-description">
+                    @Model.Description
+                </p>
+                
+                <form id="favForm" asp-controller="Comic" asp-action="ToggleFavorite" method="post"
+                      style="display:none;">
+                    <input type="hidden" name="comicId" value="@Model.ComicId" />
+                </form>
+                <a href="#" onclick="document.getElementById('favForm').submit(); return false;" class="btn btn-fav @(isFavorited ? "active" : "")">
+                    <i class="@(isFavorited ? "fa-solid" : "fa-regular") fa-heart"></i>
+                    @(isFavorited ? "Favorited" : "Add to Favorites")
+                </a>
+                
+                <div class="chapters-section">
+                    <div class="section-header">
+                        <h2>Chapters</h2>
                     </div>
-                    <div class="flex-1 text-white">
-                        <div class="flex flex-wrap justify-center md:justify-start gap-2 mb-4">
-                            <span class="tag-status">@Model.Status</span>
-                            @foreach (var ct in Model.ComicTags)
+                    <div class="chapters-list">
+                        @if (Model.Chapters != null && Model.Chapters.Any())
+                        {
+                            @foreach (var chapter in Model.Chapters.OrderByDescending(c => c.ChapterNumber).Take(5))
                             {
-                                <span class="text-xs font-medium px-3 py-1 bg-white/10 rounded-full border border-white/10">
-                                    #@ct.Tag.TagName
-                                </span>
-                            }
-                        </div>
-                        <h1 class="text-4xl md:text-6xl font-bold mb-4" style="font-family: 'Outfit', sans-serif;">@Model.Title</h1>
-                        <p class="text-gray-300 text-lg line-clamp-3 mb-8 max-w-3xl leading-relaxed">@Model.Description</p>
-
-                        <div class="flex flex-wrap justify-center md:justify-start gap-4">
-                            @if (Model.Chapters != null && Model.Chapters.Any())
-                            {
-                                var firstChapterId = Model.Chapters.OrderBy(c => c.ChapterNumber).First().ChapterId;
-                                <a href="@Url.Action("Read", "Comic", new { id = firstChapterId })" class="btn btn-primary px-10 py-4 font-bold uppercase tracking-wider text-white" style="background-color: var(--primary-color); border: none;">
-                                    <i class="ph-fill ph-play mr-2"></i> Read Now
+                                <a asp-action="Read" asp-route-id="@chapter.ChapterId" class="chapter-item group">
+                                    <div class="chapter-info">
+                                        <span class="chapter-name">Chapter @chapter.ChapterNumber: @chapter.Title</span>
+                                    </div>
+                                    <span class="chapter-time">@chapter.CreatedAt.ToString("dd MMM, yyyy")</span>
                                 </a>
                             }
-                            @if (User.Identity != null && User.Identity.IsAuthenticated)
-                            {
-                                var isFavorited = ViewBag.IsFavorited as bool? ?? false;
-
-                                <form action="@Url.Action("ToggleFavorite", "Comic")" method="post" class="m-0">
-                                    <input type="hidden" name="comicId" value="@Model.ComicId" />
-                                    <button type="submit" class="btn btn-ghost bg-white/5 hover:bg-white/10 border-white/10 text-white px-8 transition-colors flex items-center h-full group">
-                                        @if (isFavorited)
-                                        {
-                                            <i class="ph-fill ph-heart mr-2 text-red-500 text-xl"></i>
-                                            <span>Favorited</span>
-                                        }
-                                        else
-                                        {
-                                            <i class="ph ph-heart mr-2 text-gray-400 group-hover:text-red-500 transition-colors text-xl"></i>
-                                            <span>Favorite</span>
-                                        }
-                                    </button>
-                                </form>
-                            }
-                            else
-                            {
-                                <a href="@Url.Action("Login", "Authentication")" class="btn btn-ghost bg-white/5 hover:bg-white/10 border-white/10 text-white px-8 flex items-center h-full" onclick="alert('Please login to add to favorites!');">
-                                    <i class="ph ph-heart mr-2 text-gray-400 text-xl"></i> Favorite
-                                </a>
-                            }
-                        </div>
+                        }
+                        else
+                        {
+                            <div class="text-center" style="padding: 40px; color: var(--text-muted);">
+                                <p>No chapters available yet.</p>
+                            </div>
+                        }
                     </div>
+                    @if (Model.Chapters != null && Model.Chapters.Count > 5)
+                    {
+                        <a href="javascript:void(0)" class="view-all-btn" id="openChaptersModal">
+                            <i class="fa-solid fa-list-ul"></i> View all chapters
+                        </a>
+                    }
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="container mx-auto px-6 py-12">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-
-            <div class="lg:col-span-2">
-                <div class="section-title-line">
-                    <h2 class="text-2xl font-bold text-white" style="padding-top: 10px">Chapters List</h2>
-                    <span class="text-gray-400 text-sm">(@Model.Chapters.Count Chapters)</span>
-                </div>
-
-                <div class="chapter-list-container">
-                    @if (Model.Chapters != null && Model.Chapters.Any())
-                    {
-                        foreach (var chapter in Model.Chapters.OrderByDescending(c => c.ChapterNumber))
-                        {
-                            <a href="@Url.Action("Read", "Comic", new { id = chapter.ChapterId })" class="chapter-link group">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 font-bold group-hover:bg-indigo-500 group-hover:text-white transition-all">
-                                        @chapter.ChapterNumber
-                                    </div>
-                                    <div>
-                                        <span class="font-bold block text-white text-lg">Chapter @chapter.ChapterNumber</span>
-                                        <span class="text-sm text-gray-400">@chapter.Title</span>
-                                    </div>
-                                </div>
-                                <div class="text-right hidden sm:block">
-                                    <span class="text-xs text-gray-500 block">Uploaded</span>
-                                    <span class="text-sm font-medium text-gray-400">@chapter.CreatedAt.ToString("dd MMM, yyyy")</span>
-                                </div>
-                            </a>
-                        }
-                    }
-                    else
-                    {
-                        <div class="p-20 text-center text-gray-500">
-                            <i class="ph ph-files text-6xl mb-4 opacity-20"></i>
-                            <p>No chapters available yet.</p>
-                        </div>
-                    }
-                </div>
+    <section class="comments-section">
+        <div class="container">
+            <div class="comments-header">
+                <h2>User Comments (@(ViewBag.TotalComments ?? 0))</h2>
             </div>
-
-            <div class="lg:col-span-1">
-                <div class="section-title-line">
-                    <h2 class="text-2xl font-bold text-white" style="padding-top: 10px">Comments</h2>
-                </div>
-
-                <div class="space-y-4 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
-                    @{
-                        var paginatedComments = ViewBag.PaginatedComments as List<Group4_ReadingComicWeb.Models.Comment> ?? new List<Group4_ReadingComicWeb.Models.Comment>();
-                        int currentPage = ViewBag.CurrentCommentPage ?? 1;
-                        int totalPages = ViewBag.TotalCommentPages ?? 1;
-                    }
-
-                    @if (paginatedComments.Any())
+            
+            <div class="comments-list">
+                @if (paginatedComments != null && paginatedComments.Any())
+                {
+                    @foreach (var comment in paginatedComments)
                     {
-                        @foreach (var comment in paginatedComments)
-                        {
-                            <div class="comment-wrapper">
-                                <div class="shrink-0">
-                                    <img src="@(string.IsNullOrEmpty(comment.User.AvatarUrl) ? "https://ui-avatars.com/api/?name=" + comment.User.Username + "&background=1e293b&color=fff" : comment.User.AvatarUrl)"
-                                         class="w-10 h-10 rounded-full object-cover shadow-sm border border-white/5" alt="Avatar">
-                                </div>
-
-                                <div class="comment-content-box">
-                                    <div class="comment-header">
-                                        <div class="comment-user-info">
-                                            <span class="comment-username">@comment.User.Username</span>
-
-                                            <div class="comment-meta">
-                                                <i class="ph ph-clock"></i>
-                                                <span>@comment.CreatedAt.ToString("MMM dd, yyyy HH:mm")</span>
-                                            </div>
-
-                                            <a href="@Url.Action("Read", "Comic", new { id = comment.ChapterId })"
-                                               class="comment-chapter-link hidden md:inline-block" title="Đi đến chương này">
-                                                Ch. @comment.Chapter.ChapterNumber
-                                            </a>
-                                        </div>
-
-                                        @if (User.Identity != null && User.Identity.IsAuthenticated && User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value == comment.UserId.ToString())
+                        <div class="comment-card">
+                            <div class="comment-header">
+                                <img src="@(string.IsNullOrEmpty(comment.User?.AvatarUrl) ? $"https://ui-avatars.com/api/?name={comment.User?.Username}&background=4F46E5&color=fff" : comment.User.AvatarUrl)"
+                                     class="comment-avatar" alt="Avatar">
+                                <div class="comment-author-info">
+                                    <span class="comment-author">@comment.User?.Username</span>
+                                    <span class="comment-meta">
+                                        @if (comment.Chapter != null)
                                         {
-                                            <form action="@Url.Action("DeleteComment", "Comic")" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn xóa bình luận này không?');" class="shrink-0 ml-3">
-                                                <input type="hidden" name="commentId" value="@comment.CommentId" />
-                                                <input type="hidden" name="chapterId" value="@comment.ChapterId" />
-                                                <input type="hidden" name="comicId" value="@Model.ComicId" />
-                                                <input type="hidden" name="source" value="Detail" />
-
-                                                <button type="submit" title="Xóa bình luận" class="text-gray-500 hover:text-red-400 transition-colors flex items-center justify-center p-1.5 rounded hover:bg-white/5">
-                                                    <i class="ph ph-trash text-lg"></i>
-                                                </button>
-                                            </form>
+                                            <text>Chapter @comment.Chapter.ChapterNumber • </text>
                                         }
-                                    </div>
-
-                                    <p class="text-gray-300 text-sm leading-relaxed" style="word-break: break-word;">
-                                        @comment.Content
-                                    </p>
+                                        @comment.CreatedAt.ToString("dd MMM, yyyy HH:mm")
+                                    </span>
                                 </div>
+                                @if (User.Identity?.IsAuthenticated == true && (User.Identity.Name == comment.User?.Username ||
+                                                                                                                        User.IsInRole("Admin") || User.IsInRole("Moderator")))
+                                {
+                                    <form asp-action="DeleteComment" method="post" style="margin-left: auto;">
+                                        <input type="hidden" name="commentId" value="@comment.CommentId" />
+                                        <input type="hidden" name="source" value="Detail" />
+                                        <input type="hidden" name="comicId" value="@Model.ComicId" />
+                                        <button type="submit" style="background:none; border:none; color: #F87171; cursor:pointer;"
+                                                title="Delete comment">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                    </form>
+                                }
                             </div>
-                        }
-                    }
-                    else
-                    {
-                        <div class="bg-white/5 rounded-xl p-8 text-center text-gray-500">
-                            <i class="ph ph-chat-teardrop-text text-4xl mb-2 opacity-50 block"></i>
-                            <p>There is no comment yet</p>
+                            <p class="comment-text">@comment.Content</p>
                         </div>
                     }
-                </div>
+                }
+                else
+                {
+                    <div class="text-center" style="padding: 40px; color: var(--text-muted);">
+                        <p>No comments yet.</p>
+                    </div>
+                }
             </div>
 
+            @if (totalCommentPages > 1)
+            {
+                <div class="pagination">
+                    @if (currentCommentPage > 1)
+                    {
+                        <a href="@Url.Action("Detail", new { id = Model.ComicId, commentPage = currentCommentPage - 1 })"
+                           class="page-link"><i class="fa-solid fa-chevron-left"></i></a>
+                    }
+                    
+                    @for (int i = 1; i <= totalCommentPages; i++)
+                    {
+                        if (i == 1 || i == totalCommentPages || (i >= currentCommentPage - 2 && i <= currentCommentPage + 2))
+                        {
+                            <a href="@Url.Action("Detail", new { id = Model.ComicId, commentPage = i })"
+                               class="page-link @(i == currentCommentPage ? "active" : "")">@i</a>
+                        }
+                        else if (i == currentCommentPage - 3 || i == currentCommentPage + 3)
+                        {
+                            <span style="color: var(--text-muted); display: flex; align-items: center;">...</span>
+                        }
+                    }
+
+                    @if (currentCommentPage < totalCommentPages)
+                    {
+                        <a href="@Url.Action("Detail", new { id = Model.ComicId, commentPage = currentCommentPage + 1 })"
+                           class="page-link"><i class="fa-solid fa-chevron-right"></i></a>
+                    }
+                </div>
+            }
+        </div>
+    </section>
+</main>
+
+<!-- Chapters Modal -->
+<div id="chaptersModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeChaptersModal">&times;</span>
+        <div class="modal-header">
+            <h2>All Chapters</h2>
+        </div>
+        <div class="modal-chapters-list">
+            @if (Model.Chapters != null && Model.Chapters.Any())
+            {
+                @foreach (var chapter in Model.Chapters.OrderByDescending(c => c.ChapterNumber))
+                {
+                    <a asp-action="Read" asp-route-id="@chapter.ChapterId" class="chapter-item">
+                        <span class="chapter-name">Chapter @chapter.ChapterNumber: @chapter.Title</span>
+                        <span class="chapter-time">@chapter.CreatedAt.ToString("dd MMM, yyyy")</span>
+                    </a>
+                }
+            }
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById("chaptersModal");
+            const btn = document.getElementById("openChaptersModal");
+            const span = document.getElementById("closeChaptersModal");
+
+            if (btn && modal && span) {
+                btn.onclick = function () {
+                    modal.classList.add("show");
+                    document.body.style.overflow = "hidden";
+                }
+
+                span.onclick = function () {
+                    modal.classList.remove("show");
+                    document.body.style.overflow = "auto";
+                }
+
+                window.onclick = function (event) {
+                    if (event.target == modal) {
+                        modal.classList.remove("show");
+                        document.body.style.overflow = "auto";
+                    }
+                }
+            }
+        });
+    </script>
+}

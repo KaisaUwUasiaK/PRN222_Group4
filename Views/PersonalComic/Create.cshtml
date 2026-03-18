@@ -1,60 +1,262 @@
-﻿@model Group4_ReadingComicWeb.Models.Comic
+@model Group4_ReadingComicWeb.Models.Comic
 
 @{
     ViewData["Title"] = "Upload Comic";
     var tags = ViewBag.Tags as List<Group4_ReadingComicWeb.Models.Tag>;
 }
 
-<div class="container" style="max-width: 800px; margin-top: 3rem; margin-bottom: 3rem;">
-    <div style="margin-bottom: 1rem;">
-        <a href="@Url.Action("Index")" class="text-muted hover:text-white"><i class="ph-bold ph-arrow-left"></i> Back to list</a>
-    </div>
+@section Styles {
+    <style>
+        .form-container {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 0 20px;
+        }
 
-    <div class="bg-surface rounded-md" style="padding: 2.5rem; border: 1px solid var(--border-color);">
-        <h2 style="margin-bottom: 0.5rem;">Comic Information</h2>
-        <p class="text-muted" style="margin-bottom: 2rem;">Please enter comic information below and it will be moderated</p>
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 24px;
+            transition: var(--transition);
+        }
+
+        .back-link:hover {
+            color: white;
+            transform: translateX(-4px);
+        }
+
+        .form-card {
+            background: var(--surface-color);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .form-header {
+            margin-bottom: 32px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 24px;
+        }
+
+        .form-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .form-header p {
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .form-label i {
+            color: var(--primary-color);
+            font-size: 14px;
+        }
+
+        .required-star {
+            color: #EF4444;
+            margin-left: -4px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(11, 14, 20, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 15px;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            background: var(--bg-color);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+        }
+
+        .file-input-wrapper .form-control {
+            padding-right: 48px;
+        }
+
+        .file-input-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        /* Tags Section */
+        .tags-container {
+            background: rgba(11, 14, 20, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        /* Scrollbar customization for tags area */
+        .tags-container::-webkit-scrollbar { width: 6px; }
+        .tags-container::-webkit-scrollbar-track { background: transparent; }
+        .tags-container::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+        .tags-container::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        .tags-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .tag-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--surface-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tag-label:hover {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .tag-checkbox {
+            accent-color: var(--primary-color);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .tag-text {
+            font-size: 14px;
+            color: var(--text-primary);
+            user-select: none;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border-color: var(--text-muted);
+        }
+    </style>
+}
+
+<div class="form-container">
+    <a href="@Url.Action("Index")" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i> Back to My Comics
+    </a>
+
+    <div class="form-card">
+        <div class="form-header">
+            <h2><i class="fa-solid fa-cloud-arrow-up" style="color: var(--primary-color); margin-right: 8px;"></i> Upload Comic</h2>
+            <p>Please enter comic information below and it will be moderated</p>
+        </div>
+
         <form asp-action="Create" method="post" enctype="multipart/form-data">
-            <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Comic name <span style="color: #ef4444">*</span></label>
-                <input asp-for="Title" name="Title" class="search-input" style="width: 100%; border-radius: 8px; padding-left: 16px;" placeholder="Nhập tên truyện..." required />
+            <div class="form-group">
+                <label class="form-label" for="Title">
+                    <i class="fa-solid fa-book"></i> Comic Title <span class="required-star">*</span>
+                </label>
+                <input asp-for="Title" name="Title" id="Title" class="form-control" placeholder="Enter comic name..." required />
             </div>
 
-            <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Cover page</label>
-                <div style="position: relative;">
-                    <input type="file" name="coverImage" class="search-input" style="width: 100%; border-radius: 8px; padding: 10px;" accept="image/*" />
-                    <i class="ph-fill ph-image" style="position: absolute; right: 15px; top: 12px; color: var(--text-muted);"></i>
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fa-solid fa-image"></i> Cover Image
+                </label>
+                <div class="file-input-wrapper">
+                    <input type="file" name="coverImage" class="form-control" accept="image/*" />
+                    <i class="fa-solid fa-upload file-input-icon"></i>
                 </div>
-                    <span class="text-danger" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px; display: block;">
-                        @Html.ValidationMessage("coverImage")
-                    </span>
+                <span class="text-danger" style="color: #EF4444; font-size: 13px; margin-top: 8px; display: block;">
+                    @Html.ValidationMessage("coverImage")
+                </span>
             </div>
 
-            <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Description</label>
-                <textarea asp-for="Description" name="Description" class="search-input" rows="5" style="width: 100%; border-radius: 8px; height: auto; padding: 16px; font-family: inherit;" placeholder="Tóm tắt nội dung truyện..." required></textarea>
+            <div class="form-group">
+                <label class="form-label" for="Description">
+                    <i class="fa-solid fa-align-left"></i> Description
+                </label>
+                <textarea asp-for="Description" name="Description" id="Description" class="form-control" placeholder="Summarize the comic's story..." required></textarea>
             </div>
 
-            <div style="margin-bottom: 2.5rem;">
-                <label style="display: block; margin-bottom: 1rem; font-weight: 500;">Tag</label>
-                <div class="grid grid-cols-4 gap-2" style="max-height: 200px; overflow-y: auto; padding-right: 5px;">
-                    @if (tags != null)
-                    {
-                        foreach (var tag in tags)
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fa-solid fa-tags"></i> Tags
+                </label>
+                <div class="tags-container">
+                    <div class="tags-grid">
+                        @if (tags != null)
                         {
-                            <label class="flex items-center gap-2 cursor-pointer" style="padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: rgba(255,255,255,0.02); transition: 0.2s;">
-                                <input type="checkbox" name="selectedTags" value="@tag.TagId" style="accent-color: var(--color-primary);" />
-                                <span style="font-size: 0.9rem;">@tag.TagName</span>
-                            </label>
+                            foreach (var tag in tags)
+                            {
+                                <label class="tag-label">
+                                    <input type="checkbox" class="tag-checkbox" name="selectedTags" value="@tag.TagId" />
+                                    <span class="tag-text">@tag.TagName</span>
+                                </label>
+                            }
                         }
-                    }
+                    </div>
                 </div>
             </div>
 
-            <div class="flex justify-between items-center" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <div class="form-actions">
                 <a href="@Url.Action("Index")" class="btn btn-ghost">Cancel</a>
                 <button type="submit" class="btn btn-primary">
-                    <i class="ph-fill ph-paper-plane-right" style="margin-right: 8px;"></i> Send
+                    <i class="fa-solid fa-paper-plane"></i> Submit Request
                 </button>
             </div>
         </form>

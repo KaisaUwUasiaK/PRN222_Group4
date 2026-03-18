@@ -1,51 +1,167 @@
 @model Group4_ReadingComicWeb.Models.Comic
-
 @{
     ViewData["Title"] = "Home";
     var newComics = ViewBag.NewComics as List<Group4_ReadingComicWeb.Models.Comic>;
+    var trendingComics = ViewBag.TrendingComics as List<Group4_ReadingComicWeb.Models.Comic>;
+    var maybeYouLikeComics = ViewBag.MaybeYouLikeComics as List<Group4_ReadingComicWeb.Models.Comic>;
 }
 
-<main class="container">
+<main>
+    <!-- Hero Section -->
     @if (Model != null)
     {
         <section class="hero">
-            <img src="@Model.CoverImage" alt="Hero Background" class="hero-bg">
-            <div class="hero-content">
-                <div class="hero-tags">
-                    <span class="tag">#1 Trending</span>
-                    @foreach (var ct in Model.ComicTags)
-                    {
-                        <span class="tag">@ct.Tag.TagName</span>
-                    }
+            <div class="container hero-container">
+                <div class="hero-content">
+                    <span class="badge">TRENDING NOW</span>
+                    <h1>@Model.Title</h1>
+                    <div class="hero-meta">
+                        @if (Model.ComicTags != null)
+                        {
+                            @foreach (var ct in Model.ComicTags)
+                            {
+                                <span class="tag">@ct.Tag.TagName</span>
+                            }
+                        }
+                        • <span>@Model.ViewCount Views</span>
+                    </div>
+                    <p class="hero-description">
+                        @Model.Description
+                    </p>
+                    <div class="hero-actions">
+                        <a asp-controller="Comic" asp-action="Detail" asp-route-id="@Model.ComicId"
+                           class="btn btn-primary">Read Now</a>
+                        @{
+                            var isFavorited = ViewBag.IsFavorited as bool? ?? false;
+                        }
+                        <form id="favForm" asp-controller="Comic" asp-action="ToggleFavorite" method="post"
+                              style="display:none;">
+                            <input type="hidden" name="comicId" value="@Model.ComicId" />
+                            <input type="hidden" name="source" value="Index" />
+                        </form>
+                        <a href="#" onclick="document.getElementById('favForm').submit(); return false;"
+                           class="btn btn-secondary btn-fav @(isFavorited ? "active" : "")">
+                            <i class="@(isFavorited ? "fa-solid" : "fa-regular") fa-heart"></i> 
+                            @(isFavorited ? "Favorited" : "Favorite")
+                        </a>
+                    </div>
                 </div>
-                <h1 class="hero-title">@Model.Title</h1>
-                <p class="hero-desc">@Model.Description</p>
-                <div class="flex gap-4">
-                    <a href="@Url.Action("Read", "Comic", new { comicId = Model.ComicId })" class="btn btn-primary">Read Now</a>
+                <div class="hero-image">
+                    <img src="@Model.CoverImage">
                 </div>
             </div>
         </section>
     }
 
-    <section>
-        <div class="section-header">
-            <h2>New & Trending</h2>
-            <a href="@Url.Action("Index", "Comic")" class="btn btn-ghost">View All -></a>
-        </div>
-        <div class="comic-grid">
-            @if (newComics != null)
-            {
-                foreach (var item in newComics)
+    <!-- Comic Sections -->
+    <section class="comic-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Latest Releases</h2>
+                <a href="@Url.Action("Index", "Comic")" class="view-all">View All</a>
+            </div>
+            <div class="comic-grid">
+                @if (newComics != null)
                 {
-                    <a href="@Url.Action("Detail", "Comic", new { id = item.ComicId })" class="comic-card" style="display: block; color: inherit; text-decoration: none;">
-                        <div class="card-image-wrapper">
-                            <img src="@item.CoverImage" class="card-image" alt="@item.Title">
+                    @foreach (var comic in newComics)
+                    {
+                        <div class="comic-card">
+                            <a asp-controller="Comic" asp-action="Detail" asp-route-id="@comic.ComicId" class="comic-thumb">
+                                <img src="@comic.CoverImage" alt="@comic.Title">
+                            </a>
+                            <div class="comic-info">
+                                <h3><a asp-controller="Comic" asp-action="Detail" asp-route-id="@comic.ComicId">@comic.Title</a>
+                                </h3>
+                                @{
+                                    var latestChapter1 = comic.Chapters?.OrderByDescending(c => c.ChapterNumber).FirstOrDefault();
+                                }
+                                @if (latestChapter1 != null)
+                                {
+                                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Chapter @latestChapter1.ChapterNumber</p>
+                                }
+                                else
+                                {
+                                    <p>No chapters yet</p>
+                                }
+                            </div>
                         </div>
-                        <h3 class="card-title">@item.Title</h3>
-                        <p class="card-meta">@item.Status</p>
-                    </a>
+                    }
                 }
-            }
+            </div>
+        </div>
+    </section>
+
+    <section class="comic-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Trending Comics</h2>
+                <a href="@Url.Action("Index", "Comic")" class="view-all">View All</a>
+            </div>
+            <div class="comic-grid">
+                @if (trendingComics != null)
+                {
+                    @foreach (var comic in trendingComics)
+                    {
+                        <div class="comic-card">
+                            <a asp-controller="Comic" asp-action="Detail" asp-route-id="@comic.ComicId" class="comic-thumb">
+                                <img src="@comic.CoverImage" alt="@comic.Title">
+                            </a>
+                            <div class="comic-info">
+                                <h3><a asp-controller="Comic" asp-action="Detail" asp-route-id="@comic.ComicId">@comic.Title</a>
+                                </h3>
+                                @{
+                                    var latestChapter2 = comic.Chapters?.OrderByDescending(c => c.ChapterNumber).FirstOrDefault();
+                                }
+                                @if (latestChapter2 != null)
+                                {
+                                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Chapter @latestChapter2.ChapterNumber</p>
+                                }
+                                else
+                                {
+                                    <p>No chapters yet</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="comic-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Maybe you like!</h2>
+                <a href="@Url.Action("Index", "Comic")" class="view-all">View All</a>
+            </div>
+            <div class="comic-grid">
+                @if (maybeYouLikeComics != null)
+                {
+                    @foreach (var comic in maybeYouLikeComics)
+                    {
+                        <div class="comic-card">
+                            <a asp-controller="Comic" asp-action="Detail" asp-route-id="@comic.ComicId" class="comic-thumb">
+                                <img src="@comic.CoverImage" alt="@comic.Title">
+                            </a>
+                            <div class="comic-info">
+                                <h3><a asp-controller="Comic" asp-action="Detail" asp-route-id="@comic.ComicId">@comic.Title</a>
+                                </h3>
+                                @{
+                                    var latestChapter3 = comic.Chapters?.OrderByDescending(c => c.ChapterNumber).FirstOrDefault();
+                                }
+                                @if (latestChapter3 != null)
+                                {
+                                    <p style="color: var(--text-secondary); font-size: 0.85rem;">Chapter @latestChapter3.ChapterNumber</p>
+                                }
+                                else
+                                {
+                                    <p>No chapters yet</p>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
         </div>
     </section>
 </main>

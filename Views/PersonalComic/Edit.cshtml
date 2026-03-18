@@ -1,4 +1,4 @@
-﻿@model Group4_ReadingComicWeb.Models.Comic
+@model Group4_ReadingComicWeb.Models.Comic
 
 @{
     ViewData["Title"] = "Modify Comic";
@@ -6,69 +6,317 @@
     var selectedTagIds = ViewBag.SelectedTagIds as List<int> ?? new List<int>();
 }
 
-<div class="container" style="max-width: 800px; margin-top: 3rem; margin-bottom: 3rem;">
-    <div style="margin-bottom: 1rem;">
-        <a href="@Url.Action("Index")" class="text-muted hover:text-white"><i class="ph-bold ph-arrow-left"></i>Back</a>
-    </div>
+@section Styles {
+    <style>
+        .form-container {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 0 20px;
+        }
 
-    <div class="bg-surface rounded-md" style="padding: 2.5rem; border: 1px solid var(--border-color);">
-        <h2 style="margin-bottom: 0.5rem;">Update Comic Information</h2>
-        <p class="text-muted" style="margin-bottom: 2rem;">Modify Comic "@Model.Title"</p>
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 24px;
+            transition: var(--transition);
+        }
+
+        .back-link:hover {
+            color: white;
+            transform: translateX(-4px);
+        }
+
+        .form-card {
+            background: var(--surface-color);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .form-header {
+            margin-bottom: 32px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 24px;
+        }
+
+        .form-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .form-header p {
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .form-label i {
+            color: var(--primary-color);
+            font-size: 14px;
+        }
+
+        .required-star {
+            color: #EF4444;
+            margin-left: -4px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(11, 14, 20, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 15px;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+            background: var(--bg-color);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            flex-grow: 1;
+        }
+
+        .file-input-wrapper .form-control {
+            padding-right: 48px;
+        }
+
+        .file-input-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        /* Cover Preview */
+        .cover-preview-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .cover-preview {
+            width: 100px;
+            height: 140px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .cover-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .cover-preview-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            font-size: 11px;
+            text-align: center;
+            padding: 4px 0;
+            font-weight: 600;
+        }
+
+        /* Tags Section */
+        .tags-container {
+            background: rgba(11, 14, 20, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        /* Scrollbar customization for tags area */
+        .tags-container::-webkit-scrollbar { width: 6px; }
+        .tags-container::-webkit-scrollbar-track { background: transparent; }
+        .tags-container::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+        .tags-container::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+        .tags-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+        }
+
+        .tag-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--surface-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tag-label:hover {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        .tag-label:has(input:checked) {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .tag-checkbox {
+            accent-color: var(--primary-color);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .tag-text {
+            font-size: 14px;
+            color: var(--text-primary);
+            user-select: none;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border-color: var(--text-muted);
+        }
+    </style>
+}
+
+<div class="form-container">
+    <a href="@Url.Action("Index")" class="back-link">
+        <i class="fa-solid fa-arrow-left"></i> Back to My Comics
+    </a>
+
+    <div class="form-card">
+        <div class="form-header">
+            <h2><i class="fa-solid fa-pen-to-square" style="color: var(--primary-color); margin-right: 8px;"></i> Update Comic Information</h2>
+            <p>Modify settings and details for <strong style="color: var(--text-primary);">@Model.Title</strong></p>
+        </div>
 
         <form asp-action="Edit" asp-route-id="@Model.ComicId" method="post" enctype="multipart/form-data">
             <input type="hidden" asp-for="ComicId" />
 
-            <div asp-validation-summary="All" class="text-danger mb-4"></div>
+            <div asp-validation-summary="All" class="text-danger mb-4" style="color: #EF4444; font-size: 14px; margin-bottom: 20px;"></div>
 
-            <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Comic Name <span style="color: #ef4444">*</span></label>
-                <input asp-for="Title" class="search-input" style="width: 100%; border-radius: 8px; padding-left: 16px;" required />
+            <div class="form-group">
+                <label class="form-label" for="Title">
+                    <i class="fa-solid fa-book"></i> Comic Title <span class="required-star">*</span>
+                </label>
+                <input asp-for="Title" name="Title" id="Title" class="form-control" placeholder="Enter comic name..." required />
             </div>
 
-            <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Cover Page</label>
-                <div class="flex gap-4 items-start">
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fa-solid fa-image"></i> Cover Image
+                </label>
+                <div class="cover-preview-container">
                     @if (!string.IsNullOrEmpty(Model.CoverImage))
                     {
-                        <div style="width: 80px; height: 120px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color);">
-                            <img src="@Model.CoverImage" style="width: 100%; height: 100%; object-fit: cover;" />
+                        <div class="cover-preview">
+                            <img src="@Model.CoverImage" alt="Current Cover" onerror="this.src='https://via.placeholder.com/100x140?text=No+Cover'" />
+                            <div class="cover-preview-overlay">Current</div>
                         </div>
                     }
 
-                    <div style="flex-grow: 1; position: relative;">
-                        <input type="file" name="coverImage" class="search-input" style="width: 100%; border-radius: 8px; padding: 10px;" accept="image/*" />
-                        <p class="text-muted" style="font-size: 0.8rem; margin-top: 5px;">Leave blank if you want to keep the original image.</p>
+                    <div class="file-input-wrapper">
+                        <input type="file" name="coverImage" class="form-control" accept="image/*" />
+                        <i class="fa-solid fa-upload file-input-icon"></i>
+                        <p style="color: var(--text-muted); font-size: 13px; margin-top: 8px;">
+                            Leave blank if you want to keep the original image.
+                        </p>
                     </div>
                 </div>
             </div>
 
-            <div style="margin-bottom: 1.5rem;">
-                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Description</label>
-                <textarea asp-for="Description" class="search-input" rows="5" style="width: 100%; border-radius: 8px; height: auto; padding: 16px; font-family: inherit;"></textarea>
+            <div class="form-group">
+                <label class="form-label" for="Description">
+                    <i class="fa-solid fa-align-left"></i> Description
+                </label>
+                <textarea asp-for="Description" name="Description" id="Description" class="form-control" placeholder="Summarize the comic's story..." required></textarea>
             </div>
 
-            <div style="margin-bottom: 2.5rem;">
-                <label style="display: block; margin-bottom: 1rem; font-weight: 500;">Tag</label>
-                <div class="grid grid-cols-4 gap-2" style="max-height: 200px; overflow-y: auto;">
-                    @if (tags != null)
-                    {
-                        foreach (var tag in tags)
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fa-solid fa-tags"></i> Tags
+                </label>
+                <div class="tags-container">
+                    <div class="tags-grid">
+                        @if (tags != null)
                         {
-                            bool isChecked = selectedTagIds.Contains(tag.TagId);
+                            foreach (var tag in tags)
+                            {
+                                bool isChecked = selectedTagIds.Contains(tag.TagId);
 
-                            <label class="flex items-center gap-2 cursor-pointer" style="padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: rgba(255,255,255,0.02);">
-                                <input type="checkbox" name="selectedTags" value="@tag.TagId" style="accent-color: var(--color-primary);" @(isChecked ? "checked" : "") />
-                                <span style="font-size: 0.9rem;">@tag.TagName</span>
-                            </label>
+                                <label class="tag-label">
+                                    <input type="checkbox" class="tag-checkbox" name="selectedTags" value="@tag.TagId" @(isChecked ? "checked" : "") />
+                                    <span class="tag-text">@tag.TagName</span>
+                                </label>
+                            }
                         }
-                    }
+                    </div>
                 </div>
             </div>
 
-            <div class="flex justify-between items-center" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-                <a href="@Url.Action("Index")" class="btn btn-ghost">Hủy</a>
+            <div class="form-actions">
+                <a href="@Url.Action("Index")" class="btn btn-ghost">Cancel</a>
                 <button type="submit" class="btn btn-primary">
-                    <i class="ph-fill ph-floppy-disk" style="margin-right: 8px;"></i>Save Change
+                    <i class="fa-solid fa-floppy-disk"></i> Save Changes
                 </button>
             </div>
         </form>

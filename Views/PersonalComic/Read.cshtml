@@ -1,43 +1,156 @@
-﻿@model Group4_ReadingComicWeb.Models.Chapter
+@model Group4_ReadingComicWeb.Models.Chapter
 
 @{
-    ViewData["Title"] = Model.Title;
+    ViewData["Title"] = "Read Chapter - " + Model.Title;
     var images = ViewBag.Images as List<string>;
 }
 
-<div class="header" style="position: sticky; top: 0; z-index: 50; background: rgba(15, 23, 42, 0.95); border-bottom: 1px solid var(--border-color); padding: 10px 0;">
-    <div class="container flex justify-between items-center">
-        <div class="flex items-center gap-4">
-            <a href="@Url.Action("Chapters", new { id = Model.ComicId })" class="btn btn-ghost">
-                <i class="ph-bold ph-arrow-left"></i> Back
+@section Styles {
+    <style>
+        .reader-header {
+            position: sticky;
+            top: var(--nav-height, 72px);
+            z-index: 50;
+            background: rgba(11, 14, 20, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 0;
+            margin-top: -24px; /* Ensure it stays flush under any default layout padding if any */
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+            transition: var(--transition);
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-color: var(--border-color);
+        }
+
+        .comic-info h4 {
+            margin: 0 0 4px 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .comic-info p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .reader-body {
+            background: #090b0f;
+            min-height: calc(100vh - 150px);
+            padding: 40px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .image-container {
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .comic-page {
+            width: 100%;
+            display: block;
+            margin: 0;
+            border-bottom: 1px solid #1a1a1a;
+        }
+        
+        .comic-page:last-child {
+            border-bottom: none;
+        }
+
+        .empty-reader {
+            padding: 100px 40px;
+            text-align: center;
+            color: var(--text-muted);
+            background: var(--surface-color);
+            border-radius: 12px;
+            border: 1px dashed var(--border-color);
+            margin: 0 auto;
+            max-width: 600px;
+        }
+
+        .empty-reader i {
+            font-size: 64px;
+            margin-bottom: 24px;
+            opacity: 0.5;
+        }
+
+        .empty-reader p {
+            font-size: 16px;
+        }
+    </style>
+}
+
+<div class="reader-header">
+    <div class="container header-content">
+        <div class="header-left">
+            <a href="@Url.Action("Chapters", new { id = Model.ComicId })" class="btn-back" title="Back to Chapters">
+                <i class="fa-solid fa-arrow-left"></i>
             </a>
-            <div>
-                <h4 style="margin: 0; font-size: 1rem;">@Model.Comic.Title</h4>
-                <p class="text-muted" style="margin: 0; font-size: 0.85rem;">Chapter @Model.ChapterNumber: @Model.Title</p>
+            <div class="comic-info">
+                <h4>@Model.Comic.Title</h4>
+                <p>Chapter @Model.ChapterNumber: @Model.Title</p>
             </div>
         </div>
 
-        <a href="@Url.Action("EditChapter", new { id = Model.ChapterId })" class="btn btn-outline btn-sm">
-            <i class="ph-fill ph-pencil-simple"></i> Modify This Chapter 
+        <a href="@Url.Action("EditChapter", new { id = Model.ChapterId })" class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;">
+            <i class="fa-solid fa-pen-to-square"></i> Modify Chapter
         </a>
     </div>
 </div>
 
-<div style="background: #1a1a1a; min-height: 100vh; padding-bottom: 50px;">
-    <div style="max-width: 800px; margin: 0 auto; box-shadow: 0 0 50px rgba(0,0,0,0.5);">
-        @if (images != null && images.Any())
-        {
-            foreach (var imgPath in images)
+<div class="reader-body">
+    @if (images != null && images.Any())
+    {
+        <div class="image-container">
+            @foreach (var imgPath in images)
             {
-                <img src="@imgPath" alt="Page" style="width: 100%; display: block; margin: 0;" loading="lazy" />
+                <img src="@imgPath" alt="Comic Page" class="comic-page" loading="lazy" />
             }
-        }
-        else
-        {
-            <div style="padding: 4rem; text-align: center; color: var(--text-muted);">
-                <i class="ph-duotone ph-image-broken" style="font-size: 3rem;"></i>
-                <p>Can't found any images in this chapter'</p>
-            </div>
-        }
-    </div>
+        </div>
+    }
+    else
+    {
+        <div class="empty-reader">
+            <i class="fa-solid fa-image"></i>
+            <p><strong>Oh no!</strong> Cannot find any images for this chapter.</p>
+            <p style="font-size: 14px; margin-top: 8px;">They might have been deleted or did not upload correctly.</p>
+        </div>
+    }
 </div>

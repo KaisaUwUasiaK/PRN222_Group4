@@ -32,6 +32,7 @@ namespace Group4_ReadingComicWeb.Controllers
             _db = db;
         }
 
+        // Get current user authorize to system
         private int GetCurrentUserId()
         {
             var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier);
@@ -40,21 +41,24 @@ namespace Group4_ReadingComicWeb.Controllers
             return 0;
         }
 
+        // Get comic uploaded by user
         public async Task<IActionResult> Index()
         {
             var comics = await _comicService.GetUserComicsAsync(GetCurrentUserId());
             return View(comics);
         }
 
+        // Get tag list
         public async Task<IActionResult> Create()
         {
             ViewBag.Tags = await _comicService.GetAllTagsAsync();
             return View();
         }
 
+        // Upload comic
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Comic comic, int[] selectedTags, IFormFile coverImage)
+        public async Task<IActionResult> Create(Comic comic, int[] selectedTags, IFormFile? coverImage)
         {
             ModelState.Remove("CoverImage");
             ModelState.Remove("AuthorId");
@@ -65,23 +69,26 @@ namespace Group4_ReadingComicWeb.Controllers
             ModelState.Remove("Author");
 
             if (coverImage == null || coverImage.Length == 0)
+            {
                 ModelState.AddModelError("coverImage", "Please choose cover image!");
+            }
+            if (selectedTags == null || selectedTags.Length == 0)
+            {
+                ModelState.AddModelError("selectedTags", "Please choose at least 1 tag");
+            }
 
             if (ModelState.IsValid)
             {
-                // Tạo comic — EF Core tự set comic.ComicId sau SaveChanges
                 await _comicService.CreateComicAsync(GetCurrentUserId(), comic, selectedTags, coverImage);
 
-                // Lấy tên tác giả để điền vào nội dung thông báo
+                // Gửi thông báo cho TẤT CẢ Moderator khi có truyện mới chờ duyệt
                 var authorName = User.Identity?.Name ?? "Unknown";
-
-                // Gửi thông báo cho TẤT CẢ Moderator
-                var moderators = await _db.Users
+                var moderatorIds = await _db.Users
                     .Where(u => u.Role.RoleName == "Moderator")
                     .Select(u => u.UserId)
                     .ToListAsync();
 
-                foreach (var modId in moderators)
+                foreach (var modId in moderatorIds)
                     await _notifService.NewComicPendingAsync(modId, comic.ComicId, comic.Title, authorName);
 
                 return RedirectToAction(nameof(Index));
@@ -91,41 +98,7 @@ namespace Group4_ReadingComicWeb.Controllers
             return View(comic);
         }
 
-        public async Task<IActionResult> Chapters(int id)
-        {
-            var comic = await _comicService.GetComicWithChaptersAsync(id, GetCurrentUserId());
-            if (comic == null) return NotFound();
-            return View(comic);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateChapter(int comicId, int chapterNumber, string title, List<IFormFile> pages)
-        {
-            var result = await _comicService.CreateChapterAsync(GetCurrentUserId(), comicId, chapterNumber, title, pages);
-
-            if (!result.IsSuccess)
-            {
-                if (result.ErrorMessage == "Forbidden") return Forbid();
-                TempData["ErrorMessage"] = result.ErrorMessage;
-                return RedirectToAction("Chapters", new { id = comicId });
-            }
-
-            // Lấy tên truyện và danh sách follower để gửi thông báo
-            var comic = await _db.Comics.FindAsync(comicId);
-            if (comic != null)
-            {
-                var followerIds = await _db.Favorites
-                    .Where(f => f.ComicId == comicId)
-                    .Select(f => f.UserId)
-                    .ToListAsync();
-
-                if (followerIds.Any())
-                    await _notifService.NewChapterAsync(followerIds, comicId, comic.Title, chapterNumber);
-            }
-
-            return RedirectToAction(nameof(Chapters), new { id = comicId });
-        }
-
+        // Get comic to update
         public async Task<IActionResult> Edit(int id)
         {
             var comic = await _comicService.GetComicForEditAsync(id, GetCurrentUserId());
@@ -136,9 +109,10 @@ namespace Group4_ReadingComicWeb.Controllers
             return View(comic);
         }
 
+        // Update comic
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Comic comic, int[] selectedTags, IFormFile coverImage)
+        public async Task<IActionResult> Edit(int id, Comic comic, int[] selectedTags, IFormFile? coverImage)
         {
             ModelState.Remove("AuthorId");
             ModelState.Remove("Status");
@@ -162,6 +136,7 @@ namespace Group4_ReadingComicWeb.Controllers
             return View(comic);
         }
 
+        // Remove comic
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -169,6 +144,14 @@ namespace Group4_ReadingComicWeb.Controllers
             bool success = await _comicService.DeleteComicAsync(GetCurrentUserId(), id);
             if (!success) return NotFound();
             return RedirectToAction(nameof(Index));
+        }
+
+        // Get chapter list
+        public async Task<IActionResult> Chapters(int id)
+        {
+            var comic = await _comicService.GetComicWithChaptersAsync(id, GetCurrentUserId());
+            if (comic == null) return NotFound();
+            return View(comic);
         }
 
         public async Task<IActionResult> Read(int id)
@@ -179,6 +162,36 @@ namespace Group4_ReadingComicWeb.Controllers
             return View(result.Chapter);
         }
 
+        // Upload chapter
+        [HttpPost]
+        public async Task<IActionResult> CreateChapter(int comicId, int chapterNumber, string title, List<IFormFile> pages)
+        {
+            var result = await _comicService.CreateChapterAsync(GetCurrentUserId(), comicId, chapterNumber, title, pages);
+
+            if (!result.IsSuccess)
+            {
+                if (result.ErrorMessage == "Forbidden") return Forbid();
+                TempData["ErrorMessage"] = result.ErrorMessage;
+                return RedirectToAction("Chapters", new { id = comicId });
+            }
+
+            // Gửi thông báo chương mới cho tất cả follower của truyện
+            var comic = await _db.Comics.FindAsync(comicId);
+            if (comic != null)
+            {
+                var followerIds = await _db.Favorites
+                    .Where(f => f.ComicId == comicId)
+                    .Select(f => f.UserId)
+                    .ToListAsync();
+
+                if (followerIds.Any())
+                    await _notifService.NewChapterAsync(followerIds, comicId, comic.Title, chapterNumber);
+            }
+
+            return RedirectToAction(nameof(Chapters), new { id = comicId });
+        }
+
+        // Get chapter to update
         public async Task<IActionResult> EditChapter(int id)
         {
             var chapter = await _comicService.GetChapterAsync(id, GetCurrentUserId());
@@ -186,12 +199,37 @@ namespace Group4_ReadingComicWeb.Controllers
             return View(chapter);
         }
 
+        // Update chapter
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditChapter(int id, Chapter model, List<IFormFile> newPages)
         {
+            // 1. Check Id match
+            if (id != model.ChapterId) return BadRequest();
+
+            // 2. Validate form
+            if (!ModelState.IsValid)
+                return View(model);
+
+            // 3. Check file extensions
+            if (newPages != null && newPages.Any())
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                foreach (var file in newPages)
+                {
+                    var ext = System.IO.Path.GetExtension(file.FileName).ToLowerInvariant();
+                    if (string.IsNullOrEmpty(ext) || !allowedExtensions.Contains(ext))
+                    {
+                        ModelState.AddModelError("", $"File '{file.FileName}' is invalid. Only JPG, PNG, WEBP are allowed.");
+                        return View(model);
+                    }
+                }
+            }
+
+            // 4. Call service
             bool success = await _comicService.EditChapterAsync(GetCurrentUserId(), id, model, newPages);
             if (!success) return NotFound();
+
             return RedirectToAction("Chapters", new { id = model.ComicId });
         }
 
@@ -217,11 +255,10 @@ namespace Group4_ReadingComicWeb.Controllers
         }
 
         [HttpPost]
-        [Authorize]
         public async Task<IActionResult> RemoveFavorite(int comicId)
         {
-            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (int.TryParse(userIdString, out int userId))
+            int userId = GetCurrentUserId();
+            if (userId > 0)
             {
                 await _favoriteService.ToggleFavoriteAsync(comicId, userId);
                 TempData["Info"] = "Removed from your favorites.";

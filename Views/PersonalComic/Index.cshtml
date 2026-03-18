@@ -1,133 +1,362 @@
-﻿@model IEnumerable< Group4_ReadingComicWeb.Models.Comic>
+@model IEnumerable< Group4_ReadingComicWeb.Models.Comic>
 
 @{
-    ViewData["Title"] = "My Comic";
-    // Layout = "~/Views/Shared/_Layout.cshtml"; 
-  }
+    ViewData["Title"] = "My Comics";
+}
 
-<div class="container" style="margin-top: 2rem; min-height: 80vh;">
-    <div class="flex justify-between items-center" style="margin-bottom: 2rem;">
-        <div>
+@section Styles {
+    <style>
+        .page-header {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .page-title h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .page-title p {
+            color: var(--text-muted);
+            font-size: 15px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            background: var(--surface-color);
+            border-radius: 16px;
+            border: 1px dashed var(--border-color);
+            padding: 5rem 2rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 20px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        /* Comic Grid & Card */
+        .comic-list {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+        }
+
+        .comic-card-horizontal {
+            background: var(--surface-color);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            transition: var(--transition);
+        }
+
+        .comic-card-horizontal:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+
+        .comic-cover {
+            width: 110px;
+            flex-shrink: 0;
+            aspect-ratio: 2/3;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .comic-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .comic-card-horizontal:hover .comic-cover img {
+            transform: scale(1.05);
+        }
+
+        .comic-details {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0; /* Important for text truncation */
+        }
+
+        .comic-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .comic-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .comic-desc {
+            color: var(--text-secondary);
+            font-size: 14px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-pending { background: rgba(245, 158, 11, 0.1); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.2); }
+        .status-pending .status-dot { background: #F59E0B; }
+
+        .status-working { background: rgba(59, 130, 246, 0.1); color: #3B82F6; border: 1px solid rgba(59, 130, 246, 0.2); }
+        .status-working .status-dot { background: #3B82F6; }
+
+        .status-completed { background: rgba(16, 185, 129, 0.1); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.2); }
+        .status-completed .status-dot { background: #10B981; }
+
+        .status-rejected { background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+        .status-rejected .status-dot { background: #EF4444; }
+
+        .status-canceled { background: rgba(107, 114, 128, 0.1); color: #9CA3AF; border: 1px solid rgba(107, 114, 128, 0.2); }
+        .status-canceled .status-dot { background: #9CA3AF; }
+
+        .comic-stats {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: auto;
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-muted);
+        }
+
+        .stat-item.highlight {
+            color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .comic-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .comic-actions .btn {
+            font-size: 13px;
+            padding: 8px 16px;
+        }
+
+        .btn-action {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-delete-comic {
+            color: #EF4444;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid transparent;
+        }
+        
+        .btn-delete-comic:hover {
+            background: #EF4444;
+            color: white;
+        }
+
+        .btn-cancel-comic {
+            color: #F59E0B;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid transparent;
+        }
+
+        .btn-cancel-comic:hover {
+            background: #F59E0B;
+            color: white;
+        }
+    </style>
+}
+
+<div class="container" style="margin-top: 3rem; min-height: 80vh;">
+    <div class="page-header">
+        <div class="page-title">
             <h2>Comic Management</h2>
-            <p class="text-muted">Uploaded Comic And Comic Status</p>
+            <p>Manage your uploaded comics, check their statuses, and add chapters.</p>
         </div>
         <a href="@Url.Action("Create")" class="btn btn-primary">
-            <i class="ph-fill ph-plus-circle" style="margin-right: 8px;"></i> Upload Comic
+            <i class="fa-solid fa-cloud-arrow-up"></i> Upload Comic
         </a>
     </div>
 
     @if (!Model.Any())
     {
-        <div class="bg-surface rounded-md" style="padding: 4rem; text-align: center; border: 1px solid var(--border-color);">
-            <i class="ph-duotone ph-books" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1rem; display: block; margin-left: auto; margin-right: auto;"></i>
-            <h3 class="text-muted">You haven't uploaded any comic'</h3>
-            <p class="text-muted" style="margin-bottom: 2rem;">Let's start to share your comic'</p>
-            <a href="@Url.Action("Create")" class="btn btn-outline">Upload</a>
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fa-solid fa-book-open"></i>
+            </div>
+            <h3>You haven't uploaded any comics</h3>
+            <p>Start your journey as an author by sharing your first comic with the world!</p>
+            <a href="@Url.Action("Create")" class="btn btn-primary" style="padding: 12px 24px;">
+                <i class="fa-solid fa-plus"></i> Upload Your First Comic
+            </a>
         </div>
     }
     else
     {
-        <div class="grid" style="gap: 1.5rem;">
+        <div class="comic-list">
             @foreach (var item in Model)
             {
-                <div class="bg-surface rounded-md flex gap-4" style="padding: 1.5rem; border: 1px solid var(--border-color); align-items: start; transition: transform 0.2s;">
-
-                    <div style="width: 100px; aspect-ratio: 2/3; flex-shrink: 0; overflow: hidden; border-radius: 8px; background: #000;">
+                <div class="comic-card-horizontal">
+                    <div class="comic-cover">
                         <img src="@(string.IsNullOrEmpty(item.CoverImage) ? "https://via.placeholder.com/150x200?text=No+Cover" : item.CoverImage)"
                              alt="@item.Title"
-                             style="width: 100%; height: 100%; object-fit: cover;">
+                             onerror="this.src='https://via.placeholder.com/150x200?text=No+Cover'">
                     </div>
 
-                    <div style="flex-grow: 1;">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 style="font-size: 1.25rem; margin-bottom: 0.5rem;">@item.Title</h3>
-                                <p class="text-muted" style="font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 0.5rem;">
-                                    @item.Description
-                                </p>
-                            </div>
+                    <div class="comic-details">
+                        <div class="comic-header">
+                            <h3 class="comic-title" title="@item.Title">@item.Title</h3>
 
                             @{
-                                string badgeClass = "badge-offline";
-                                string dotColor = "var(--text-muted)";
+                                string statusClass = "status-canceled";
                                 string statusText = item.Status;
 
                                 if (item.Status == "Pending") 
                                 { 
-                                    badgeClass = "badge-warning"; 
-                                    dotColor = "#FBBF24"; 
+                                    statusClass = "status-pending"; 
                                     statusText = "Pending"; 
                                 }
                                 else if (item.Status == "OnWorking") 
                                 { 
-                                    badgeClass = "badge-info"; 
-                                    dotColor = "#60A5FA"; 
-                                    statusText = "OnGoing"; 
+                                    statusClass = "status-working"; 
+                                    statusText = "Ongoing"; 
                                 }
                                 else if (item.Status == "Completed") 
                                 { 
-                                    badgeClass = "badge-success"; 
-                                    dotColor = "#34D399"; 
+                                    statusClass = "status-completed"; 
                                     statusText = "Completed"; 
                                 }
                                 else if (item.Status == "Rejected") 
                                 { 
-                                    badgeClass = "badge-danger"; 
-                                    dotColor = "#FB7185"; 
+                                    statusClass = "status-rejected"; 
                                     statusText = "Rejected"; 
                                 }
                                 else if (item.Status == "Canceled") 
                                 { 
-                                    badgeClass = "badge-offline"; 
-                                    dotColor = "#94A3B8"; 
+                                    statusClass = "status-canceled"; 
                                     statusText = "Canceled"; 
                                 }
                             }
 
-                            <span class="badge @badgeClass">
-                                <span class="badge-dot" style="background: @dotColor;"></span>
+                            <span class="status-badge @statusClass">
+                                <span class="status-dot"></span>
                                 @statusText
                             </span>
                         </div>
+                        
+                        <p class="comic-desc">@(string.IsNullOrWhiteSpace(item.Description) ? "No description provided." : item.Description)</p>
 
-                        <div class="text-muted" style="margin-top: auto; font-size: 0.85rem; margin-bottom: 1rem;">
-                            <span style="margin-right: 15px;"><i class="ph-fill ph-calendar-blank"></i> @item.CreatedAt.ToString("dd/MM/yyyy")</span>
-                            <span><i class="ph-fill ph-files"></i> @(item.Chapters?.Count ?? 0) Chapter</span>
-                            <span style="color: var(--color-primary); font-weight: 600; background: rgba(99, 102, 241, 0.1); padding: 2px 8px; border-radius: 4px;">
-                                <i class="ph-fill ph-eye"></i> @item.ViewCount.ToString("N0")
-                            </span>
+                        <div class="comic-stats">
+                            <div class="stat-item" title="Published Date">
+                                <i class="fa-solid fa-calendar-days"></i> @item.CreatedAt.ToString("MMM dd, yyyy")
+                            </div>
+                            <div class="stat-item" title="Total Chapters">
+                                <i class="fa-solid fa-layer-group"></i> @(item.Chapters?.Count ?? 0) Chapters
+                            </div>
+                            <div class="stat-item highlight" title="Total Views">
+                                <i class="fa-solid fa-eye"></i> @item.ViewCount.ToString("N0")
+                            </div>
                         </div>
 
-                        <div class="flex gap-2">
-                            <a href="@Url.Action("Chapters", new { id = item.ComicId })" class="btn btn-outline" style="padding: 8px 16px; font-size: 0.9rem;">
-                                <i class="ph-fill ph-list-dashes" style="margin-right: 6px;"></i> Chapter Management
+                        <div class="comic-actions">
+                            <a href="@Url.Action("Chapters", new { id = item.ComicId })" class="btn btn-outline">
+                                <i class="fa-solid fa-list"></i> Chapters
                             </a>
                            
                             @if (item.Status != "Canceled")
                             {
-                                <a href="@Url.Action("Edit", new { id = item.ComicId })" class="btn btn-ghost" style="padding: 8px 16px;">
-                                    <i class="ph-fill ph-pencil-simple"></i> Modify
+                                <a href="@Url.Action("Edit", new { id = item.ComicId })" class="btn btn-action">
+                                    <i class="fa-solid fa-pen"></i> Edit
                                 </a>
                             }
 
-                            <form asp-action="Delete" asp-route-id="@item.ComicId" method="post" style="display:inline-block;">
-                                @Html.AntiForgeryToken() @if (item.Status == "Pending")
+                            <form asp-action="Delete" asp-route-id="@item.ComicId" method="post" style="display:inline-block; margin: 0;">
+                                @Html.AntiForgeryToken() 
+                                @if (item.Status == "Pending")
                                 {
-                                    <button type="submit" class="btn btn-ghost" style="color: #f59e0b;"
-                                            onclick="return confirm('Bạn có chắc muốn HỦY yêu cầu duyệt truyện này? Trạng thái sẽ chuyển sang Canceled.');">
-                                        <i class="ph-fill ph-x-circle"></i> Cancel
+                                    <button type="submit" class="btn btn-cancel-comic"
+                                            onclick="return confirm('Are you sure you want to CANCEL this comic request? The status will be changed to Canceled.');">
+                                        <i class="fa-solid fa-ban"></i> Cancel
                                     </button>
                                 }
-                                                else if (item.Status == "OnWorking" || item.Status == "Completed")
+                                else if (item.Status == "OnWorking" || item.Status == "Completed" || item.Status == "Rejected" || item.Status == "Canceled")
                                 {
-                                    <button type="submit" class="btn btn-ghost" style="color: #ef4444;"
-                                            onclick="return confirm('CẢNH BÁO: Hành động này sẽ XÓA VĨNH VIỄN bộ truyện và toàn bộ chapter. Không thể khôi phục!');">
-                                        <i class="ph-fill ph-trash"></i> Delete
+                                    <button type="submit" class="btn btn-delete-comic"
+                                            onclick="return confirm('WARNING: This action will PERMANENTLY DELETE the comic and all its chapters. This cannot be undone!');">
+                                        <i class="fa-solid fa-trash-can"></i> Delete
                                     </button>
-                                }
-                                else if (item.Status == "Canceled")
-                                {
-                                    <span class="text-muted" style="font-size: 0.9rem;">Đã hủy</span>
                                 }
                             </form>
                         </div>

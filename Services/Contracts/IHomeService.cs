@@ -1,4 +1,4 @@
-﻿using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models;
 
 namespace Group4_ReadingComicWeb.Services.Contracts
 {
@@ -6,7 +6,11 @@ namespace Group4_ReadingComicWeb.Services.Contracts
     {
         Task<List<Comic>> GetNewComicsAsync();
 
-        Task<Comic> GetTrendingComicAsync();
+        Task<Comic?> GetTrendingComicAsync();
+
+        Task<List<Comic>> GetTrendingComicsAsync();
+
+        Task<List<Comic>> GetMaybeYouLikeComicsAsync();
 
     }
 }
