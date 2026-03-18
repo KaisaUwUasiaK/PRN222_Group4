@@ -81,17 +81,16 @@ namespace Group4_ReadingComicWeb.Controllers
         // Read chapter in comic
         public async Task<IActionResult> Read(int id, int commentPage = 1)
         {
-            var result = await _comicService.GetChapterForReadingAsync(id);
+            var currentChapter = await _comicService.GetChapterForReadingAsync(id);
+            if (currentChapter.CurrentChapter == null) return NotFound();
+            await _comicService.IncrementViewCountAsync(currentChapter.CurrentChapter.ComicId);
+            ViewBag.PrevChapterId = currentChapter.PrevChapterId;
+            ViewBag.NextChapterId = currentChapter.NextChapterId;
 
-            if (result.CurrentChapter == null) return NotFound();
-
-            ViewBag.PrevChapterId = result.PrevChapterId;
-            ViewBag.NextChapterId = result.NextChapterId;
-
-            // Logic phân trang comment
+            // Logic separate comment
             int commentPageSize = 10;
-            var allComments = result.CurrentChapter.Comments != null
-                ? result.CurrentChapter.Comments.OrderByDescending(c => c.CreatedAt).ToList()
+            var allComments = currentChapter.CurrentChapter.Comments != null
+                ? currentChapter.CurrentChapter.Comments.OrderByDescending(c => c.CreatedAt).ToList()
                 : new List<Comment>();
 
             ViewBag.TotalComments = allComments.Count;
@@ -102,7 +101,7 @@ namespace Group4_ReadingComicWeb.Controllers
                 .Take(commentPageSize)
                 .ToList();
 
-            return View(result.CurrentChapter);
+            return View(currentChapter.CurrentChapter);
         }
         // Add comment 
         [HttpPost]
