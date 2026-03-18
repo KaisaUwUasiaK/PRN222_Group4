@@ -17,15 +17,18 @@
             <div class="detail-info">
                 <h1>@Model.Title</h1>
                 <div class="detail-meta">
-                    By <span>@(Model.Author?.Username ?? "Unknown")</span> •
+                    By <a asp-controller="User" asp-action="PublicProfile" asp-route-id="@Model.AuthorId"
+                          style="color: var(--primary-color); font-weight: 500; text-decoration: none; transition: 0.2s;"
+                          onmouseover="this.style.opacity='0.8'"
+                          onmouseout="this.style.opacity='1'">@(Model.Author?.Username ?? "Unknown")</a> •
                     @if (Model.ComicTags != null)
                     {
                         @foreach (var ct in Model.ComicTags)
                         {
-                            <span>@ct.Tag?.TagName</span>
+                            <span>@ct.Tag?.TagName • </span>
                         }
                     }
-                    • <span>@Model.ViewCount Views</span>
+                    <span>@Model.ViewCount Views</span>
                 </div>
                 <p class="detail-description">
                     @Model.Description
@@ -35,7 +38,8 @@
                       style="display:none;">
                     <input type="hidden" name="comicId" value="@Model.ComicId" />
                 </form>
-                <a href="#" onclick="document.getElementById('favForm').submit(); return false;" class="btn btn-fav @(isFavorited ? "active" : "")">
+                <a href="#" onclick="document.getElementById('favForm').submit(); return false;"
+                       class="btn btn-fav @(isFavorited ? "active" : "")">
                     <i class="@(isFavorited ? "fa-solid" : "fa-regular") fa-heart"></i>
                     @(isFavorited ? "Favorited" : "Add to Favorites")
                 </a>
@@ -88,10 +92,17 @@
                     {
                         <div class="comment-card">
                             <div class="comment-header">
-                                <img src="@(string.IsNullOrEmpty(comment.User?.AvatarUrl) ? $"https://ui-avatars.com/api/?name={comment.User?.Username}&background=4F46E5&color=fff" : comment.User.AvatarUrl)"
-                                     class="comment-avatar" alt="Avatar">
+                                <a href="@Url.Action("PublicProfile", "User", new { id = comment.UserId })"
+                                       style="display: flex;">
+                                    <img src="@(string.IsNullOrEmpty(comment.User?.AvatarUrl) ? $"https://ui-avatars.com/api/?name={comment.User?.Username}&background=4F46E5&color=fff" : comment.User.AvatarUrl)"
+                                         class="comment-avatar" alt="Avatar">
+                                </a>
                                 <div class="comment-author-info">
-                                    <span class="comment-author">@comment.User?.Username</span>
+                                    <a href="@Url.Action("PublicProfile", "User", new { id = comment.UserId })"
+                                       class="comment-author"
+                                       style="text-decoration: none; color: inherit; transition: color 0.2s;"
+                                       onmouseover="this.style.color='var(--primary-color)'"
+                                       onmouseout="this.style.color='inherit'">@comment.User?.Username</a>
                                     <span class="comment-meta">
                                         @if (comment.Chapter != null)
                                         {
@@ -101,7 +112,7 @@
                                     </span>
                                 </div>
                                 @if (User.Identity?.IsAuthenticated == true && (User.Identity.Name == comment.User?.Username ||
-                                                                                                                        User.IsInRole("Admin") || User.IsInRole("Moderator")))
+                                                                                                                                                                                                                                                        User.IsInRole("Admin") || User.IsInRole("Moderator")))
                                 {
                                     <form asp-action="DeleteComment" method="post" style="margin-left: auto;">
                                         <input type="hidden" name="commentId" value="@comment.CommentId" />

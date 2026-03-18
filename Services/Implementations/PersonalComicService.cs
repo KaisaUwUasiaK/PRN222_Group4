@@ -1,4 +1,4 @@
-﻿using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Models.Enum;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -25,6 +25,7 @@ namespace Group4_ReadingComicWeb.Services
         public async Task<List<Comic>> GetUserComicsAsync(int userId)
         {
             return await _context.Comics
+                .Include(c => c.Author)
                 .Include(c => c.Chapters)
                 .Where(c => c.AuthorId == userId)
                 .Where(c => c.Status != "Canceled" && c.Status != "Deleted")
@@ -43,7 +44,9 @@ namespace Group4_ReadingComicWeb.Services
             comic.CreatedAt = DateTime.Now;
             comic.Status = ComicStatus.Pending.ToString();
 
-            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(coverImage?.FileName);
+            if (coverImage == null) return; // Bảo vệ chống null
+
+            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(coverImage.FileName);
             var uploadPath = Path.Combine(_environment.WebRootPath, "uploads", "covers");
 
             if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
@@ -85,6 +88,7 @@ namespace Group4_ReadingComicWeb.Services
         public async Task<Comic?> GetComicWithChaptersAsync(int comicId, int userId)
         {
             return await _context.Comics
+                .Include(c => c.Author)
                 .Include(c => c.Chapters.OrderBy(ch => ch.ChapterNumber))
                 .FirstOrDefaultAsync(c => c.ComicId == comicId && c.AuthorId == userId);
         }

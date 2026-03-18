@@ -17,6 +17,7 @@ namespace Group4_ReadingComicWeb.Services.Implementations
         public async Task<List<Comic>> GetNewComicsAsync()
         {
             return await _context.Comics
+            .Include(c => c.Author)
             .Include(c => c.Chapters)
             .Where(c => c.Status == ComicStatus.OnWorking.ToString() || c.Status == ComicStatus.Completed.ToString())
             .OrderByDescending(c => c.CreatedAt)
@@ -27,6 +28,7 @@ namespace Group4_ReadingComicWeb.Services.Implementations
         public async Task<List<Comic>> GetTrendingComicsAsync()
         {
             return await _context.Comics
+            .Include(c => c.Author)
             .Include(c => c.Chapters)
             .Where(c => c.Status == ComicStatus.OnWorking.ToString() || c.Status == ComicStatus.Completed.ToString())
             .OrderByDescending(c => c.ViewCount)
@@ -37,6 +39,7 @@ namespace Group4_ReadingComicWeb.Services.Implementations
         public async Task<List<Comic>> GetMaybeYouLikeComicsAsync()
         {
             return await _context.Comics
+            .Include(c => c.Author)
             .Include(c => c.Chapters)
             .Where(c => c.Status == ComicStatus.OnWorking.ToString() || c.Status == ComicStatus.Completed.ToString())
             .OrderByDescending(c => c.ViewCount)
@@ -47,6 +50,7 @@ namespace Group4_ReadingComicWeb.Services.Implementations
         public async Task<Comic?> GetTrendingComicAsync()
         {
             return await _context.Comics
+            .Include(c => c.Author)
             .Include(c => c.ComicTags).ThenInclude(ct => ct.Tag)
             .Where(c => c.Status == ComicStatus.OnWorking.ToString() || c.Status == ComicStatus.Completed.ToString())
             .OrderByDescending(c => c.ViewCount)

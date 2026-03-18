@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Group4_ReadingComicWeb.Models.Comic>
+@model IEnumerable<Group4_ReadingComicWeb.Models.Comic>
 
 @{
     ViewData["Title"] = "All Comics";
@@ -7,9 +7,11 @@
 <main class="container" style="margin-top: 2rem; margin-bottom: 4rem;">
     <div class="section-header" style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
         <div>
-            <h2 style="font-size: 2rem; font-weight: 700;">All Comic</h2>
+            <h2 style="font-size: 2rem; font-weight: 700;">
+                @(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "All Comics" : $"Search Results for \"{ViewBag.SearchTerm}\"")
+            </h2>
             <p class="text-muted">
-                Discover the most complete comic book collection.
+                @(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "Discover the most complete comic book collection." : $"Found {Model.Count()} results matching your search.")
             </p>
         </div>
 
@@ -57,12 +59,12 @@
 
             @if (ViewBag.CurrentPage > 1)
             {
-                <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1 })" class="btn-page">« Prev</a>
+                <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1, search = ViewBag.SearchTerm })" class="btn-page">« Prev</a>
             }
 
             @for (int i = 1; i <= ViewBag.TotalPages; i++)
             {
-                <a href="@Url.Action("Index", new { page = i })"
+                <a href="@Url.Action("Index", new { page = i, search = ViewBag.SearchTerm })"
                    class="btn-page @(ViewBag.CurrentPage == i ? "active" : "")">
                     @i
                 </a>
@@ -70,7 +72,7 @@
 
             @if (ViewBag.CurrentPage < ViewBag.TotalPages)
             {
-                <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1 })" class="btn-page">Next »</a>
+                <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1, search = ViewBag.SearchTerm })" class="btn-page">Next »</a>
             }
         </div>
     }
