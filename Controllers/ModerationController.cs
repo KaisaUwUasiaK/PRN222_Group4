@@ -11,15 +11,18 @@ namespace Group4_ReadingComicWeb.Controllers
     {
         private readonly IModerationService _moderationService;
         private readonly IReportService _reportService;
+        private readonly ITagService _tagService;
         private readonly INotificationService _notifService;
 
         public ModerationController(
             IModerationService moderationService,
             IReportService reportService,
+            ITagService tagService,
             INotificationService notifService)
         {
             _moderationService = moderationService;
             _reportService = reportService;
+            _tagService = tagService;
             _notifService = notifService;
         }
 
@@ -33,6 +36,8 @@ namespace Group4_ReadingComicWeb.Controllers
         public async Task<IActionResult> Dashboard()
         {
             await SetSidebarBadgesAsync();
+            ViewBag.TotalTagsCount = await _tagService.GetTotalTagsCountAsync();
+
             var pendingComics = await _moderationService.GetPendingComicsAsync();
             return View(pendingComics);
         }

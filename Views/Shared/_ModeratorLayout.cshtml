@@ -54,7 +54,7 @@
         <div class="nav-group">
             <div class="nav-group-label">Overview</div>
             <a href="@Url.Action("Dashboard", "Moderation")"
-               class="nav-item @(currentAction == "Dashboard" ? "active" : "")">
+               class="nav-item @(currentController == "Moderation" && currentAction == "Dashboard" ? "active" : "")">
                 <i class="ph ph-squares-four"></i>
                 <span>Dashboard</span>
             </a>
@@ -64,7 +64,7 @@
         <div class="nav-group">
             <div class="nav-group-label">Moderation</div>
             <a href="@Url.Action("Pending", "Moderation")"
-               class="nav-item @(currentAction == "Pending" ? "active" : "")">
+               class="nav-item @(currentController == "Moderation" && (currentAction == "Pending" || currentAction == "Review" || currentAction == "ReadChapter") ? "active" : "")">
                 <i class="ph ph-hourglass"></i>
                 <span>Pending Comics</span>
                 @if (ViewBag.PendingComicsCount != null && ViewBag.PendingComicsCount > 0)
@@ -72,14 +72,21 @@
                     <span class="nav-badge">@ViewBag.PendingComicsCount</span>
                 }
             </a>
+
             <a href="@Url.Action("UserReports", "Report")"
-               class="nav-item @(currentAction == "UserReports" ? "active" : "")">
+               class="nav-item @(currentController == "Report" && (currentAction == "UserReports" || currentAction == "Details") ? "active" : "")">
                 <i class="ph ph-flag"></i>
                 <span>User Reports</span>
                 @if (ViewBag.PendingUserReportsCount != null && ViewBag.PendingUserReportsCount > 0)
                 {
                     <span class="nav-badge">@ViewBag.PendingUserReportsCount</span>
                 }
+            </a>
+
+            <a href="@Url.Action("Index", "Tag")"
+               class="nav-item @(currentController == "Tag" ? "active" : "")">
+                <i class="ph ph-tag"></i>
+                <span>Tag Management</span>
             </a>
         </div>
 
