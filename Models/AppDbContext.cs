@@ -17,15 +17,14 @@ namespace Group4_ReadingComicWeb.Models
         public DbSet<ComicModeration> ComicModerations { get; set; }
         public DbSet<Log> Logs => Set<Log>();
         public DbSet<Report> Reports => Set<Report>();
-
         public DbSet<Comment> Comments { get; set; }
-
         public DbSet<Favorite> Favorites { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // ComicTag configuration
+            // ComicTag composite key
             modelBuilder.Entity<ComicTag>()
                 .HasKey(ct => new { ct.ComicId, ct.TagId });
 
@@ -44,28 +43,28 @@ namespace Group4_ReadingComicWeb.Models
                 .Property(c => c.Status)
                 .HasDefaultValue("Pending");
 
-            // User-Role relationship
+            // User → Role
             modelBuilder.Entity<User>()
                 .HasOne(u => u.Role)
                 .WithMany(r => r.Users)
                 .HasForeignKey(u => u.RoleId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Comic-Author relationship
+            // Comic → Author
             modelBuilder.Entity<Comic>()
                 .HasOne(c => c.Author)
                 .WithMany(u => u.Comics)
                 .HasForeignKey(c => c.AuthorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Chapter-Comic relationship
+            // Chapter → Comic
             modelBuilder.Entity<Chapter>()
                 .HasOne(ch => ch.Comic)
                 .WithMany(c => c.Chapters)
                 .HasForeignKey(ch => ch.ComicId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // ComicModeration configuration
+            // ComicModeration → Comic
             modelBuilder.Entity<ComicModeration>()
                 .HasOne(cm => cm.Comic)
                 .WithMany()
@@ -82,14 +81,14 @@ namespace Group4_ReadingComicWeb.Models
                 .Property(cm => cm.ModerationStatus)
                 .HasDefaultValue("Pending");
 
-            // Log-User relationship
+            // Log → User
             modelBuilder.Entity<Log>()
                 .HasOne(l => l.User)
                 .WithMany(u => u.Logs)
                 .HasForeignKey(l => l.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Report entity configuration
+            // Report relationships
             modelBuilder.Entity<Report>()
                 .HasOne(r => r.Reporter)
                 .WithMany()
@@ -108,14 +107,19 @@ namespace Group4_ReadingComicWeb.Models
                 .HasForeignKey(r => r.ProcessedById)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // Report → Comment (nullable FK, Restrict để tránh cascade cycle)
             modelBuilder.Entity<Report>()
                 .HasOne(r => r.Comment)
                 .WithMany()
                 .HasForeignKey(r => r.CommentId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Table configurations
+            modelBuilder.Entity<Notification>()
+                .HasOne(n => n.User)
+                .WithMany()
+                .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Table name mappings
             modelBuilder.Entity<Role>().ToTable("Role");
             modelBuilder.Entity<User>().ToTable("Users");
             modelBuilder.Entity<Log>().ToTable("Log");

@@ -1,12 +1,11 @@
-﻿using Group4_ReadingComicWeb.Models;
+﻿using Group4_ReadingComicWeb.Hubs;
+using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Models.Enum;
 using Group4_ReadingComicWeb.Services;
-using Group4_ReadingComicWeb.Hubs;
 using Group4_ReadingComicWeb.Services.Contracts;
 using Group4_ReadingComicWeb.Services.Implementations;
-// using Group4_ReadingComicWeb.Data;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 
 namespace Group4_ReadingComicWeb
 {
@@ -16,9 +15,7 @@ namespace Group4_ReadingComicWeb
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // =============================
-            // REGISTER SERVICES
-            // =============================
+            // ── Services ──────────────────────────────────────────────────────
             builder.Services.AddControllersWithViews();
 
             builder.Services.AddDistributedMemoryCache();
@@ -31,9 +28,9 @@ namespace Group4_ReadingComicWeb
 
             builder.Services.AddDbContext<AppDbContext>(options =>
                 options.UseSqlServer(
-                    builder.Configuration.GetConnectionString("MyCnn")
-                ));
+                    builder.Configuration.GetConnectionString("MyCnn")));
 
+            // Application services
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddScoped<IModerationService, ModerationService>();
             builder.Services.AddScoped<IAuthService, AuthService>();
@@ -46,9 +43,11 @@ namespace Group4_ReadingComicWeb
             builder.Services.AddScoped<IAdminService, AdminService>();
             builder.Services.AddScoped<IReportService, ReportService>();
             builder.Services.AddScoped<ITagService, TagService>();
+            builder.Services.AddScoped<INotificationService, NotificationService>();
 
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSignalR();
+
 
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
@@ -64,14 +63,7 @@ namespace Group4_ReadingComicWeb
 
             var app = builder.Build();
 
-            // =============================
-            // SEED DATA
-            // =============================
-            // await DbInitializer.SeedAsync(app.Services);
-
-            // =============================
-            // RESET ONLINE USERS ON START
-            // =============================
+            // ── Reset online users on startup ─────────────────────────────────
             using (var scope = app.Services.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -89,9 +81,7 @@ namespace Group4_ReadingComicWeb
                 }
             }
 
-            // =============================
-            // CONFIGURE PIPELINE
-            // =============================
+            // ── Pipeline ──────────────────────────────────────────────────────
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -109,7 +99,9 @@ namespace Group4_ReadingComicWeb
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
+            // SignalR hubs
             app.MapHub<UserStatusHub>("/hubs/userStatus");
+            app.MapHub<NotificationHub>("/hubs/notification");
 
             await app.RunAsync();
         }

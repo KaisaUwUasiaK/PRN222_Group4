@@ -5,14 +5,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Group4_ReadingComicWeb.Services.Implementations
 {
-    /// <summary>
-    /// Service xử lý toàn bộ nghiệp vụ report (báo cáo vi phạm).
-    /// Phân luồng report theo role của TargetUser:
-    /// - TargetUser là "User" → Moderator xử lý.
-    /// - TargetUser là "Moderator" → Admin xử lý.
-    /// Hỗ trợ 4 hành động: Warning (cảnh cáo), Ban (khóa tài khoản),
-    /// RemoveRole (hạ quyền Moderator), Dismiss (bỏ qua).
-    /// </summary>
     public class ReportService : IReportService
     {
         private readonly AppDbContext _context;
@@ -23,60 +15,25 @@ namespace Group4_ReadingComicWeb.Services.Implementations
         }
 
         /// <summary>
-        /// Lấy danh sách report Pending nhắm vào User thường.
-        /// Lọc: TargetUser.Role.RoleName == "User" AND Status == Pending.
-        /// Include Comment để Moderator biết comment nào bị report.
-        /// </summary>
-        public async Task<List<Report>> GetUserReportsAsync()
-        {
-            return await _context.Reports
-                .Where(r => r.TargetUser.Role.RoleName == "User" && r.Status == ReportStatus.Pending)
-                .Include(r => r.Reporter)
-                .Include(r => r.TargetUser)
-                    .ThenInclude(u => u.Role)
-                .Include(r => r.Comment)
-                .Include(r => r.ProcessedBy)
-                .OrderByDescending(r => r.CreatedAt)
-                .ToListAsync();
-        }
-
-        /// <summary>
-        /// Lấy danh sách report Pending nhắm vào Moderator.
-        /// Lọc: TargetUser.Role.RoleName == "Moderator" AND Status == Pending.
-        /// Chỉ Admin mới được gọi (phân quyền ở controller).
-        /// </summary>
-        public async Task<List<Report>> GetModeratorReportsAsync()
-        {
-            return await _context.Reports
-                .Where(r => r.TargetUser.Role.RoleName == "Moderator" && r.Status == ReportStatus.Pending)
-                .Include(r => r.Reporter)
-                .Include(r => r.TargetUser)
-                    .ThenInclude(u => u.Role)
-                .Include(r => r.Comment)
-                .Include(r => r.ProcessedBy)
-                .OrderByDescending(r => r.CreatedAt)
-                .ToListAsync();
-        }
-
-        /// <summary>
         /// Tạo report mới.
-        /// Ràng buộc:
-        /// - Không tự report chính mình (reporterId == targetUserId → false).
-        /// - Không report trùng: cùng reporter + target + cùng comment + Pending → false.
-        /// Tự động set ReportType: có commentId → Comment, không có → User.
+        /// Trả về ReportId (int) nếu thành công, null nếu vi phạm ràng buộc.
+        /// ⚠ THAY ĐỔI SO VỚI BẢN CŨ: trả Task&lt;int?&gt; thay vì Task&lt;bool&gt;.
         /// </summary>
-        public async Task<bool> CreateReportAsync(int reporterId, int targetUserId, string reason, string? description, int? commentId = null)
+        public async Task<int?> CreateReportAsync(
+            int reporterId, int targetUserId,
+            string reason, string? description,
+            int? commentId = null)
         {
-            if (reporterId == targetUserId) return false;
+            if (reporterId == targetUserId) return null;
 
-            // Kiểm tra trùng: cùng reporter + target + cùng comment (hoặc cùng null) + Pending
-            var existingReport = await _context.Reports
-                .FirstOrDefaultAsync(r => r.ReporterId == reporterId &&
-                           r.TargetUserId == targetUserId &&
-                           r.CommentId == commentId &&
-                           r.Status == ReportStatus.Pending);
+            var existing = await _context.Reports
+                .FirstOrDefaultAsync(r =>
+                    r.ReporterId == reporterId &&
+                    r.TargetUserId == targetUserId &&
+                    r.CommentId == commentId &&
+                    r.Status == ReportStatus.Pending);
 
-            if (existingReport != null) return false;
+            if (existing != null) return null;
 
             var report = new Report
             {
@@ -92,40 +49,53 @@ namespace Group4_ReadingComicWeb.Services.Implementations
 
             _context.Reports.Add(report);
             await _context.SaveChangesAsync();
-            return true;
+
+            return report.ReportId;  // EF Core đã set Id sau SaveChanges
         }
 
-        /// <summary>
-        /// Lấy chi tiết report theo ID.
-        /// Include Comment để trang Details hiển thị nội dung comment bị report.
-        /// </summary>
+        public async Task<List<Report>> GetUserReportsAsync()
+        {
+            return await _context.Reports
+                .Where(r => r.TargetUser.Role.RoleName == "User" &&
+                            r.Status == ReportStatus.Pending)
+                .Include(r => r.Reporter)
+                .Include(r => r.TargetUser).ThenInclude(u => u.Role)
+                .Include(r => r.Comment)
+                .Include(r => r.ProcessedBy)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<List<Report>> GetModeratorReportsAsync()
+        {
+            return await _context.Reports
+                .Where(r => r.TargetUser.Role.RoleName == "Moderator" &&
+                            r.Status == ReportStatus.Pending)
+                .Include(r => r.Reporter)
+                .Include(r => r.TargetUser).ThenInclude(u => u.Role)
+                .Include(r => r.Comment)
+                .Include(r => r.ProcessedBy)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+        }
+
         public async Task<Report?> GetReportByIdAsync(int reportId)
         {
             return await _context.Reports
                 .Include(r => r.Reporter)
-                .Include(r => r.TargetUser)
-                    .ThenInclude(u => u.Role)
+                .Include(r => r.TargetUser).ThenInclude(u => u.Role)
                 .Include(r => r.Comment)
                 .Include(r => r.ProcessedBy)
                 .FirstOrDefaultAsync(r => r.ReportId == reportId);
         }
 
-        /// <summary>
-        /// Xử lý report theo hành động được chọn.
-        /// Cập nhật Report: Status = Resolved, ghi ActionTaken, ProcessedById, ProcessedAt.
-        /// Include Role khi load targetUser — fix NullReferenceException ở case RemoveRole.
-        /// Thực thi hành động lên TargetUser:
-        /// - Warning: chỉ ghi log cảnh cáo (không thay đổi trạng thái user).
-        /// - Ban: chuyển user.Status = Banned (user không thể đăng nhập).
-        /// - RemoveRole: hạ quyền Moderator → User (chỉ Admin xử lý report Moderator).
-        /// - Dismiss: không làm gì, chỉ đóng report.
-        /// </summary>
-        public async Task<bool> ProcessReportAsync(int reportId, int processedById, ReportAction action, string? note)
+        public async Task<bool> ProcessReportAsync(
+            int reportId, int processedById,
+            ReportAction action, string? note)
         {
             var report = await _context.Reports.FindAsync(reportId);
             if (report == null) return false;
 
-            // Include Role để tránh NullReferenceException khi check RemoveRole
             var targetUser = await _context.Users
                 .Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.UserId == report.TargetUserId);
@@ -140,18 +110,17 @@ namespace Group4_ReadingComicWeb.Services.Implementations
             switch (action)
             {
                 case ReportAction.Warning:
-                    // Ghi log cảnh cáo — user vẫn hoạt động bình thường
-                    await LogActionAsync(targetUser.UserId, $"Warning: {report.Reason} - {note}");
+                    await LogActionAsync(targetUser.UserId,
+                        $"Warning: {report.Reason} - {note}");
                     break;
 
                 case ReportAction.Ban:
-                    // Khóa tài khoản — user không thể đăng nhập
                     targetUser.Status = AccountStatus.Banned;
-                    await LogActionAsync(targetUser.UserId, $"Banned: {report.Reason}");
+                    await LogActionAsync(targetUser.UserId,
+                        $"Banned: {report.Reason}");
                     break;
 
                 case ReportAction.RemoveRole:
-                    // Hạ quyền Moderator → User (chỉ Admin xử lý report Moderator)
                     if (targetUser.Role.RoleName == "Moderator")
                     {
                         var userRole = await _context.Roles
@@ -159,13 +128,13 @@ namespace Group4_ReadingComicWeb.Services.Implementations
                         if (userRole != null)
                         {
                             targetUser.RoleId = userRole.RoleId;
-                            await LogActionAsync(targetUser.UserId, $"Moderator role removed: {report.Reason}");
+                            await LogActionAsync(targetUser.UserId,
+                                $"Moderator role removed: {report.Reason}");
                         }
                     }
                     break;
 
                 case ReportAction.Dismiss:
-                    // Không xử phạt — chỉ đóng report
                     break;
             }
 
@@ -173,12 +142,8 @@ namespace Group4_ReadingComicWeb.Services.Implementations
             return true;
         }
 
-        /// <summary>
-        /// Từ chối report — đánh dấu report không hợp lệ.
-        /// Status = Rejected, ActionTaken = Dismiss (không xử phạt).
-        /// Dùng khi Moderator/Admin cho rằng report là sai hoặc không đủ bằng chứng.
-        /// </summary>
-        public async Task<bool> RejectReportAsync(int reportId, int processedById, string? note)
+        public async Task<bool> RejectReportAsync(
+            int reportId, int processedById, string? note)
         {
             var report = await _context.Reports.FindAsync(reportId);
             if (report == null) return false;
@@ -193,40 +158,36 @@ namespace Group4_ReadingComicWeb.Services.Implementations
             return true;
         }
 
-        /// <summary>
-        /// Đếm report Pending nhắm vào User thường.
-        /// Query nhẹ (COUNT), gọi ở mọi trang moderator cho badge sidebar.
-        /// </summary>
         public async Task<int> GetPendingUserReportsCountAsync()
-        {
-            return await _context.Reports
-                .CountAsync(r => r.TargetUser.Role.RoleName == "User" && r.Status == ReportStatus.Pending);
-        }
+            => await _context.Reports
+                .CountAsync(r => r.TargetUser.Role.RoleName == "User" &&
+                                 r.Status == ReportStatus.Pending);
 
-        /// <summary>
-        /// Đếm report Pending nhắm vào Moderator.
-        /// Query nhẹ (COUNT), gọi ở mọi trang admin cho badge sidebar.
-        /// </summary>
         public async Task<int> GetPendingModeratorReportsCountAsync()
-        {
-            return await _context.Reports
-                .CountAsync(r => r.TargetUser.Role.RoleName == "Moderator" && r.Status == ReportStatus.Pending);
-        }
+            => await _context.Reports
+                .CountAsync(r => r.TargetUser.Role.RoleName == "Moderator" &&
+                                 r.Status == ReportStatus.Pending);
 
         /// <summary>
-        /// Ghi log hành động xử lý vào bảng Log.
-        /// Phục vụ audit trail — theo dõi ai bị xử phạt gì, khi nào.
-        /// Gọi nội bộ từ ProcessReportAsync khi thực thi Warning, Ban, RemoveRole.
+        /// Lấy role name của target user.
+        /// Dùng trong CreateReport để quyết định gửi notification cho Mod hay Admin.
         /// </summary>
+        public async Task<string?> GetTargetRoleAsync(int targetUserId)
+        {
+            return await _context.Users
+                .Where(u => u.UserId == targetUserId)
+                .Select(u => u.Role.RoleName)
+                .FirstOrDefaultAsync();
+        }
+
         private async Task LogActionAsync(int userId, string action)
         {
-            var log = new Log
+            _context.Logs.Add(new Log
             {
                 UserId = userId,
                 Action = action,
                 CreatedAt = DateTime.UtcNow
-            };
-            _context.Logs.Add(log);
+            });
             await _context.SaveChangesAsync();
         }
     }
