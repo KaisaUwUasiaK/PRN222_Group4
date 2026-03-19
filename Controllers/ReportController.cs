@@ -106,19 +106,19 @@ namespace Group4_ReadingComicWeb.Controllers
                     case ReportAction.Warning:
                         await _notifService.AccountWarningAsync(
                             report.TargetUserId,
-                            $"Vi phạm nội quy: {report.Reason}. {note}");
+                            $"Terms of service violation: {report.Reason}. {note}");
                         break;
 
                     case ReportAction.Ban:
                         await _notifService.AccountBannedAsync(
                             report.TargetUserId,
-                            $"Vi phạm nội quy: {report.Reason}. {note}");
+                            $"Terms of service violation: {report.Reason}. {note}");
                         break;
 
                     case ReportAction.RemoveRole:
                         await _notifService.AccountWarningAsync(
                             report.TargetUserId,
-                            $"Quyền Moderator đã bị thu hồi do vi phạm: {report.Reason}. {note}");
+                            $"Your Moderator role has been removed due to a violation: {report.Reason}. {note}");
                         break;
                         // Dismiss: không notify target
                 }
@@ -126,11 +126,11 @@ namespace Group4_ReadingComicWeb.Controllers
                 // Notify REPORTER (người đã tố cáo)
                 string actionLabel = action switch
                 {
-                    ReportAction.Warning => "Người bị báo cáo đã bị cảnh cáo",
-                    ReportAction.Ban => "Người bị báo cáo đã bị khóa tài khoản",
-                    ReportAction.RemoveRole => "Quyền Moderator của người bị báo cáo đã bị thu hồi",
-                    ReportAction.Dismiss => "Báo cáo đã được xem xét nhưng không có hành động xử phạt",
-                    _ => "Đã xử lý"
+                    ReportAction.Warning => "The reported user has been warned",
+                    ReportAction.Ban => "The reported user has been suspended",
+                    ReportAction.RemoveRole => "The reported user's Moderator role has been removed",
+                    ReportAction.Dismiss => "The report was reviewed but no action was taken",
+                    _ => "Processed"
                 };
 
                 await _notifService.ReportHandledNotifyReporterAsync(
@@ -193,8 +193,8 @@ namespace Group4_ReadingComicWeb.Controllers
                 var targetRole = await _reportService.GetTargetRoleAsync(targetUserId);
 
                 string reportedContent = commentId.HasValue
-                    ? $"comment của người dùng"
-                    : $"hành vi của người dùng";
+                    ? "a user comment"
+                    : "user behavior";
 
                 if (targetRole == "Moderator")
                     await _notifService.NewReportForAllAdminsAsync(

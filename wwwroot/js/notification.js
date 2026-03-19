@@ -1,11 +1,13 @@
 ﻿/**
  * notification.js — ComicVerse
  * Quản lý UI notification panel + SignalR real-time.
- * Yêu cầu: signalr.min.js và notyf.min.js phải load TRƯỚC file này.
+ * Yêu cầu: signalr.min.js phải load TRƯỚC file này.
+ * Dùng chung cho cả 3 layout: user / moderator / admin.
  */
 (function () {
     'use strict';
 
+    // Map loại notification → icon Phosphor
     const ICON_MAP = {
         comic_approved: 'ph ph-check-circle',
         comic_rejected: 'ph ph-x-circle',
@@ -13,6 +15,8 @@
         new_chapter: 'ph ph-book-open',
         new_pending: 'ph ph-hourglass',
         new_report: 'ph ph-flag',
+        report_handled: 'ph ph-check-square',
+        report_rejected: 'ph ph-x-square',
         account_warning: 'ph ph-warning',
         account_banned: 'ph ph-lock',
         account_unbanned: 'ph ph-lock-open',
@@ -29,6 +33,8 @@
         setupSignalR();
         loadBadgeCount();
     });
+
+    // ── Bell setup ──────────────────────────────────────────────────────────
 
     function setupBell() {
         const btn = $('.notif-bell-btn');
@@ -55,42 +61,53 @@
         });
     }
 
-    // Load chỉ số đếm — dùng khi page mới mở
+    // ── Load count khi page mới mở ──────────────────────────────────────────
+
     function loadBadgeCount() {
         fetch('/Notification/List')
-            .then(r => r.json())
+            .then(r => r.ok ? r.json() : null)
             .then(data => {
+                if (!data) return;
                 notifData = data.notifications || [];
                 updateBadge(data.unreadCount || 0);
             })
             .catch(() => { });
     }
 
-    // Load đầy đủ — dùng khi mở panel
+    // ── Load đầy đủ khi mở panel ────────────────────────────────────────────
+
     function loadNotifications() {
         const list = $('.notif-list');
         if (!list) return;
-
         list.innerHTML = skeletonHTML();
 
         fetch('/Notification/List')
-            .then(r => r.json())
+            .then(r => r.ok ? r.json() : null)
             .then(data => {
+                if (!data) throw new Error();
                 notifData = data.notifications || [];
                 renderList(notifData);
                 updateBadge(data.unreadCount || 0);
             })
             .catch(() => {
-                list.innerHTML = '<div class="notif-empty"><i class="ph ph-wifi-slash"></i><span>Không thể tải thông báo</span></div>';
+                list.innerHTML =
+                    '<div class="notif-empty">' +
+                    '<i class="ph ph-wifi-slash"></i>' +
+                    '<span>Unable to load notifications</span></div>';
             });
     }
+
+    // ── Render list ─────────────────────────────────────────────────────────
 
     function renderList(notifications) {
         const list = $('.notif-list');
         if (!list) return;
 
         if (!notifications.length) {
-            list.innerHTML = '<div class="notif-empty"><i class="ph ph-bell-slash"></i><span>Bạn chưa có thông báo nào</span></div>';
+            list.innerHTML =
+                '<div class="notif-empty">' +
+                '<i class="ph ph-bell-slash"></i>' +
+                '<span>You have no notifications yet</span></div>';
             return;
         }
 
@@ -125,6 +142,8 @@
         </div>`;
     }
 
+    // ── Detail panel ────────────────────────────────────────────────────────
+
     function openDetail(id) {
         const n = notifData.find(x => x.notificationId === id);
         if (!n) return;
@@ -137,9 +156,9 @@
         detail.innerHTML = `
             <div class="notif-detail-header">
                 <button class="notif-detail-back" onclick="window._notifBack()">
-                    <i class="ph ph-arrow-left"></i> Quay lại
+                    <i class="ph ph-arrow-left"></i> Back
                 </button>
-                <button class="notif-detail-del" title="Xoá" onclick="window._notifDelete(${id})">
+                <button class="notif-detail-del" title="Delete" onclick="window._notifDelete(${id})">
                     <i class="ph ph-trash"></i>
                 </button>
             </div>
@@ -150,11 +169,13 @@
             </div>
             <div class="notif-detail-body">${(n.content || '').replace(/\n/g, '<br>')}</div>
             <div class="notif-detail-actions">
-                ${n.actionUrl
-                ? `<a href="${n.actionUrl}" class="notif-btn-action primary"><i class="ph ph-arrow-square-out"></i> Xem chi tiết</a>`
+                ${n.actionUrl && !['report_handled', 'report_rejected'].includes(n.notificationType)
+                ? `<a href="${n.actionUrl}" class="notif-btn-action primary">
+                         <i class="ph ph-arrow-square-out"></i> View details
+                       </a>`
                 : ''}
                 <button class="notif-btn-action ghost" onclick="window._notifBack()">
-                    <i class="ph ph-x"></i> Đóng
+                    <i class="ph ph-x"></i> Close
                 </button>
             </div>`;
 
@@ -190,8 +211,11 @@
                 closeDetail();
                 renderList(notifData);
                 updateBadge(data.unreadCount);
-            });
+            })
+            .catch(() => { });
     };
+
+    // ── Mark read ───────────────────────────────────────────────────────────
 
     function markRead(id) {
         fetch(`/Notification/MarkRead/${id}`, {
@@ -211,7 +235,8 @@
                     const dot = el.querySelector('.notif-dot');
                     if (dot) dot.remove();
                 }
-            });
+            })
+            .catch(() => { });
     }
 
     function markAllRead() {
@@ -224,8 +249,11 @@
                 notifData.forEach(n => n.isRead = true);
                 renderList(notifData);
                 updateBadge(0);
-            });
+            })
+            .catch(() => { });
     }
+
+    // ── Badge ───────────────────────────────────────────────────────────────
 
     function updateBadge(count) {
         const badge = $('.notif-badge');
@@ -238,6 +266,8 @@
         }
     }
 
+    // ── SignalR ─────────────────────────────────────────────────────────────
+
     function setupSignalR() {
         if (typeof signalR === 'undefined') return;
 
@@ -247,30 +277,41 @@
             .build();
 
         connection.on('ReceiveNotification', function (notif) {
+            // Thêm vào đầu danh sách local
             notifData.unshift(notif);
 
+            // Tăng badge
             const badge = $('.notif-badge');
             const current = badge ? (parseInt(badge.textContent) || 0) : 0;
             updateBadge(current + 1);
 
+            // Nếu panel đang mở (và không đang xem detail) → refresh list
             const dropdown = $('.notif-dropdown');
-            if (dropdown && dropdown.classList.contains('open') && !$('.notif-detail.open')) {
+            if (dropdown && dropdown.classList.contains('open') &&
+                !$('.notif-detail.open')) {
                 renderList(notifData);
             }
 
+            // Toast notification (Notyf)
             if (typeof notyf !== 'undefined') {
                 notyf.open({
                     type: 'info',
-                    message: `<i class="ph ph-bell" style="margin-right:6px"></i>${notif.title}`
+                    message: `<i class="ph ph-bell" style="margin-right:6px"></i>${escHtml(notif.title)}`
                 });
             }
         });
 
-        connection.start().catch(err => console.warn('NotificationHub error:', err));
+        connection.start().catch(err =>
+            console.warn('NotificationHub error:', err));
     }
 
+    // ── Helpers ─────────────────────────────────────────────────────────────
+
     function escHtml(str) {
-        return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return (str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
     }
 
     function getAntiForgery() {
