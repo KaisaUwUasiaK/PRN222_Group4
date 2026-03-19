@@ -54,8 +54,7 @@ namespace Group4_ReadingComicWeb.Controllers
         public async Task<IActionResult> Review(int id)
         {
             var moderation = await _moderationService.GetModerationByIdAsync(id);
-            if (moderation == null)
-                return NotFound();
+            if (moderation == null) return NotFound();
 
             await SetSidebarBadgesAsync();
             return View(moderation);
@@ -65,8 +64,7 @@ namespace Group4_ReadingComicWeb.Controllers
         public async Task<IActionResult> ReadChapter(int chapterId, int moderationId)
         {
             var chapter = await _moderationService.GetChapterByIdAsync(chapterId);
-            if (chapter == null)
-                return NotFound();
+            if (chapter == null) return NotFound();
 
             var relativePath = chapter.Path.TrimStart('/');
             var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativePath);
@@ -75,7 +73,8 @@ namespace Group4_ReadingComicWeb.Controllers
             if (Directory.Exists(folderPath))
             {
                 images = Directory.GetFiles(folderPath)
-                    .Where(f => f.EndsWith(".jpg") || f.EndsWith(".png") || f.EndsWith(".jpeg") || f.EndsWith(".webp"))
+                    .Where(f => f.EndsWith(".jpg") || f.EndsWith(".png") ||
+                                f.EndsWith(".jpeg") || f.EndsWith(".webp"))
                     .Select(Path.GetFileName)
                     .OrderBy(f => f)
                     .Select(f =>

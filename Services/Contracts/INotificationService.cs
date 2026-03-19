@@ -2,9 +2,13 @@
 {
     public interface INotificationService
     {
+        // ── Core ─────────────────────────────────────────────────────────────
+
         /// <summary>Gửi thông báo tuỳ chỉnh tới 1 user bất kỳ.</summary>
         Task SendAsync(int userId, string title, string content,
                        string type = "system", string? actionUrl = null);
+
+        // ── Comic moderation ──────────────────────────────────────────────────
 
         /// <summary>Gửi cho TÁC GIẢ khi truyện được DUYỆT bởi Moderator.</summary>
         Task ComicApprovedAsync(int authorId, int comicId, string comicTitle);
@@ -23,8 +27,31 @@
         Task NewComicPendingAsync(int moderatorId, int comicId,
                                   string comicTitle, string authorName);
 
-        /// <summary>Gửi cho 1 MODERATOR khi có REPORT MỚI từ user.</summary>
-        Task NewReportAsync(int moderatorId, int reportId, string reportedContent);
+        // ── Report notifications ──────────────────────────────────────────────
+
+        /// <summary>
+        /// Gửi cho TẤT CẢ MODERATOR khi có REPORT MỚI từ user.
+        /// Tự động query toàn bộ Moderator trong DB.
+        /// </summary>
+        /// <summary>Gửi cho TẤT CẢ MODERATOR khi có report nhắm vào User.</summary>
+        Task NewReportForAllModeratorsAsync(int reportId, string reportedContent);
+
+        /// <summary>Gửi cho TẤT CẢ ADMIN khi có report nhắm vào Moderator.</summary>
+        Task NewReportForAllAdminsAsync(int reportId, string reportedContent);
+
+        /// <summary>
+        /// Thông báo cho NGƯỜI TỐ CÁO (reporter) khi report đã được MODERATOR XỬ LÝ.
+        /// actionLabel ví dụ: "Cảnh cáo", "Khóa tài khoản", "Bỏ qua"
+        /// </summary>
+        Task ReportHandledNotifyReporterAsync(int reporterId, string targetUsername,
+                                              string actionLabel, string? note, int reportId);
+
+        /// <summary>
+        /// Thông báo cho NGƯỜI TỐ CÁO (reporter) khi report bị REJECT (không hợp lệ).
+        /// </summary>
+        Task ReportRejectedNotifyReporterAsync(int reporterId, int reportId);
+
+        // ── Account notifications ─────────────────────────────────────────────
 
         /// <summary>Gửi cho USER khi bị CẢNH BÁO bởi Admin/Moderator.</summary>
         Task AccountWarningAsync(int userId, string reason);

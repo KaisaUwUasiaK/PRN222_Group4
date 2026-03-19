@@ -1,43 +1,51 @@
-@*
-*@
 @model string
 
 @{
-    var role = Model ?? "user";
-    // Màu accent theo role — khớp với màu sidebar hiện có
+    var role        = Model ?? "user";
     var accentColor = role switch {
-        "admin"     => "#7C3AED",   // violet (var(--color-primary))
-        "moderator" => "#8B5CF6",   // violet nhạt hơn
-        _           => "#6366F1"    // indigo cho user
+        "admin"     => "#7C3AED",
+        "moderator" => "#8B5CF6",
+        _           => "#6366F1"
     };
 }
 
-<div class="notif-bell-wrapper">
-    <!-- Bell button -->
-    <button class="btn btn-ghost notif-bell-btn" style="padding: 8px; position: relative;" title="Thông báo">
-        <i class="ph ph-bell" style="font-size: 1.1rem;"></i>
-    </button>
-    <span class="notif-badge" id="notifBadge"></span>
-
-    <!-- Dropdown panel -->
-    <div class="notif-dropdown">
-
-        <!-- Header -->
-        <div class="notif-header">
-            <span class="notif-header-title">
-                <i class="ph-fill ph-bell" style="color: @accentColor;"></i>
-                Thông báo
-            </span>
-            <button class="notif-mark-all" style="color: @accentColor;">Đánh dấu đã đọc</button>
+@if (role == "user")
+{
+    <div class="notif-bell-wrapper">
+        <div class="nav-icon-btn notif-bell-btn" style="cursor:pointer;" title="Thông báo">
+            <i class="fa-regular fa-bell"></i>
         </div>
-
-        <!-- List -->
-        <div class="notif-list">
-            {{-- Nội dung load bằng JS --}}
+        <span class="notif-badge" id="notifBadge"></span>
+        <div class="notif-dropdown">
+            <div class="notif-header">
+                <span class="notif-header-title">
+                    <i class="fa-solid fa-bell" style="color:@accentColor; font-size:0.9rem;"></i>
+                    Thông báo
+                </span>
+                <button class="notif-mark-all" style="color:@accentColor;">Đánh dấu đã đọc</button>
+            </div>
+            <div class="notif-list"></div>
+            <div class="notif-detail"></div>
         </div>
-
-        <!-- Detail (toggle ẩn/hiện bằng JS) -->
-        <div class="notif-detail"></div>
-
     </div>
-</div>
+}
+else
+{
+    <div class="notif-bell-wrapper">
+        <button class="btn btn-ghost notif-bell-btn" style="padding: 8px; position: relative;" title="Notifications">
+            <i class="ph ph-bell" style="font-size: 1.1rem;"></i>
+        </button>
+        <span class="notif-badge" id="notifBadge"></span>
+        <div class="notif-dropdown">
+            <div class="notif-header">
+                <span class="notif-header-title">
+                    <i class="ph-fill ph-bell" style="color:@accentColor;"></i>
+                    Thông báo
+                </span>
+                <button class="notif-mark-all" style="color:@accentColor;">Đánh dấu đã đọc</button>
+            </div>
+            <div class="notif-list"></div>
+            <div class="notif-detail"></div>
+        </div>
+    </div>
+}
