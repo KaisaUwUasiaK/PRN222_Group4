@@ -106,7 +106,7 @@ namespace Group4_ReadingComicWeb.Controllers
                 return RedirectToAction(nameof(Users));
             }
 
-            // SignalR — cập nhật status real-time
+            // SignalR — cập nhật status real-time tới tất cả clients
             await _hubContext.Clients.Group("admins").SendAsync("UserBanned", userId);
             await _hubContext.Clients.All.SendAsync("UserStatusChanged", userId, "Banned");
 

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -208,12 +208,24 @@
 
         @if (User.Identity?.IsAuthenticated == true)
         {
+            var currentUserIdForJs = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
             <text>
+            const currentUserId = @currentUserIdForJs;
+
             // UserStatus SignalR
             const statusConnection = new signalR.HubConnectionBuilder()
                 .withUrl("/hubs/userStatus")
                 .withAutomaticReconnect()
                 .build();
+
+            // Khi Admin ban tài khoản này → server broadcast UserStatusChanged
+            // Nếu userId khớp với người đang login thì redirect tới trang thông báo bị ban
+            statusConnection.on("UserStatusChanged", function (userId, status) {
+                if (userId === currentUserId && status === "Banned") {
+                    window.location.href = "/Authentication/AccountLocked";
+                }
+            });
+
             statusConnection.start().catch(err => console.error("SignalR connection error:", err));
             </text>
         }
