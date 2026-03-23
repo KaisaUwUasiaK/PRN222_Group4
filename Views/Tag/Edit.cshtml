@@ -6,32 +6,28 @@
     Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/components/tag-edit.css" asp-append-version="true" />
-}
-
-<div class="container tag-edit-container">
-    <div class="page-header tag-edit-header">
+<div class="container" style="max-width: 720px;">
+    <div class="page-header" style="margin-bottom: 1.25rem;">
         <div class="page-header-left">
             <h1>Edit Tag</h1>
             <p>Update tag information.</p>
         </div>
     </div>
 
-    <div class="data-card tag-edit-card">
+    <div class="data-card" style="padding: 1.25rem;">
         <form id="editTagForm" asp-action="Edit" asp-controller="Tag" asp-route-id="@Model.TagId" method="post">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="TagId" />
             <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-            <div class="form-group tag-edit-form-group">
+            <div class="form-group" style="margin-bottom: 1rem;">
                 <label asp-for="TagName" class="form-label">Tag Name</label>
                 <input asp-for="TagName" class="search-input" maxlength="100" />
                 <span asp-validation-for="TagName" class="text-danger"></span>
             </div>
 
-            <div class="tag-edit-actions">
-                <a href="@Url.Action("Index", "Tag")" class="btn btn-ghost tag-edit-cancel-btn">Cancel</a>
+            <div style="display: flex; gap: 10px; margin-top: 1.25rem;">
+                <a href="@Url.Action("Index", "Tag")" class="btn btn-ghost" style="border: 1px solid var(--border-color);">Cancel</a>
                 <button type="button" id="saveTagBtn" class="btn btn-primary">
                     <i class="ph ph-check"></i> Update Tag
                 </button>
@@ -41,7 +37,7 @@
 </div>
 
 <div id="editConfirmModal" class="modal-overlay">
-    <div class="modal-card tag-edit-modal-card">
+    <div class="modal-card" style="max-width: 460px;">
         <div class="modal-header">
             <h2 class="modal-title">Confirm Update</h2>
             <button class="modal-close" type="button" id="editConfirmCloseBtn">
@@ -49,14 +45,14 @@
             </button>
         </div>
 
-        <div class="tag-edit-modal-body">
-            <p class="tag-edit-modal-text">
+        <div style="padding: 0 1.25rem 1rem;">
+            <p style="color: var(--text-secondary); line-height: 1.6; margin: 0;">
                 Save changes for this tag? Please make sure the name is correct before continuing.
             </p>
         </div>
 
-        <div class="tag-edit-modal-footer">
-            <button type="button" class="btn btn-ghost tag-edit-modal-cancel-btn" id="editConfirmCancelBtn">Cancel</button>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; padding: 0 1.25rem 1.25rem;">
+            <button type="button" class="btn btn-ghost" id="editConfirmCancelBtn" style="border: 1px solid var(--border-color);">Cancel</button>
             <button type="button" class="btn btn-primary" id="editConfirmOkBtn">Save Changes</button>
         </div>
     </div>
@@ -64,10 +60,39 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
-    <script src="~/js/components/tag-edit.js" asp-append-version="true"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            initTagEdit();
-        });
+        (function () {
+            const form = document.getElementById('editTagForm');
+            const saveBtn = document.getElementById('saveTagBtn');
+            const modal = document.getElementById('editConfirmModal');
+            const okBtn = document.getElementById('editConfirmOkBtn');
+            const cancelBtn = document.getElementById('editConfirmCancelBtn');
+            const closeBtn = document.getElementById('editConfirmCloseBtn');
+
+            function openModal() {
+                modal.classList.add('active');
+            }
+
+            function closeModal() {
+                modal.classList.remove('active');
+            }
+
+            saveBtn.addEventListener('click', openModal);
+            cancelBtn.addEventListener('click', closeModal);
+            closeBtn.addEventListener('click', closeModal);
+
+            modal.addEventListener('click', function (e) {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+
+            okBtn.addEventListener('click', function () {
+                closeModal();
+                if (form) {
+                    form.requestSubmit();
+                }
+            });
+        })();
     </script>
 }

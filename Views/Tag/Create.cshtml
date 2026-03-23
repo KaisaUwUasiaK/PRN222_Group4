@@ -6,31 +6,27 @@
     Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/components/tag-create.css" asp-append-version="true" />
-}
-
-<div class="container tag-create-container">
-    <div class="page-header tag-create-header">
+<div class="container" style="max-width: 720px;">
+    <div class="page-header" style="margin-bottom: 1.25rem;">
         <div class="page-header-left">
             <h1>Create Tag</h1>
             <p>Add a new comic tag.</p>
         </div>
     </div>
 
-    <div class="data-card tag-create-card">
+    <div class="data-card" style="padding: 1.25rem;">
         <form asp-action="Create" asp-controller="Tag" method="post">
             @Html.AntiForgeryToken()
             <div asp-validation-summary="All" class="text-danger mb-3"></div>
 
-            <div class="form-group tag-create-form-group">
+            <div class="form-group" style="margin-bottom: 1rem;">
                 <label asp-for="TagName" class="form-label">Tag Name</label>
                 <input asp-for="TagName" class="search-input" maxlength="100" placeholder="e.g. Action, Romance, Fantasy" />
                 <span asp-validation-for="TagName" class="text-danger"></span>
             </div>
 
-            <div class="tag-create-actions">
-                <a href="@Url.Action("Index", "Tag")" class="btn btn-ghost tag-create-cancel-btn">Cancel</a>
+            <div style="display: flex; gap: 10px; margin-top: 1.25rem;">
+                <a href="@Url.Action("Index", "Tag")" class="btn btn-ghost" style="border: 1px solid var(--border-color);">Cancel</a>
                 <button type="submit" class="btn btn-primary">
                     <i class="ph ph-floppy-disk"></i> Save Tag
                 </button>
@@ -41,15 +37,4 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
-    <script src="~/js/components/auth-feedback.js" asp-append-version="true"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-             initAuthFeedback({
-                success: @Html.Raw(Json.Serialize(TempData["Success"] ?? TempData["SuccessMessage"])),
-                error: @Html.Raw(Json.Serialize(TempData["Error"] ?? TempData["ErrorMessage"])),
-                warning: @Html.Raw(Json.Serialize(TempData["Warning"])),
-                info: @Html.Raw(Json.Serialize(TempData["Info"]))
-            });
-        });
-    </script>
 }

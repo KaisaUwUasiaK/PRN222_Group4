@@ -6,10 +6,6 @@
 
 @model List<ComicModeration>
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/components/moderation-pending.css" asp-append-version="true" />
-}
-
 <!-- Page Header -->
 <div class="page-header">
     <div class="page-header-left">
@@ -23,7 +19,7 @@
 <div class="data-card">
     <div class="data-card-header">
         <h3 class="data-card-title">Pending Comics</h3>
-        <span class="badge report-count-badge" style="background: rgba(245,158,11,0.2); color: #FBBF24;">
+        <span class="badge" style="background: rgba(245,158,11,0.2); color: #FBBF24;">
             @Model.Count
         </span>
     </div>
@@ -46,7 +42,7 @@
                     @foreach (var moderation in Model)
                     {
                         <tr>
-                            <td class="comic-name">@moderation.Comic.Title</td>
+                            <td style="font-weight: 600; color: var(--text-primary);">@moderation.Comic.Title</td>
                             <td>@(moderation.Comic.Author?.Username ?? "Unknown Author")</td>
                             <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 @{
@@ -64,7 +60,7 @@
                             </td>
                             <td>
                                 <a href="@Url.Action("Review", "Moderation", new { id = moderation.ComicModerationId })"
-                                   class="action-btn action-review">
+                                   class="action-btn" style="color: var(--color-primary); border-color: rgba(124,58,237,0.3);">
                                     Review
                                 </a>
                             </td>
@@ -76,11 +72,133 @@
     }
     else
     {
-        <div class="pending-empty">
-            <i class="ph ph-check-circle"></i>
-            <p class="pending-empty-title">No pending comics!</p>
-            <p class="pending-empty-desc">All comics have been reviewed.</p>
+        <div style="padding: 3rem 1rem; text-align: center;">
+            <i class="ph ph-check-circle" style="font-size: 3rem; color: var(--color-accent); margin-bottom: 1rem; display: block;"></i>
+            <p style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">No pending comics!</p>
+            <p style="color: var(--text-secondary); font-size: 0.95rem;">All comics have been reviewed.</p>
         </div>
     }
 </div>
-
+
+@section Styles {
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header-left h1 {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--text-title);
+        }
+
+        .page-header-left p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .btn.btn-outline {
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            border: 1px solid var(--color-primary);
+            color: var(--color-primary);
+            background: transparent;
+            border-radius: var(--radius-md);
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .btn.btn-outline:hover {
+            background: var(--color-primary);
+            color: #fff;
+        }
+
+        .data-card {
+            background: var(--bg-surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .data-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            background: var(--bg-card-header);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-card-title {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: var(--text-title);
+        }
+
+        .badge {
+            padding: 0.375rem 0.75rem;
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 1rem 1.5rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table td {
+            padding: 1rem 1.5rem;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tr:hover td {
+            background: var(--bg-surface-hover);
+        }
+
+        .action-btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border: 1px solid transparent;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-align: center;
+            transition: background 0.3s, color 0.3s, border-color 0.3s;
+        }
+
+        .action-btn:hover {
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--color-primary);
+            border-color: rgba(124, 58, 237, 0.3);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #FBBF24;
+        }
+    </style>
+}

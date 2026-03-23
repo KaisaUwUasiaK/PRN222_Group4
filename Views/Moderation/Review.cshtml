@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "Review Comic";
     ViewData["Breadcrumb"] = "Review Comic";
     Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
@@ -258,10 +258,30 @@ else
 }
 
 @section Scripts {
-    <script src="~/js/components/moderation-review.js" asp-append-version="true"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            initModerationReview();
-        });
+        function showRejectModal() {
+            document.getElementById('rejectModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        function showHideModal() {
+            document.getElementById('hideModal').style.display = 'block';
+            document.getElementById('modalOverlay').style.display = 'block';
+        }
+
+        function closeHideModal() {
+            document.getElementById('hideModal').style.display = 'none';
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        function closeModals() {
+            closeRejectModal();
+            closeHideModal();
+        }
     </script>
 }

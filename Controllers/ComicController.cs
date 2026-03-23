@@ -28,34 +28,18 @@ namespace Group4_ReadingComicWeb.Controllers
 
 
         // List all public comics
-        public async Task<IActionResult> Index(int page = 1, string? search = null, string? sortBy = null, string? status = null, [FromQuery] List<int>? tagIds = null)
+        public async Task<IActionResult> Index(int page = 1, string? search = null)
         {
             int pageSize = 12; 
 
-            var (comics, totalCount) = await _comicService.GetPublicComicsAdvancedAsync(page, pageSize, search, sortBy, status, tagIds);
-            var allTags = await _comicService.GetAllTagsAsync();
+            var (comics, totalCount) = await _comicService.GetPublicComicsPagedAsync(page, pageSize, search);
 
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
             ViewBag.PageSize = pageSize;
             ViewBag.SearchTerm = search;
-            ViewBag.SortBy = sortBy;
-            ViewBag.Status = status;
-            ViewBag.SelectedTags = tagIds ?? new List<int>();
-            ViewBag.AllTags = allTags;
 
             return View(comics);
-        }
-
-        public async Task<IActionResult> Random(string? status = null, [FromQuery] List<int>? tagIds = null)
-        {
-            var randomComic = await _comicService.GetRandomComicAsync(status, tagIds);
-            if (randomComic != null)
-            {
-                return RedirectToAction("Detail", new { id = randomComic.ComicId });
-            }
-            TempData["Info"] = "No comic found matching your random criteria.";
-            return RedirectToAction("Index");
         }
 
 

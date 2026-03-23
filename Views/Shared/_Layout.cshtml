@@ -174,20 +174,70 @@
         <script src="~/js/notification.js" asp-append-version="true"></script>
     }
 
-    <script src="~/js/layout.js" asp-append-version="true"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            initLayout({
-                isAuthenticated: @(User.Identity?.IsAuthenticated == true ? "true" : "false"),
-                currentUserId: "@(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0")",
-                notifications: {
-                    success: "@Html.Raw(TempData["Success"])",
-                    error: "@Html.Raw(TempData["Error"])",
-                    warning: "@Html.Raw(TempData["Warning"])",
-                    info: "@Html.Raw(TempData["Info"])"
+        document.addEventListener('DOMContentLoaded', function () {
+            const notyf = new Notyf({
+                duration: 4000,
+                position: { x: 'right', y: 'top' },
+                dismissible: true,
+                types: [
+                    { type: 'success', background: '#10B981', icon: { className: 'fa-solid fa-circle-check', tagName: 'i', color: 'white' } },
+                    { type: 'error',   background: '#EF4444', icon: { className: 'fa-solid fa-circle-xmark', tagName: 'i', color: 'white' } },
+                    { type: 'info',    background: '#6366F1', icon: { className: 'fa-solid fa-circle-info',  tagName: 'i', color: 'white' } },
+                    { type: 'warning', background: '#F59E0B', icon: { className: 'fa-solid fa-triangle-exclamation', tagName: 'i', color: 'white' } }
+                ]
+            });
+
+            @if (TempData["Success"] != null)
+            {
+                <text>notyf.success("@TempData["Success"]");</text>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <text>notyf.error("@TempData["Error"]");</text>
+            }
+            @if (TempData["Warning"] != null)
+            {
+                <text>notyf.open({type: 'warning', message: "@TempData["Warning"]"});</text>
+            }
+            @if (TempData["Info"] != null)
+            {
+                <text>notyf.open({type: 'info', message: "@TempData["Info"]"});</text>
+            }
+        });
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            var currentUserIdForJs = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0";
+            <text>
+            const currentUserId = @currentUserIdForJs;
+
+            // UserStatus SignalR
+            const statusConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/hubs/userStatus")
+                .withAutomaticReconnect()
+                .build();
+
+            // Khi Admin ban tài khoản này → server broadcast UserStatusChanged
+            // Nếu userId khớp với người đang login thì redirect tới trang thông báo bị ban
+            statusConnection.on("UserStatusChanged", function (userId, status) {
+                if (userId === currentUserId && status === "Banned") {
+                    window.location.href = "/Authentication/AccountLocked";
                 }
             });
-        });
+
+            statusConnection.start().catch(err => console.error("SignalR connection error:", err));
+            </text>
+        }
+
+        function handleSearchKeyPress(event) {
+            if (event.key === 'Enter') {
+                const query = event.target.value.trim();
+                if (query) {
+                    window.location.href = '/Comic/Index?search=' + encodeURIComponent(query);
+                }
+            }
+        }
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

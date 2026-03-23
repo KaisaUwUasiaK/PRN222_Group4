@@ -129,19 +129,50 @@
     </div>
 </div>
 
-    <script src="~/js/layout.js" asp-append-version="true"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            initLayout({
-                isAuthenticated: @(User.Identity?.IsAuthenticated == true ? "true" : "false"),
-                currentUserId: "@(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0")",
-                notifications: {
-                    success: "@Html.Raw(TempData["Success"])",
-                    error: "@Html.Raw(TempData["Error"])"
-                }
-            });
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+    var notyf = new Notyf({ duration: 4000, position: { x: 'right', y: 'top' }, dismissible: true });
+</script>
+<script src="~/js/script.js"></script>
+
+
+<!-- Notification JS (phải load SAU signalr) -->
+<script src="~/js/notification.js" asp-append-version="true"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+        @if (TempData["Success"] != null)
+        {
+            <text>notyf.success("@TempData["Success"]");</text>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <text>notyf.error("@TempData["Error"]");</text>
+        }
+    });
+
+    // Dropdown toggle
+    document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
+        trigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            this.closest('.dropdown').classList.toggle('active');
         });
-    </script>
+    });
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.dropdown.active').forEach(d => d.classList.remove('active'));
+    });
+</script>
+
+<script>
+    const statusConnection = new signalR.HubConnectionBuilder()
+        .withUrl("/hubs/userStatus")
+        .withAutomaticReconnect()
+        .build();
+    statusConnection.start().catch(err => console.error("SignalR error:", err));
+</script>
 
 @await RenderSectionAsync("Scripts", required: false)
 
