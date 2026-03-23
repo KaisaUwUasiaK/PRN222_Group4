@@ -1,0 +1,119 @@
+.report-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.report-info-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem;
+}
+
+.report-info-item span {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.report-info-item p {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+.report-info-item .target-user {
+    color: #FB7185;
+    font-weight: 600;
+}
+
+.report-info-item .description {
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+}
+
+.comment-card-content {
+    padding: 1.25rem;
+}
+
+.comment-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 1rem;
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.comment-username {
+    color: #60a5fa;
+    font-weight: 600;
+}
+
+.comment-date {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.comment-text {
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+    line-height: 1.6;
+}
+
+.no-comment {
+    text-align: center;
+    padding: 2rem 0;
+    color: var(--text-muted);
+}
+
+.action-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem;
+}
+
+.form-label-simple {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.form-select-simple,
+.form-textarea-simple {
+    width: 100%;
+    padding: 10px 14px;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.form-textarea-simple {
+    resize: vertical;
+}
+
+.reject-form {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+    .report-details-grid {
+        grid-template-columns: 1fr;
+    }
+}

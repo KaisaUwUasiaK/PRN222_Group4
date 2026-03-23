@@ -5,283 +5,19 @@
 }
 
 @section Styles {
-    <style>
-        .page-container {
-            max-width: 1200px;
-            margin: 3rem auto;
-            padding: 0 20px;
-        }
-
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-muted);
-            font-weight: 500;
-            margin-bottom: 24px;
-            transition: var(--transition);
-        }
-
-        .back-link:hover {
-            color: white;
-            transform: translateX(-4px);
-        }
-
-        .layout-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 32px;
-        }
-
-
-        .panel-card {
-            background: var(--surface-color);
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            padding: 32px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .panel-header h3 {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .chapter-count {
-            background: rgba(99, 102, 241, 0.1);
-            color: var(--primary-color);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 40px 0;
-        }
-
-        .empty-state i {
-            font-size: 48px;
-            color: var(--text-muted);
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-
-        .empty-state p {
-            color: var(--text-secondary);
-        }
-
-        /* Chapter List */
-        .chapter-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .chapter-item {
-            background: rgba(11, 14, 20, 0.4);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 16px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: var(--transition);
-        }
-
-        .chapter-item:hover {
-            background: rgba(11, 14, 20, 0.8);
-            border-color: rgba(99, 102, 241, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-
-        .chapter-info {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .chapter-number {
-            font-weight: 700;
-            color: var(--primary-color);
-            min-width: 90px;
-        }
-
-        .chapter-title {
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .chapter-date {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
-
-        .chapter-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-icon {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-secondary);
-            border: 1px solid transparent;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .btn-icon:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-            border-color: var(--border-color);
-        }
-
-        .btn-icon.delete:hover {
-            background: rgba(239, 68, 68, 0.1);
-            color: #EF4444;
-            border-color: rgba(239, 68, 68, 0.2);
-        }
-
-        /* Alerts */
-        .alert {
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 500;
-        }
-
-        .alert-danger {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            color: #EF4444;
-        }
-
-        .alert-success {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            color: #10B981;
-        }
-
-        /* Form Inputs */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            font-size: 13px;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 12px 16px;
-            background: rgba(11, 14, 20, 0.6);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            transition: var(--transition);
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            background: var(--bg-color);
-        }
-
-        /* Warning Box */
-        .warning-box {
-            background: rgba(234, 179, 8, 0.08);
-            border: 1px solid rgba(234, 179, 8, 0.3);
-            border-radius: 10px;
-            padding: 16px;
-            margin-top: 12px;
-        }
-
-        .warning-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .warning-header i { color: #EAB308; font-size: 16px; }
-        .warning-header strong { color: #EAB308; font-size: 14px; }
-
-        .warning-text {
-            color: rgba(255, 255, 255, 0.85);
-            font-size: 13px;
-            line-height: 1.5;
-            margin-bottom: 12px;
-        }
-
-        .naming-guide {
-            display: flex;
-            gap: 16px;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-family: monospace;
-            align-items: center;
-        }
-
-        .naming-guide .divider {
-            width: 1px;
-            height: 20px;
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .naming-good { color: var(--text-primary); }
-        .naming-good i { color: #10B981; margin-right: 6px; font-size: 14px; }
-        
-        .naming-bad { color: var(--text-secondary); text-decoration: line-through; }
-        .naming-bad i { color: #EF4444; margin-right: 6px; font-size: 14px; text-decoration: none; display: inline-block; }
-
-        .sticky-col {
-            position: sticky;
-            top: 100px;
-            height: fit-content;
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/components/personal-comic-chapters.css" asp-append-version="true" />
 }
 
 <div class="page-container">
     <a href="@Url.Action("Index")" class="back-link">
-        <i class="fa-solid fa-arrow-left"></i> Back to My Comics / <span style="color: var(--text-primary);">@Model.Title</span>
+        <i class="fa-solid fa-arrow-left"></i> Back to My Comics / <span class="title-hl">@Model.Title</span>
     </a>
 
     <div class="layout-grid">
         <!-- Left Panel: Chapter List -->
         <div class="panel-card">
             <div class="panel-header">
-                <h3><i class="fa-solid fa-list-ul" style="margin-right: 8px; color: var(--primary-color);"></i> Chapter List</h3>
+                <h3><i class="fa-solid fa-list-ul header-icon"></i> Chapter List</h3>
                 <span class="chapter-count">Total: @(Model.Chapters?.Count ?? 0)</span>
             </div>
 
@@ -331,29 +67,13 @@
         <div class="sticky-col">
             <div class="panel-card">
                 <div class="panel-header">
-                    <h3><i class="fa-solid fa-cloud-arrow-up" style="margin-right: 8px; color: var(--primary-color);"></i> Upload New Chapter</h3>
+                    <h3><i class="fa-solid fa-cloud-arrow-up header-icon"></i> Upload New Chapter</h3>
                 </div>
-
-                @if (TempData["ErrorMessage"] != null)
-                {
-                    <div class="alert alert-danger">
-                        <i class="fa-solid fa-triangle-exclamation"></i>
-                        <span>@TempData["ErrorMessage"]</span>
-                    </div>
-                }
-
-                @if (TempData["SuccessMessage"] != null)
-                {
-                    <div class="alert alert-success">
-                        <i class="fa-solid fa-circle-check"></i>
-                        <span>@TempData["SuccessMessage"]</span>
-                    </div>
-                }
 
                 <form asp-action="CreateChapter" method="post" enctype="multipart/form-data">
                     <input type="hidden" name="comicId" value="@Model.ComicId" />
 
-                    <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 16px;">
+                    <div class="upload-form-grid">
                         <div class="form-group">
                             <label class="form-label">Chapter No.</label>
                             <input type="number" name="chapterNumber" class="form-control" placeholder="E.g: 1" required />
@@ -390,10 +110,10 @@
                             </div>
                         </div>
 
-                        <div id="fileListPreview" style="margin-top: 16px; font-size: 13px; color: var(--text-secondary); max-height: 150px; overflow-y: auto;"></div>
+                        <div id="fileListPreview" class="file-list-preview"></div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px;">
+                    <button type="submit" class="btn btn-primary upload-btn">
                         <i class="fa-solid fa-upload"></i> Upload & Submit
                     </button>
                 </form>
@@ -403,41 +123,17 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/components/auth-feedback.js" asp-append-version="true"></script>
+    <script src="~/js/components/personal-comic-chapters.js" asp-append-version="true"></script>
     <script>
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const preview = document.getElementById('fileListPreview');
-            preview.innerHTML = '';
-            
-            if (this.files && this.files.length > 0) {
-                const filesArray = Array.from(this.files).sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'}));
-                
-                const fileCount = filesArray.length;
-                preview.innerHTML = `<div style="margin-bottom: 8px; color: var(--text-primary); font-weight: 500;">Selected ${fileCount} files in order:</div>`;
-                
-                const maxDisplay = 5;
-                const ul = document.createElement('ul');
-                ul.style.listStyle = 'none';
-                ul.style.padding = '0';
-                
-                for (let i = 0; i < Math.min(fileCount, maxDisplay); i++) {
-                    const li = document.createElement('li');
-                    li.style.marginBottom = '6px';
-                    li.style.paddingBottom = '6px';
-                    li.style.borderBottom = '1px dashed rgba(255,255,255,0.1)';
-                    li.innerHTML = `<span style="opacity: 0.5; margin-right: 8px; font-family: monospace;">${String(i + 1).padStart(2, '0')}.</span> <i class="fa-solid fa-image" style="margin-right: 6px; color: var(--text-muted);"></i> ${filesArray[i].name}`;
-                    ul.appendChild(li);
-                }
-                
-                if (fileCount > maxDisplay) {
-                    const li = document.createElement('li');
-                    li.style.marginTop = '6px';
-                    li.style.fontStyle = 'italic';
-                    li.innerHTML = `...and ${fileCount - maxDisplay} more files.`;
-                    ul.appendChild(li);
-                }
-                
-                preview.appendChild(ul);
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+             initAuthFeedback({
+                success: @Html.Raw(Json.Serialize(TempData["Success"] ?? TempData["SuccessMessage"])),
+                error: @Html.Raw(Json.Serialize(TempData["Error"] ?? TempData["ErrorMessage"])),
+                warning: @Html.Raw(Json.Serialize(TempData["Warning"])),
+                info: @Html.Raw(Json.Serialize(TempData["Info"]))
+            });
+            initChapterManagement();
         });
     </script>
 }

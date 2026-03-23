@@ -7,6 +7,10 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/components/report-list.css" asp-append-version="true" />
+}
+
 <div class="page-header">
     <div class="page-header-left">
         <h1>Moderator Reports</h1>
@@ -17,7 +21,7 @@
 <div class="data-card">
     <div class="data-card-header">
         <h3 class="data-card-title">Pending Reports</h3>
-        <span class="badge" style="background: rgba(244,63,94,0.2); color: #FB7185;">
+        <span class="badge report-count-badge">
             @Model.Count
         </span>
     </div>
@@ -40,10 +44,10 @@
                     @foreach (var report in Model)
                     {
                         <tr>
-                            <td style="font-weight: 500;">@(report.Reporter?.Username ?? "Unknown")</td>
-                            <td style="font-weight: 600; color: #FB7185;">@(report.TargetUser?.Username ?? "Unknown")</td>
+                            <td class="report-reporter">@(report.Reporter?.Username ?? "Unknown")</td>
+                            <td class="report-target-user">@(report.TargetUser?.Username ?? "Unknown")</td>
                             <td>
-                                <span class="badge" style="background: rgba(59,130,246,0.2); color: #60A5FA;">
+                                <span class="badge report-type-badge">
                                     @report.ReportType
                                 </span>
                             </td>
@@ -51,7 +55,7 @@
                             <td>@report.CreatedAt.ToString("MMM dd, yyyy")</td>
                             <td>
                                 <a href="@Url.Action("Details", "Report", new { id = report.ReportId })"
-                                   class="action-btn" style="color: var(--color-primary); border-color: rgba(124,58,237,0.3);">
+                                   class="action-btn table-action-review">
                                     Review
                                 </a>
                             </td>
@@ -63,10 +67,10 @@
     }
     else
     {
-        <div style="padding: 3rem 1rem; text-align: center;">
-            <i class="ph ph-check-circle" style="font-size: 3rem; color: var(--color-accent); margin-bottom: 1rem; display: block;"></i>
-            <p style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">No pending reports!</p>
-            <p style="color: var(--text-secondary); font-size: 0.95rem;">All moderator reports have been reviewed.</p>
+        <div class="empty-state">
+            <i class="ph ph-check-circle empty-state-icon"></i>
+            <p class="empty-state-title">No pending reports!</p>
+            <p class="empty-state-desc">All moderator reports have been reviewed.</p>
         </div>
     }
 </div>

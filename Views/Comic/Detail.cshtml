@@ -8,6 +8,10 @@
     var currentCommentPage = ViewBag.CurrentCommentPage as int? ?? 1;
 }
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/components/comic-detail.css" asp-append-version="true" />
+}
+
 <main>
     <section class="detail-hero">
         <div class="container detail-container">
@@ -18,9 +22,7 @@
                 <h1>@Model.Title</h1>
                 <div class="detail-meta">
                     By <a asp-controller="User" asp-action="PublicProfile" asp-route-id="@Model.AuthorId"
-                          style="color: var(--primary-color); font-weight: 500; text-decoration: none; transition: 0.2s;"
-                          onmouseover="this.style.opacity='0.8'"
-                          onmouseout="this.style.opacity='1'">@(Model.Author?.Username ?? "Unknown")</a> •
+                          class="author-link">@(Model.Author?.Username ?? "Unknown")</a> •
                     @if (Model.ComicTags != null)
                     {
                         @foreach (var ct in Model.ComicTags)
@@ -63,7 +65,7 @@
                         }
                         else
                         {
-                            <div class="text-center" style="padding: 40px; color: var(--text-muted);">
+                            <div class="empty-text">
                                 <p>No chapters available yet.</p>
                             </div>
                         }
@@ -99,10 +101,7 @@
                                 </a>
                                 <div class="comment-author-info">
                                     <a href="@Url.Action("PublicProfile", "User", new { id = comment.UserId })"
-                                       class="comment-author"
-                                       style="text-decoration: none; color: inherit; transition: color 0.2s;"
-                                       onmouseover="this.style.color='var(--primary-color)'"
-                                       onmouseout="this.style.color='inherit'">@comment.User?.Username</a>
+                                       class="comment-author comment-author-link">@comment.User?.Username</a>
                                     <span class="comment-meta">
                                         @if (comment.Chapter != null)
                                         {
@@ -112,14 +111,13 @@
                                     </span>
                                 </div>
                                 @if (User.Identity?.IsAuthenticated == true && (User.Identity.Name == comment.User?.Username ||
-                                                                                                                                                                                                                                                        User.IsInRole("Admin") || User.IsInRole("Moderator")))
+                                                                                                                                                                                                                                                         User.IsInRole("Admin") || User.IsInRole("Moderator")))
                                 {
-                                    <form asp-action="DeleteComment" method="post" style="margin-left: auto;">
+                                    <form asp-action="DeleteComment" method="post" class="delete-comment-btn-form">
                                         <input type="hidden" name="commentId" value="@comment.CommentId" />
                                         <input type="hidden" name="source" value="Detail" />
                                         <input type="hidden" name="comicId" value="@Model.ComicId" />
-                                        <button type="submit" style="background:none; border:none; color: #F87171; cursor:pointer;"
-                                                title="Delete comment">
+                                        <button type="submit" class="delete-comment-btn" title="Delete comment">
                                             <i class="fa-solid fa-trash"></i>
                                         </button>
                                     </form>
@@ -131,11 +129,11 @@
                 }
                 else
                 {
-                    <div class="text-center" style="padding: 40px; color: var(--text-muted);">
+                    <div class="empty-text">
                         <p>No comments yet.</p>
                     </div>
                 }
-            </div>
+            </div></div>
 
             @if (totalCommentPages > 1)
             {
@@ -193,30 +191,5 @@
 </div>
 
 @section Scripts {
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const modal = document.getElementById("chaptersModal");
-            const btn = document.getElementById("openChaptersModal");
-            const span = document.getElementById("closeChaptersModal");
-
-            if (btn && modal && span) {
-                btn.onclick = function () {
-                    modal.classList.add("show");
-                    document.body.style.overflow = "hidden";
-                }
-
-                span.onclick = function () {
-                    modal.classList.remove("show");
-                    document.body.style.overflow = "auto";
-                }
-
-                window.onclick = function (event) {
-                    if (event.target == modal) {
-                        modal.classList.remove("show");
-                        document.body.style.overflow = "auto";
-                    }
-                }
-            }
-        });
-    </script>
+    <script src="~/js/components/comic-detail.js" asp-append-version="true"></script>
 }

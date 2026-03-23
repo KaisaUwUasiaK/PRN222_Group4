@@ -4,117 +4,202 @@
     ViewData["Title"] = "All Comics";
 }
 
-<main class="container" style="margin-top: 2rem; margin-bottom: 4rem;">
-    <div class="section-header"
-         style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
-        <div>
-            <h2 style="font-size: 2rem; font-weight: 700;">
-                @(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "All Comics" : $"Search Results for \"{ViewBag.SearchTerm}\"")
-            </h2>
-            <p class="text-muted">
-                @(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "Discover the most complete comic book collection." :
-                $"Found {Model.Count()} results matching your search.")
-            </p>
-        </div>
+@section Styles {
+    <link rel="stylesheet" href="~/css/components/comic-index.css" asp-append-version="true" />
+}
 
-        <div class="flex gap-2">
-            <span class="tag">Total: @Model.Count()</span>
-        </div>
-    </div>
-
-    <div class="comic-grid">
-        @if (Model != null && Model.Any())
-        {
-            foreach (var item in Model)
-            {
-                <a href="@Url.Action("Detail", "Comic", new { id = item.ComicId })" class="comic-card"
-                       style="display: block; color: inherit; text-decoration: none;">
-                    <div class="card-image-wrapper">
-                        <img src="@item.CoverImage" class="card-image" alt="@item.Title"
-                             onerror="this.src='/images/default-cover.jpg'">
-                    </div>
-                    <h3 class="card-title" style="margin-top: 10px; font-size: 1.1rem; font-weight: 600;">@item.Title</h3>
-                    <div class="flex justify-between items-center" style="margin-top: 5px;">
-                        <p class="card-meta" style="color: var(--text-secondary); font-size: 0.9rem;">@item.Status</p>
-                        @{
-                            var latestChapter = item.Chapters?.OrderByDescending(c => c.ChapterNumber).FirstOrDefault();
-                            var randomTag = item.ComicTags?.OrderBy(x => Guid.NewGuid()).FirstOrDefault();
-                        }
-                        @if (latestChapter != null)
-                        {
-                            <p style="color: var(--text-secondary); font-size: 0.85rem;">Chapter
-                                @latestChapter.ChapterNumber</p>
-                            }
-                            else
-                            {
-                                <p style="color: var(--text-secondary); font-size: 0.85rem;">No chapters yet</p>
-                            }
-                            @if (randomTag != null)
-                            {
-                                <span
-                                    style="font-size: 0.7rem; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 4px;">
-                                    @randomTag.Tag.TagName
-                                </span>
-                            }
-                        </div>
-                    </a>
-                }
-            }
-        else
-            {
-                <div style="grid-column: 1/-1; text-align: center; padding: 4rem;">
-                    <i class="ph-bold ph-magnifying-glass" style="font-size: 3rem; color: var(--text-muted);"></i>
-                    <p style="margin-top: 1rem;">
-                        There are currently no comicss on the list.
-                    </p>
-                    <a href="/" class="btn btn-primary" style="margin-top: 1rem;">Back to home</a>
+<main class="container comic-index-main">
+    <div class="advanced-search-container">
+        <form method="get" action="@Url.Action("Index", "Comic")" id="searchForm">
+            <div class="search-top-wrapper">
+                <div class="search-main-row">
+                    <i class="ph-bold ph-magnifying-glass search-icon"></i>
+                    <input type="text" name="search" value="@ViewBag.SearchTerm" placeholder="Search..."
+                           class="search-input" />
                 </div>
-            }
-        </div>
-        @if (ViewBag.TotalPages > 1)
-        {
-            <div class="pagination-container" style="display: flex; justify-content: center; margin-top: 3rem; gap: 8px;">
+                <button type="button" class="btn btn-primary toggle-filters-btn" onclick="toggleFilters()">
+                    <i class="ph-bold ph-caret-down" id="toggleFiltersIcon"></i>
+                    <span id="toggleFiltersText">Advanced filters</span>
+                </button>
+            </div>
+            
+            <div class="search-filters-wrapper" id="filtersWrapper">
+                <div class="search-filters-grid" id="filtersGrid">
+                    <div class="filter-group">
+                        <label>Sort by</label>
+                        <div class="custom-select-wrapper" id="sortByWrapper">
+                            <input type="hidden" name="sortBy" id="sortByInput" value="@(ViewBag.SortBy ?? "")" />
+                            <div class="custom-select-display" onclick="toggleDropdown('sortByDropdown')">
+                                <span id="sortByText">@(string.IsNullOrEmpty(ViewBag.SortBy) ? "None" : ViewBag.SortBy
+                                                                                                                                                                                                                                                                                                                                                                                                             == "latest" ? "Latest Updates" : ViewBag.SortBy == "oldest" ? "Oldest Updates" :
+                                                                                                                                                                                                                                                                                                                                                                                                             ViewBag.SortBy == "views" ? "Most Views" : "Title")</span>
+                                    <i class="ph-bold ph-caret-down"></i>
+                                </div>
+                                <div class="custom-select-options" id="sortByDropdown">
+                                    <div class="custom-option @(string.IsNullOrEmpty(ViewBag.SortBy) ? "active" : "")"
+                                         onclick="selectOption('sortBy', '', 'None')">None</div>
+                                    <div class="custom-option @(ViewBag.SortBy == "latest" ? "active" : "")"
+                                         onclick="selectOption('sortBy', 'latest', 'Latest Updates')">Latest Updates</div>
+                                    <div class="custom-option @(ViewBag.SortBy == "oldest" ? "active" : "")"
+                                         onclick="selectOption('sortBy', 'oldest', 'Oldest Updates')">Oldest Updates</div>
+                                    <div class="custom-option @(ViewBag.SortBy == "views" ? "active" : "")"
+                                         onclick="selectOption('sortBy', 'views', 'Most Views')">Most Views</div>
+                                    <div class="custom-option @(ViewBag.SortBy == "title" ? "active" : "")"
+                                         onclick="selectOption('sortBy', 'title', 'Title')">Title</div>
+                                </div>
+                            </div>
+                        </div>
 
-                @if (ViewBag.CurrentPage > 1)
+                        <div class="filter-group">
+                            <label>Publication Status</label>
+                            <div class="custom-select-wrapper" id="statusWrapper">
+                                <input type="hidden" name="status" id="statusInput" value="@(ViewBag.Status ?? "")" />
+                                <div class="custom-select-display" onclick="toggleDropdown('statusDropdown')">
+                                    <span id="statusText">@(string.IsNullOrEmpty(ViewBag.Status) ? "Any" : ViewBag.Status ==
+                                                                                                                                                                                                                                                                                                                                                                                                                            "OnWorking" ? "Ongoing" : "Completed")</span>
+                                        <i class="ph-bold ph-caret-down"></i>
+                                    </div>
+                                    <div class="custom-select-options" id="statusDropdown">
+                                        <div class="custom-option @(string.IsNullOrEmpty(ViewBag.Status) ? "active" : "")"
+                                             onclick="selectOption('status', '', 'Any')">Any</div>
+                                        <div class="custom-option @(ViewBag.Status == "OnWorking" ? "active" : "")"
+                                             onclick="selectOption('status', 'OnWorking', 'Ongoing')">Ongoing</div>
+                                        <div class="custom-option @(ViewBag.Status == "Completed" ? "active" : "")"
+                                             onclick="selectOption('status', 'Completed', 'Completed')">Completed</div>
+                                    </div>
+                                </div>
+                            </div>
+                    
+                            <div class="filter-group tag-filter-group" style="grid-column: 1 / -1;">
+                                <label>Filter tags</label>
+                                <div class="tags-container custom-scrollbar">
+                                    @if (ViewBag.AllTags != null)
+                                    {
+                                        <ul>
+                                            @foreach (var tag in ViewBag.AllTags)
+                                            {
+                                                bool isSelected = ((List<int>)ViewBag.SelectedTags).Contains(tag.TagId);
+                                                <li>
+                                                    <label class="tag-checkbox-wrapper @(isSelected ? "selected" : "")">
+                                                        <input type="checkbox" name="tagIds" value="@tag.TagId" @(isSelected ? "checked"                                            : "")
+                                                               onchange="this.parentElement.classList.toggle('selected', this.checked)">
+                                                        @tag.TagName
+                                                    </label>
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="search-actions-row">
+                            <button type="button" class="btn btn-clear-filters" onclick="clearFilters()">Reset filters</button>
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button" class="btn btn-lucky" onclick="feelLucky('@Url.Action("Random", "Comic")')">
+                                    <i class="ph-bold ph-dice-three"></i> I'm feeling lucky
+                                </button>
+                                <button type="submit" class="btn btn-primary"
+                                        style="display: flex; align-items: center; gap: 6px;">
+                                    <i class="ph-bold ph-magnifying-glass"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="section-header comic-index-header">
+                <h2>
+                    @(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "Comics Directory" : $"Search Results for \"{ViewBag.SearchTerm}\"")
+                </h2>
+                <span class="tag comic-total-badge">
+                    Total: @Model.Count()
+                </span>
+            </div>
+
+            <div class="comic-grid">
+                @if (Model != null && Model.Any())
                 {
-                    <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1, search = ViewBag.SearchTerm })"
-                       class="btn-page">« Prev</a>
+                    foreach (var item in Model)
+                    {
+                        <a href="@Url.Action("Detail", "Comic", new { id = item.ComicId })" class="comic-card">
+                            <div class="card-image-wrapper">
+                                <img src="@item.CoverImage" class="card-image" alt="@item.Title"
+                                     onerror="this.src='/images/default-cover.jpg'">
+                            </div>
+                            <h3 class="card-title">@item.Title</h3>
+                            <div class="card-meta-row">
+                                <p class="card-meta">@item.Status</p>
+                                @{
+                                    var latestChapter = item.Chapters?.OrderByDescending(c => c.ChapterNumber).FirstOrDefault();
+                                    var randomTag = item.ComicTags?.OrderBy(x => Guid.NewGuid()).FirstOrDefault();
+                                }
+                                @if (latestChapter != null)
+                                {
+                                    <p class="card-chapter-info">Chapter @latestChapter.ChapterNumber</p>
+                                }
+                                else
+                                {
+                                    <p class="card-chapter-info">No chapters yet</p>
+                                }
+                                @if (randomTag != null)
+                                {
+                                    <span class="comic-card-tag">
+                                        @randomTag.Tag.TagName
+                                    </span>
+                                }
+                            </div>
+                        </a>
+                    }
                 }
-
-                @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                else
                 {
-                    <a href="@Url.Action("Index", new { page = i, search = ViewBag.SearchTerm })"
-                           class="btn-page @(ViewBag.CurrentPage == i ? "active" : "")">
-                        @i
-                    </a>
-                }
-
-                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
-                {
-                    <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1, search = ViewBag.SearchTerm })"
-                       class="btn-page">Next »</a>
+                    <div class="empty-results">
+                        <i class="ph-bold ph-magnifying-glass"></i>
+                        <p>
+                            There are currently no comics on the list.
+                        </p>
+                        <a href="/" class="btn btn-primary">Back to home</a>
+                    </div>
                 }
             </div>
-        }
+            @if (ViewBag.TotalPages > 1)
+            {
+                <div class="pagination-container">
+                    @if (ViewBag.CurrentPage > 1)
+                    {
+                        <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage - 1, search = ViewBag.SearchTerm })"
+                           class="btn-page">« Prev</a>
+                    }
 
-        <style>
-                .btn-page {
-                    padding: 8px 16px;
-                    border: 1px solid #ddd;
-                    border-radius: 4px;
-                    color: white;
-                    text-decoration: none;
-                    background: rgba(255, 255, 255, 0.05);
-                }
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <a href="@Url.Action("Index", new { page = i, search = ViewBag.SearchTerm })"
+                               class="btn-page @(ViewBag.CurrentPage == i ? "active" : "")">
+                            @i
+                        </a>
+                    }
 
-                .btn-page.active {
-                    background: #e74c3c;
-                    /* Màu thương hiệu của bạn */
-                    border-color: #e74c3c;
-                }
-
-                .btn-page:hover:not(.active) {
-                    background: rgba(255, 255, 255, 0.15);
-                }
-        </style>
-    </main>
+                    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                    {
+                        <a href="@Url.Action("Index", new { page = ViewBag.CurrentPage + 1, search = ViewBag.SearchTerm })"
+                           class="btn-page">Next »</a>
+                    }
+                </div>
+            } }
+@section Scripts {
+    <script src="~/js/components/comic-index.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const hasFilters = @((ViewBag.SortBy != null || ViewBag.Status != null || ((List<int>)ViewBag.SelectedTags).Count > 0).ToString().ToLower());
+            const infoMsg = '@Html.Raw(TempData["Info"])';
+            
+            initComicIndex({
+                hasFilters: hasFilters,
+                infoMsg: infoMsg
+            });
+        });
+    </script>
+}
+</main>

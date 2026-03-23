@@ -5,175 +5,7 @@
 }
 
 @section Styles {
-    <style>
-        .form-container {
-            max-width: 600px;
-            margin: 3rem auto;
-            padding: 0 20px;
-        }
-
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--text-muted);
-            font-weight: 500;
-            margin-bottom: 24px;
-            transition: var(--transition);
-        }
-
-        .back-link:hover {
-            color: white;
-            transform: translateX(-4px);
-        }
-
-        .form-card {
-            background: var(--surface-color);
-            border-radius: 16px;
-            border: 1px solid var(--border-color);
-            padding: 40px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .form-header {
-            margin-bottom: 32px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 24px;
-        }
-
-        .form-header h2 {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 20px;
-        }
-        
-
-        .form-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        .form-label i {
-            color: var(--primary-color);
-            font-size: 14px;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 12px 16px;
-            background: rgba(11, 14, 20, 0.6);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 15px;
-            transition: var(--transition);
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-            background: var(--bg-color);
-        }
-
-        /* Warning Box */
-        .warning-box {
-            background: rgba(234, 179, 8, 0.08);
-            border: 1px solid rgba(234, 179, 8, 0.3);
-            border-radius: 10px;
-            padding: 16px;
-            margin-top: 16px;
-        }
-
-        .warning-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-
-        .warning-header i {
-            color: #EAB308;
-            font-size: 18px;
-        }
-
-        .warning-header strong {
-            color: #EAB308;
-            font-size: 14px;
-        }
-
-        .warning-text {
-            color: rgba(255, 255, 255, 0.85);
-            font-size: 13px;
-            line-height: 1.5;
-            margin-bottom: 12px;
-        }
-
-        .warning-text strong {
-            color: #EF4444;
-        }
-
-        .naming-guide {
-            display: flex;
-            gap: 16px;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-family: monospace;
-            align-items: center;
-        }
-
-        .naming-guide .divider {
-            width: 1px;
-            height: 20px;
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .naming-good { color: var(--text-primary); }
-        .naming-good i { color: #10B981; margin-right: 6px; font-size: 14px; }
-        
-        .naming-bad { color: var(--text-secondary); text-decoration: line-through; }
-        .naming-bad i { color: #EF4444; margin-right: 6px; font-size: 14px; text-decoration: none; display: inline-block; }
-
-        .form-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .btn-ghost {
-            background: transparent;
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
-        }
-
-        .btn-ghost:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-            border-color: var(--text-muted);
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/components/personal-comic-edit-chapter.css" asp-append-version="true" />
 }
 
 <div class="form-container">
@@ -183,7 +15,7 @@
 
     <div class="form-card">
         <div class="form-header">
-            <h2><i class="fa-solid fa-pen-to-square" style="color: var(--primary-color); margin-right: 8px;"></i> Update Chapter</h2>
+            <h2><i class="fa-solid fa-pen-to-square header-icon"></i> Update Chapter</h2>
         </div>
 
         <form asp-action="EditChapter" method="post" enctype="multipart/form-data">
@@ -213,7 +45,7 @@
                 <input type="file" name="newPages" id="fileInput" class="form-control"
                        multiple accept="image/*" />
                 
-                <p style="color: var(--text-muted); font-size: 12px; margin-top: 8px;">
+                <p class="file-help-text">
                     Leave blank to keep the currently uploaded images.
                 </p>
 
@@ -239,7 +71,7 @@
                     </div>
                 </div>
 
-                <div id="fileListPreview" style="margin-top: 12px; font-size: 13px; color: var(--text-secondary); max-height: 150px; overflow-y: auto;"></div>
+                <div id="fileListPreview" class="file-preview-container"></div>
             </div>
 
             <div class="form-actions">
@@ -253,39 +85,17 @@
 </div>
 
 @section Scripts {
+    <script src="~/js/components/auth-feedback.js" asp-append-version="true"></script>
+    <script src="~/js/components/personal-comic-edit-chapter.js" asp-append-version="true"></script>
     <script>
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const preview = document.getElementById('fileListPreview');
-            preview.innerHTML = '';
-            
-            if (this.files && this.files.length > 0) {
-                // Determine layout
-                const fileCount = this.files.length;
-                preview.innerHTML = `<div style="margin-bottom: 8px; color: var(--text-primary); font-weight: 500;">Mới lụa chọn ${fileCount} files:</div>`;
-                
-                // Show up to 5 files to avoid long lists
-                const maxDisplay = 5;
-                const ul = document.createElement('ul');
-                ul.style.listStyle = 'none';
-                ul.style.padding = '0';
-                
-                for (let i = 0; i < Math.min(fileCount, maxDisplay); i++) {
-                    const li = document.createElement('li');
-                    li.style.marginBottom = '4px';
-                    li.innerHTML = `<i class="fa-solid fa-image" style="margin-right: 6px; color: var(--text-muted);"></i> ${this.files[i].name}`;
-                    ul.appendChild(li);
-                }
-                
-                if (fileCount > maxDisplay) {
-                    const li = document.createElement('li');
-                    li.style.marginTop = '4px';
-                    li.style.fontStyle = 'italic';
-                    li.innerHTML = `...và ${fileCount - maxDisplay} file khác.`;
-                    ul.appendChild(li);
-                }
-                
-                preview.appendChild(ul);
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+             initAuthFeedback({
+                success: @Html.Raw(Json.Serialize(TempData["Success"] ?? TempData["SuccessMessage"])),
+                error: @Html.Raw(Json.Serialize(TempData["Error"] ?? TempData["ErrorMessage"])),
+                warning: @Html.Raw(Json.Serialize(TempData["Warning"])),
+                info: @Html.Raw(Json.Serialize(TempData["Info"]))
+            });
+            initEditChapter();
         });
     </script>
 }

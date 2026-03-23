@@ -182,96 +182,10 @@
 </form>
 
 @section Scripts {
+    <script src="~/js/components/admin-users.js" asp-append-version="true"></script>
     <script>
-        // Close on overlay click
-        document.getElementById('createModModal').addEventListener('click', function (e) {
-            if (e.target === this) this.classList.remove('active');
+        document.addEventListener('DOMContentLoaded', () => {
+            initAdminUsers();
         });
-        document.querySelector('#createModModal .modal-card').addEventListener('click', function (e) {
-            e.stopPropagation();
-        });
-
-        // Submit button handler
-        document.getElementById('createModBtn').addEventListener('click', function () {
-            submitCreateMod();
-        });
-
-        function submitCreateMod() {
-            // Clear errors
-            ['username', 'email', 'password', 'confirm'].forEach(function (f) {
-                document.getElementById('err-' + f).textContent = '';
-                document.getElementById('mod-' + f).style.borderColor = '';
-            });
-
-            var username = document.getElementById('mod-username').value.trim();
-            var email    = document.getElementById('mod-email').value.trim();
-            var password = document.getElementById('mod-password').value;
-            var confirm  = document.getElementById('mod-confirm').value;
-
-            // Validate
-            var hasError = false;
-            if (!username || username.length < 3) {
-                showFieldError('username', 'Username must be at least 3 characters.');
-                hasError = true;
-            }
-            if (!email || email.indexOf('@@') < 0) {
-                showFieldError('email', 'Please enter a valid email address.');
-                hasError = true;
-            }
-            if (!password || password.length < 6) {
-                showFieldError('password', 'Password must be at least 6 characters.');
-                hasError = true;
-            }
-            if (password !== confirm) {
-                showFieldError('confirm', 'Passwords do not match.');
-                hasError = true;
-            }
-            if (hasError) return;
-
-            // Fill hidden form and submit
-            document.getElementById('hf-username').value = username;
-            document.getElementById('hf-email').value    = email;
-            document.getElementById('hf-password').value = password;
-            document.getElementById('hf-confirm').value  = confirm;
-            document.getElementById('hiddenCreateForm').submit();
-        }
-
-        function showFieldError(field, msg) {
-            document.getElementById('err-' + field).textContent = msg;
-            document.getElementById('mod-' + field).style.borderColor = 'var(--color-danger)';
-        }
-
-        // SignalR realtime status
-        if (typeof statusConnection !== 'undefined') {
-            statusConnection.on("UserOnline",  function (userId) { updateStatus(userId, 'Online'); });
-            statusConnection.on("UserOffline", function (userId) { updateStatus(userId, 'Offline'); });
-            statusConnection.on("UserBanned",  function (userId) { updateStatus(userId, 'Banned'); });
-        }
-
-        function updateStatus(userId, status) {
-            var dot      = document.getElementById('status-dot-' + userId);
-            var badge    = document.getElementById('status-badge-' + userId);
-            var colorDot = document.getElementById('status-color-dot-' + userId);
-            var text     = document.getElementById('status-text-' + userId);
-            if (!dot || !badge || !text) return;
-
-            var cfgMap = {
-                'Online':  { color: 'var(--color-accent)', cls: 'badge badge-online'  },
-                'Offline': { color: 'var(--text-muted)',   cls: 'badge badge-offline' },
-                'Banned':  { color: 'var(--color-danger)', cls: 'badge badge-banned'  }
-            };
-            var cfg = cfgMap[status] || cfgMap['Offline'];
-
-            dot.style.background = cfg.color;
-            if (colorDot) colorDot.style.background = cfg.color;
-            badge.className = cfg.cls;
-            text.textContent = status;
-
-            var count = 0;
-            document.querySelectorAll('[id^="status-text-"]').forEach(function (el) {
-                if (el.textContent === 'Online') count++;
-            });
-            document.getElementById('onlineCount').textContent = count;
-        }
     </script>
 }

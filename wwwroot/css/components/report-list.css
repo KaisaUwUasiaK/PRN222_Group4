@@ -1,0 +1,47 @@
+.report-count-badge {
+    background: rgba(244, 63, 94, 0.2);
+    color: #FB7185;
+}
+
+.report-type-badge {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60A5FA;
+}
+
+.report-target-user {
+    font-weight: 600;
+    color: #FB7185;
+}
+
+.report-reporter {
+    font-weight: 500;
+}
+
+.table-action-review {
+    color: var(--color-primary);
+    border-color: rgba(124, 58, 237, 0.3);
+}
+
+.empty-state {
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    color: var(--color-accent);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.empty-state-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-desc {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
