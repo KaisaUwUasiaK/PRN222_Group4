@@ -76,16 +76,61 @@ namespace Group4_ReadingComicWeb.Services
                     nextChapterId == 0 ? (int?)null : nextChapterId);
         }
 
-        public async Task<(List<Comic> Comics, int TotalCount)> GetPublicComicsPagedAsync(int page, int pageSize, string? searchTerm = null)
+        private IQueryable<Comic> ApplyFilters(IQueryable<Comic> query, string? searchTerm, List<string>? tags, string? status, string? sortBy)
         {
-            var query = _context.Comics
-                .Where(c => c.Status == "OnWorking" || c.Status == "Completed");
+            // Always show public comics only
+            query = query.Where(c => c.Status == "OnWorking" || c.Status == "Completed");
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                searchTerm = searchTerm.Trim();
-                query = query.Where(c => c.Title.Contains(searchTerm));
+                var term = searchTerm.Trim().ToLower();
+                query = query.Where(c => c.Title.ToLower().Contains(term));
             }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                // Map frontend status to backend status
+                if (status == "Ongoing") query = query.Where(c => c.Status == "OnWorking");
+                else if (status == "Completed") query = query.Where(c => c.Status == "Completed");
+            }
+
+            if (tags != null && tags.Any())
+            {
+                // Matching ALL selected tags (Logical AND)
+                foreach (var tag in tags)
+                {
+                    query = query.Where(c => c.ComicTags.Any(ct => ct.Tag.TagName == tag));
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(sortBy))
+            {
+                switch (sortBy)
+                {
+                    case "Newest":
+                        query = query.OrderByDescending(c => c.CreatedAt);
+                        break;
+                    case "Latest":
+                        query = query.OrderBy(c => c.CreatedAt);
+                        break;
+                    default:
+                        query = query.OrderByDescending(c => c.ViewCount);
+                        break;
+                }
+            }
+            else
+            {
+                query = query.OrderByDescending(c => c.CreatedAt);
+            }
+
+            return query;
+        }
+
+        public async Task<(List<Comic> Comics, int TotalCount)> GetPublicComicsPagedAsync(
+            int page, int pageSize, string? searchTerm = null, List<string>? tags = null, string? status = null, string? sortBy = null)
+        {
+            var query = _context.Comics.AsQueryable();
+            query = ApplyFilters(query, searchTerm, tags, status, sortBy);
 
             int totalCount = await query.CountAsync();
 
@@ -94,17 +139,28 @@ namespace Group4_ReadingComicWeb.Services
                 .Include(c => c.Chapters)
                 .Include(c => c.ComicTags)
                     .ThenInclude(ct => ct.Tag)
-                .OrderByDescending(c => c.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
 
             return (comics, totalCount);
         }
+
+        public async Task<Comic?> GetRandomComicAsync(string? searchTerm = null, List<string>? tags = null, string? status = null)
+        {
+            var query = _context.Comics.AsNoTracking();
+            query = ApplyFilters(query, searchTerm, tags, status, null);
+
+            var totalCount = await query.CountAsync();
+            if (totalCount == 0) return null;
+
+            int offset = new Random().Next(0, totalCount);
+            return await query.Skip(offset).FirstOrDefaultAsync();
+        }
         //increase view count
         async Task IComicService.IncrementViewCountAsync(int comicId)
         {
-           
+
             var comic = await _context.Comics.FindAsync(comicId);
 
             if (comic != null)

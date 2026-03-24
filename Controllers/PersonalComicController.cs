@@ -79,7 +79,7 @@ namespace Group4_ReadingComicWeb.Controllers
 
             if (ModelState.IsValid)
             {
-                await _comicService.CreateComicAsync(GetCurrentUserId(), comic, selectedTags, coverImage);
+                await _comicService.CreateComicAsync(GetCurrentUserId(), comic, selectedTags ?? new int[0], coverImage);
 
                 // Gửi thông báo cho TẤT CẢ Moderator khi có truyện mới chờ duyệt
                 var authorName = User.Identity?.Name ?? "Unknown";

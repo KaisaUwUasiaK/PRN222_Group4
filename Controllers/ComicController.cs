@@ -17,29 +17,53 @@ namespace Group4_ReadingComicWeb.Controllers
 
         private readonly IMemoryCache _memoryCache;
         private readonly IFavoriteService _favoriteService;
+        private readonly ITagService _tagService;
 
-        public ComicController(IComicService comicService, ICommentService commentService, IMemoryCache memoryCache, IFavoriteService favoriteService)
+        public ComicController(IComicService comicService, ICommentService commentService, IMemoryCache memoryCache, IFavoriteService favoriteService, ITagService tagService)
         {
             _comicService = comicService;
             _commentService = commentService;
             _memoryCache = memoryCache;
             _favoriteService = favoriteService;
+            _tagService = tagService;
         }
 
 
         // List all public comics
-        public async Task<IActionResult> Index(int page = 1, string? search = null)
+        public async Task<IActionResult> Index(int page = 1, string? search = null, string[]? tags = null, string? status = null, string? sortBy = null, bool filterOpen = false)
         {
-            int pageSize = 12; 
+            int pageSize = 12;
+            var tagList = tags?.ToList();
 
-            var (comics, totalCount) = await _comicService.GetPublicComicsPagedAsync(page, pageSize, search);
+            var (comics, totalCount) = await _comicService.GetPublicComicsPagedAsync(page, pageSize, search, tagList, status, sortBy);
+            var allTags = await _tagService.GetAllWithUsageAsync();
 
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
             ViewBag.PageSize = pageSize;
             ViewBag.SearchTerm = search;
+            ViewBag.SelectedTags = tagList ?? new List<string>();
+            ViewBag.SelectedStatus = status;
+            ViewBag.SelectedSortBy = sortBy;
+            ViewBag.AllTags = allTags;
+            ViewBag.FilterOpen = filterOpen || tagList?.Any() == true || !string.IsNullOrEmpty(status) || !string.IsNullOrEmpty(sortBy);
 
             return View(comics);
+        }
+
+        // Redirect to a random comic based on filters
+        public async Task<IActionResult> Lucky(string? search = null, string[]? tags = null, string? status = null)
+        {
+            var tagList = tags?.ToList();
+            var comic = await _comicService.GetRandomComicAsync(search, tagList, status);
+
+            if (comic == null)
+            {
+                TempData["Info"] = "No comics found matching your criteria.";
+                return RedirectToAction("Index", new { search, tags, status, filterOpen = true });
+            }
+
+            return RedirectToAction("Detail", new { id = comic.ComicId });
         }
 
 
