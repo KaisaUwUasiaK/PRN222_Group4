@@ -105,6 +105,7 @@ namespace Group4_ReadingComicWeb
             app.MapHub<NotificationHub>("/hubs/notification");
             app.MapHub<LogHub>("/logHub");
 
+            app.MapHub<CommentHub>("/commentHub");
             await app.RunAsync();
         }
     }
