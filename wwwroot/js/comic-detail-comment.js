@@ -10,7 +10,7 @@
         .withUrl("/commentHub")
         .build();
 
-    // 2. join group
+    // 2. Join group
     connection.start().then(() => {
         console.log("SignalR Connected for Comic: " + currentComicId);
         connection.invoke("JoinComic", currentComicId);
@@ -22,7 +22,7 @@
 
         // Generate delete button if it is from own comment
         const deleteHtml = isOwnComment ? `
-            <form action="/Comic/DeleteComment" method="post" style="margin-left: auto;">
+            <form action="/Comic/DeleteComment" method="post" style="margin-left: auto;" onsubmit="return confirm('Are you sure you want to delete this comment?');">
                 <input type="hidden" name="commentId" value="${comment.commentId}" />
                 <input type="hidden" name="source" value="Detail" />
                 <input type="hidden" name="comicId" value="${currentComicId}" />
@@ -43,7 +43,7 @@
                             ${comment.userName}
                         </a>
                         <span class="comment-meta">
-                            Chapter ${comment.chapterNumber} • Vừa xong
+                            Chapter ${comment.chapterNumber} • Just now
                         </span>
                     </div>
                     ${deleteHtml}
@@ -57,7 +57,7 @@
             container.insertAdjacentHTML('afterbegin', html);
         }
 
-        // Delete  "No comments yet"
+        // Delete "No comments yet"
         const noCmt = document.querySelector('.comments-list p');
         if (noCmt && noCmt.textContent.includes('No comments yet')) {
             noCmt.parentElement.remove();
