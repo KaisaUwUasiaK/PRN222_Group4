@@ -158,8 +158,14 @@ namespace Group4_ReadingComicWeb.Controllers
                 var comicId = chapterData.CurrentChapter.ComicId;
                 var userName = User.Identity.Name;
 
+                var latestComment = chapterData.CurrentChapter.Comments?
+                    .Where(c => c.UserId == userId)
+                    .OrderByDescending(c => c.CreatedAt)
+                    .FirstOrDefault();
+
                 var commentPayload = new
                 {
+                    commentId = latestComment?.CommentId ?? 0,
                     userId = userId,
                     userName = userName,
                     avatarUrl = $"https://ui-avatars.com/api/?name={userName}&background=4F46E5&color=fff",
@@ -173,7 +179,6 @@ namespace Group4_ReadingComicWeb.Controllers
 
                 _memoryCache.Set(cacheKey, true, TimeSpan.FromSeconds(15));
 
-                TempData["SuccessMessage"] = "Đã gửi bình luận thành công!";
                 return Ok();
             }
 
@@ -195,8 +200,12 @@ namespace Group4_ReadingComicWeb.Controllers
                     await _hubContext.Clients.Group($"Comic_{comicId.Value}").SendAsync("RemoveComment", commentId);
                 }
             }
+            if (source == "Detail" && comicId.HasValue)
+            {
+                return RedirectToAction("Detail", new { id = comicId.Value });
+            }
 
-            
+            // Mặc định quay lại trang Read
             return Ok();
         }
         //Add/Delete Favorite
