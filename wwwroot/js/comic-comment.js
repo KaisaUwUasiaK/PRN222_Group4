@@ -1,4 +1,12 @@
-﻿document.addEventListener('DOMContentLoaded', function () {
+﻿function updateTotalCommentCount(change) {
+    const countSpan = document.getElementById('comment-total-count');
+    if (countSpan) {
+        let currentCount = parseInt(countSpan.innerText) || 0;
+        let newCount = currentCount + change;
+        countSpan.innerText = newCount > 0 ? newCount : 0; 
+    }
+}
+document.addEventListener('DOMContentLoaded', function () {
     const config = window.commentConfig;
     if (!config || !config.chapterId) return;
 
@@ -56,12 +64,16 @@
         // Remove the "No comments yet" message if it exists
         const noCmt = document.querySelector('.ph-chat-teardrop-slash');
         if (noCmt) noCmt.parentElement.remove();
+        updateTotalCommentCount(1);
     });
 
     // Catch the delete comment event from SignalR to hide the UI
     connection.on("RemoveComment", (commentId) => {
         const cmtBox = document.getElementById(`read-comment-${commentId}`);
-        if (cmtBox) cmtBox.remove();
+        if (cmtBox) {
+            cmtBox.remove();
+            updateTotalCommentCount(-1); 
+        }
     });
 
     // --- part 2: AJAX (Send form) ---
