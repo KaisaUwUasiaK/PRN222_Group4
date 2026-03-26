@@ -85,7 +85,7 @@
                 <h2>User Comments (@(ViewBag.TotalComments ?? 0))</h2>
             </div>
             
-            <div class="comments-list">
+            <div class="comments-list" id="detail-comments-container">
                 @if (paginatedComments != null && paginatedComments.Any())
                 {
                     @foreach (var comment in paginatedComments)
@@ -219,4 +219,15 @@
             }
         });
     </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
+
+    <script>
+        window.detailConfig = {
+            comicId: @Model.ComicId,
+            currentUserId: '@(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "")'
+        };
+    </script>
+
+    <script src="~/js/comic-detail-comment.js" asp-append-version="true"></script>
 }

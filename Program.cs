@@ -102,7 +102,7 @@ namespace Group4_ReadingComicWeb
             // SignalR hubs
             app.MapHub<UserStatusHub>("/hubs/userStatus");
             app.MapHub<NotificationHub>("/hubs/notification");
-
+            app.MapHub<CommentHub>("/commentHub");
             await app.RunAsync();
         }
     }
