@@ -1,6 +1,7 @@
 ﻿using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Services;
 using Group4_ReadingComicWeb.Services.Contracts;
+using Group4_ReadingComicWeb.Services.Implementations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,17 +20,20 @@ namespace Group4_ReadingComicWeb.Controllers
         private readonly IFavoriteService _favoriteService;
         private readonly INotificationService _notifService;
         private readonly AppDbContext _db;
+        private readonly LogService _logService;
 
         public PersonalComicController(
             IPersonalComicService comicService,
             IFavoriteService favoriteService,
             INotificationService notifService,
-            AppDbContext db)
+            AppDbContext db,
+            LogService logService)
         {
             _comicService = comicService;
             _favoriteService = favoriteService;
             _notifService = notifService;
             _db = db;
+            _logService = logService;
         }
 
         // Get current user authorize to system
@@ -90,6 +94,7 @@ namespace Group4_ReadingComicWeb.Controllers
 
                 foreach (var modId in moderatorIds)
                     await _notifService.NewComicPendingAsync(modId, comic.ComicId, comic.Title, authorName);
+                await _logService.AddLogAsync(GetCurrentUserId(), $"Uploaded new comic: {comic.Title}");
 
                 return RedirectToAction(nameof(Index));
             }
@@ -139,10 +144,20 @@ namespace Group4_ReadingComicWeb.Controllers
         // Remove comic
         [HttpPost]
         [ValidateAntiForgeryToken]
+        
         public async Task<IActionResult> Delete(int id)
         {
+            // Lấy tên truyện trước khi xóa để ghi log cho rõ ràng
+            var comic = await _db.Comics.FindAsync(id);
+            string title = comic?.Title ?? "Unknown Comic";
+
             bool success = await _comicService.DeleteComicAsync(GetCurrentUserId(), id);
-            if (!success) return NotFound();
+            if (success)
+            {
+                // 5. GHI LOG TẠI ĐÂY
+                await _logService.AddLogAsync(GetCurrentUserId(), $"Deleted comic: {title}");
+            }
+
             return RedirectToAction(nameof(Index));
         }
 

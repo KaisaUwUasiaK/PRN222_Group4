@@ -1,0 +1,62 @@
+﻿@model IEnumerable<Group4_ReadingComicWeb.Models.Log>
+
+<div class="table-responsive">
+    <table class="table table-log mb-0" id="logTable">
+        <thead>
+            <tr>
+                <th class="ps-4">User</th>
+                <th>Action</th>
+                <th class="text-end pe-4">Timestamp</th>
+            </tr>
+        </thead>
+        <tbody id="logTableBody">
+            @* KIỂM TRA NULL Ở ĐÂY *@
+            @if (Model != null && Model.Any())
+            {
+                foreach (var log in Model)
+                {
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="log-avatar">
+                                    @* Cẩn thận với Username bị null *@
+                                    @(log.User?.Username != null ? log.User.Username.Substring(0, 1).ToUpper() : "S")
+                                </div>
+                                <div class="ms-3">
+                                    <div class="text-white fw-bold">@(log.User?.Username ?? "System")</div>
+                                    <div class="text-muted small">#@log.LogId</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            @{
+                                var actionText = log.Action ?? "";
+                                var badgeClass = "badge-log-secondary";
+
+                                if (actionText.Contains("Login")) badgeClass = "badge-log-success";
+                                else if (actionText.Contains("Delete") || actionText.Contains("Ban")) badgeClass = "badge-log-danger";
+                                else if (actionText.Contains("Create") || actionText.Contains("Upload")) badgeClass = "badge-log-primary";
+                                else if (actionText.Contains("Edit") || actionText.Contains("Update")) badgeClass = "badge-log-info";
+                            }
+                            <span class="badge-log @badgeClass">
+                                @log.Action
+                            </span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="time-main">@log.CreatedAt.ToString("HH:mm:ss")</div>
+                            <div class="time-sub">@log.CreatedAt.ToString("dd MMM, yyyy")</div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="3" class="text-center py-5 text-muted">
+                        <i class="fas fa-info-circle me-2"></i>Chưa có hoạt động nào để hiển thị.
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

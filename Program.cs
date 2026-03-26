@@ -44,6 +44,7 @@ namespace Group4_ReadingComicWeb
             builder.Services.AddScoped<IReportService, ReportService>();
             builder.Services.AddScoped<ITagService, TagService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
+            builder.Services.AddScoped<LogService>();
 
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSignalR();
@@ -102,6 +103,7 @@ namespace Group4_ReadingComicWeb
             // SignalR hubs
             app.MapHub<UserStatusHub>("/hubs/userStatus");
             app.MapHub<NotificationHub>("/hubs/notification");
+            app.MapHub<LogHub>("/logHub");
 
             await app.RunAsync();
         }

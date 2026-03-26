@@ -1,122 +1,245 @@
-﻿@model List<Group4_ReadingComicWeb.Models.SystemLog>
-
+﻿@model List<Group4_ReadingComicWeb.Models.Log>
 @{
-    ViewData["Title"] = "System Logs";
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Full System Logs";
 }
 
 <style>
-    .log-card {
-        background: #0f172a;
+    /* Dàn trang Full Width */
+    .log-page-container {
+        padding: 1.5rem;
+        background-color: #1a1a27;
+        min-height: 100vh;
+    }
+
+    /* Container cho bảng chiếm 100% */
+    .log-card-full {
+        background-color: #1e1e2d;
         border-radius: 12px;
-        padding: 20px;
-        box-shadow: 0 0 20px rgba(0,0,0,0.4);
+        border: none;
+        width: 100%;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
 
-    .log-table th {
-        background: #1e293b;
+    /* CSS cho Table dàn đều */
+    .table-log {
+        width: 100% !important;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+        margin-top: -10px; /* Bù trừ khoảng cách hàng đầu tiên */
+    }
+
+        .table-log thead th {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: #565674;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            padding: 1.25rem 1.5rem;
+            border: none;
+        }
+
+        .table-log tbody tr {
+            background-color: rgba(255, 255, 255, 0.02);
+            transition: all 0.2s ease;
+        }
+
+            .table-log tbody tr:hover {
+                background-color: rgba(255, 255, 255, 0.05);
+                transform: translateY(-2px);
+            }
+
+        .table-log tbody td {
+            border: none;
+            padding: 1.25rem 1.5rem;
+            vertical-align: middle;
+            color: #a2a3b7;
+        }
+
+    /* Avatar & Badges */
+    .log-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #7239ea 0%, #a4508b 100%);
         color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        box-shadow: 0 4px 12px rgba(114, 57, 234, 0.2);
     }
 
-    .log-table td {
-        background: #111827;
-        color: #ddd;
+    .badge-log {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        display: inline-block;
     }
 
-    .log-table tr:hover td {
-        background: #1f2937;
+    .badge-log-success {
+        background: rgba(80, 205, 137, 0.1);
+        color: #50cd89;
     }
 
-    .filter-box input {
-        background: #1e293b;
-        border: none;
-        color: white;
-        padding: 6px 10px;
-        border-radius: 6px;
+    .badge-log-danger {
+        background: rgba(241, 65, 108, 0.1);
+        color: #f1416c;
     }
 
-    .btn-purple {
-        background: linear-gradient(45deg, #9333ea, #6366f1);
-        border: none;
-        color: white;
-        padding: 6px 14px;
-        border-radius: 6px;
+    .badge-log-primary {
+        background: rgba(0, 158, 247, 0.1);
+        color: #009ef7;
     }
 
-    .pagination a {
-        color: white;
-        padding: 6px 12px;
-        margin: 0 4px;
-        background: #1e293b;
-        border-radius: 6px;
-        text-decoration: none;
+    .badge-log-info {
+        background: rgba(114, 57, 234, 0.1);
+        color: #7239ea;
     }
 
-    .pagination .active {
-        background: #9333ea;
+    .badge-log-secondary {
+        background: rgba(162, 163, 183, 0.1);
+        color: #a2a3b7;
+    }
+
+    /* Phân trang nằm ngang */
+    .pagination {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: center;
+        list-style: none;
+        gap: 8px;
+    }
+
+    .time-main {
+        color: #fff;
+        font-weight: 600;
+        display: block;
+    }
+
+    .time-sub {
+        font-size: 0.8rem;
+        color: #565674;
     }
 </style>
 
-<div class="container mt-4">
-    <div class="log-card">
-
-        <h3 class="mb-3">📜 System Logs</h3>
-
-        <!-- FILTER -->
-        <form method="get" class="filter-box mb-3 d-flex gap-2 flex-wrap">
-            <input type="text" name="search" placeholder="Search username or action..."
-                   value="@ViewBag.Search" />
-
-            <input type="date" name="fromDate"
-                   value="@(ViewBag.FromDate != null ? ((DateTime)ViewBag.FromDate).ToString("yyyy-MM-dd") : "")" />
-
-            <input type="date" name="toDate"
-                   value="@(ViewBag.ToDate != null ? ((DateTime)ViewBag.ToDate).ToString("yyyy-MM-dd") : "")" />
-
-            <button type="submit" class="btn-purple">Filter</button>
-        </form>
-
-        <!-- TABLE -->
-        <table class="table log-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Username</th>
-                    <th>Action</th>
-                    <th>Time</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (Model.Any())
-                {
-                    foreach (var log in Model)
-                    {
-                        <tr>
-                            <td>@log.Id</td>
-                            <td style="color:#a855f7">@log.Username</td>
-                            <td>@log.Action</td>
-                            <td>@log.CreatedAt.ToString("dd/MM/yyyy HH:mm:ss")</td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="4" class="text-center">No logs found</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-
-        <!-- PAGINATION -->
-        <div class="pagination mt-3">
-            @for (int i = 1; i <= ViewBag.TotalPages; i++)
-            {
-                <a class="@(i == ViewBag.CurrentPage ? "active" : "")"
-                   href="?page=@i&search=@ViewBag.Search&fromDate=@ViewBag.FromDate&toDate=@ViewBag.ToDate">
-                    @i
-                </a>
-            }
+<div class="log-page-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-white fw-bold m-0">System Logs</h2>
+            <p class="text-muted small m-0">Lịch sử hoạt động chi tiết toàn hệ thống.</p>
         </div>
 
+        <form method="get" class="d-flex gap-2 align-items-center">
+            <div class="position-relative">
+                <i class="fas fa-search position-absolute text-muted" style="top: 50%; left: 15px; transform: translateY(-50%); z-index: 5;"></i>
+                <input type="text" name="search" value="@ViewBag.Search" placeholder="Tìm user, hành động..."
+                       class="form-control bg-dark text-white border-secondary ps-5"
+                       style="width: 350px; border-radius: 8px; height: 45px;">
+            </div>
+
+            <button type="submit" class="btn btn-primary px-4" style="border-radius: 8px; background: #7239ea; border: none; height: 45px; font-weight: 600;">
+                Search
+            </button>
+
+            @if (!string.IsNullOrEmpty(ViewBag.Search))
+            {
+                <a href="@Url.Action("Index")" class="btn btn-outline-secondary" style="border-radius: 8px; height: 45px; display: flex; align-items: center;">
+                    Reset
+                </a>
+            }
+        </form>
     </div>
+
+    <div class="log-card-full">
+        <div class="table-responsive">
+            <table class="table table-log mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 25%">User</th>
+                        <th style="width: 50%">Action</th>
+                        <th style="width: 25%" class="text-end">Timestamp</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var log in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="log-avatar">
+                                            @(log.User?.Username?.Substring(0, 1).ToUpper() ?? "S")
+                                        </div>
+                                        <div class="ms-3">
+                                            <div class="text-white fw-bold">@(log.User?.Username ?? "System")</div>
+                                            <div class="small" style="color: #565674;">ID: #@log.LogId</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @{
+                                        var act = log.Action ?? "";
+                                        var bClass = "badge-log-secondary";
+                                        if (act.Contains("Login")) bClass = "badge-log-success";
+                                        else if (act.Contains("Delete") || act.Contains("Ban")) bClass = "badge-log-danger";
+                                        else if (act.Contains("Create") || act.Contains("Upload")) bClass = "badge-log-primary";
+                                        else if (act.Contains("Edit") || act.Contains("Update")) bClass = "badge-log-info";
+                                    }
+                                    <span class="badge-log @bClass">@log.Action</span>
+                                </td>
+                                <td class="text-end">
+                                    <span class="time-main">@log.CreatedAt.ToString("HH:mm:ss")</span>
+                                    <span class="time-sub">@log.CreatedAt.ToString("dd MMM, yyyy")</span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center py-5">No logs found.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="d-flex justify-content-center mt-4">
+            <nav>
+                <ul class="pagination">
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link d-flex align-items-center justify-content-center"
+                               href="@Url.Action("Index", new { page = i, search = ViewBag.Search })"
+                               style="width: 40px; height: 40px; border-radius: 8px; border: none; margin: 0 4px; @(i == ViewBag.CurrentPage ? "background: #7239ea; color: white;" : "background: #1e1e2d; color: #a2a3b7;")">
+                                @i
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
 </div>
+
+@section Scripts {
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder().withUrl("/logHub").build();
+        connection.on("ReceiveLog", function (log) {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (!urlParams.get('page') || urlParams.get('page') === "1") {
+                 location.reload();
+            }
+        });
+        connection.start().catch(err => console.error(err.toString()));
+    </script>
+}
