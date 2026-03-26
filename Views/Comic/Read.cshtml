@@ -275,7 +275,7 @@
                 </div>
             }
 
-            <div class="space-y-8">
+            <div class="space-y-8" id="comments-container">
                 @if (Model.Comments != null && Model.Comments.Any())
                 {
                     var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
@@ -446,6 +446,15 @@
             document.getElementById('reportModal').classList.remove('active');
         }
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.0/signalr.min.js"></script>
 
+    <script>
+        window.commentConfig = {
+            chapterId: @Model.ChapterId,
+            currentUserId: '@(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "")'
+        };
+    </script>
+
+    <script src="~/js/comic-comment.js" asp-append-version="true"></script>
 </body>
 </html>
