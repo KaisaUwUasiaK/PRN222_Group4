@@ -168,11 +168,9 @@ namespace Group4_ReadingComicWeb.Controllers
                     createdAt = DateTime.Now.ToString("dd MMM, yyyy HH:mm")
                 };
 
-                // 3. Bắn SignalR
                 await _hubContext.Clients.Group($"Chapter_{ChapterId}").SendAsync("ReceiveComment", commentPayload);
                 await _hubContext.Clients.Group($"Comic_{comicId}").SendAsync("ReceiveComicComment", commentPayload);
 
-                // 4. Trả về mã 200 OK cho AJAX (KHÔNG dùng Redirect nữa)
                 _memoryCache.Set(cacheKey, true, TimeSpan.FromSeconds(15));
 
                 TempData["SuccessMessage"] = "Đã gửi bình luận thành công!";
@@ -181,25 +179,6 @@ namespace Group4_ReadingComicWeb.Controllers
 
             return RedirectToAction("Read", new { id = ChapterId });
         }
-        //Delete comment
-        //[HttpPost]
-        //[Authorize]
-        //public async Task<IActionResult> DeleteComment(int commentId, int chapterId, string source, int? comicId)
-        //{
-        //    var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
-        //    if (int.TryParse(userIdString, out int userId))
-        //    {
-        //        await _commentService.DeleteCommentAsync(commentId, userId);
-        //    }
-
-        //    if (source == "Detail" && comicId.HasValue)
-        //    {
-        //        return RedirectToAction("Detail", new { id = comicId.Value });
-        //    }
-
-        //    return RedirectToAction("Read", new { id = chapterId });
-        //}
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> DeleteComment(int commentId, int chapterId, string source, int? comicId)
@@ -209,7 +188,6 @@ namespace Group4_ReadingComicWeb.Controllers
             {
                 await _commentService.DeleteCommentAsync(commentId, userId);
 
-                // Bắn SignalR yêu cầu xóa comment ở cả 2 trang
                 await _hubContext.Clients.Group($"Chapter_{chapterId}").SendAsync("RemoveComment", commentId);
 
                 if (comicId.HasValue)
@@ -218,8 +196,7 @@ namespace Group4_ReadingComicWeb.Controllers
                 }
             }
 
-            // Chỗ này nếu dùng form submit thường thì giữ nguyên logic Return Redirect, 
-            // nhưng nếu dùng AJAX thì return Ok()
+            
             return Ok();
         }
         //Add/Delete Favorite
