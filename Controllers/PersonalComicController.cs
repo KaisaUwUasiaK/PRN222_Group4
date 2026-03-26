@@ -72,6 +72,15 @@ namespace Group4_ReadingComicWeb.Controllers
             {
                 ModelState.AddModelError("coverImage", "Please choose cover image!");
             }
+            else 
+            {
+                var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+                var ext = System.IO.Path.GetExtension(coverImage.FileName).ToLowerInvariant();
+                if (string.IsNullOrEmpty(ext) || !allowedExtensions.Contains(ext))
+                {
+                    ModelState.AddModelError("coverImage", "Invalid format, accepted only  JPG, PNG, WEBP file.");
+                }
+            }
             if (selectedTags == null || selectedTags.Length == 0)
             {
                 ModelState.AddModelError("selectedTags", "Please choose at least 1 tag");
