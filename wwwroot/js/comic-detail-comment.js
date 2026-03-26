@@ -67,6 +67,9 @@
     // 4. Catch RemoveComment 
     connection.on("RemoveComment", (commentId) => {
         const cmtBox = document.getElementById(`detail-comment-${commentId}`);
-        if (cmtBox) cmtBox.remove();
+        if (cmtBox) {
+            cmtBox.remove();
+            updateTotalCommentCount(-1);
+        }
     });
 });
