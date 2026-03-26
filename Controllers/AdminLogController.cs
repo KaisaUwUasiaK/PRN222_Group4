@@ -1,47 +1,50 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Group4_ReadingComicWeb.Services;
-using System;
+using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Services.Implementations;
+using Microsoft.EntityFrameworkCore;
 
 namespace Group4_ReadingComicWeb.Controllers
 {
     public class AdminLogController : Controller
     {
-        public IActionResult Index(string search, DateTime? fromDate, DateTime? toDate, int page = 1)
+        private readonly LogService _logService;
+        private readonly AppDbContext _context;
+
+        // SỬA TẠI ĐÂY: Thêm AppDbContext vào tham số truyền vào
+        public AdminLogController(LogService logService, AppDbContext context)
         {
-            int pageSize = 5;
+            _logService = logService;
+            _context = context;
+        }
 
-            var logs = LogService.GetLogs();
+        public async Task<IActionResult> Index(string search, DateTime? fromDate, DateTime? toDate, int page = 1)
+        {
+            int pageSize = 10;
+            var query = _logService.GetLogsQuery();
 
-            // Search
+            // 1. Tìm kiếm & Lọc ngày (Giữ nguyên logic tốt của bạn)
             if (!string.IsNullOrEmpty(search))
-            {
-                logs = logs
-                    .Where(x => x.Username.Contains(search, StringComparison.OrdinalIgnoreCase)
-                             || x.Action.Contains(search, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-            }
+                query = query.Where(x => x.User.Username.Contains(search) || x.Action.Contains(search));
 
-            // Date filter
             if (fromDate.HasValue)
-                logs = logs.Where(x => x.CreatedAt >= fromDate.Value).ToList();
+                query = query.Where(x => x.CreatedAt >= fromDate.Value);
 
             if (toDate.HasValue)
-                logs = logs.Where(x => x.CreatedAt <= toDate.Value).ToList();
+                query = query.Where(x => x.CreatedAt <= toDate.Value.AddDays(1).AddTicks(-1));
 
-            // Paging
-            int totalItems = logs.Count();
-            var pagedLogs = logs
+            // 2. Thực hiện lấy dữ liệu
+            int totalItems = await query.CountAsync();
+            var logs = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .ToList();
+                .ToListAsync();
 
+            // 3. Truyền dữ liệu bổ trợ ra View
             ViewBag.TotalPages = (int)Math.Ceiling((double)totalItems / pageSize);
             ViewBag.CurrentPage = page;
             ViewBag.Search = search;
-            ViewBag.FromDate = fromDate;
-            ViewBag.ToDate = toDate;
 
-            return View(pagedLogs);
+            return View(logs);
         }
     }
 }

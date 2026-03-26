@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "Dashboard";
     ViewData["Breadcrumb"] = "Dashboard";
     Layout = "_AdminLayout";
@@ -114,3 +114,82 @@
         </table>
     </div>
 </div>
+<div class="data-card" style="margin-top: 2rem;">
+    <div class="data-card-header">
+        <div class="d-flex align-items-center" style="gap: 10px;">
+            <h3 class="data-card-title">System Activities</h3>
+            <span class="badge badge-success" style="font-size: 0.7rem; padding: 2px 8px;">
+                <span class="badge-dot" style="background: #34D399; animation: pulse 2s infinite;"></span>Live
+            </span>
+        </div>
+        <a href="@Url.Action("Index", "AdminLog")" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem; text-decoration: none;">View All Logs</a>
+    </div>
+    <div style="overflow-x: auto;">
+        @* Giả sử bạn truyền 5 log mới nhất qua ViewBag.RecentLogs *@
+        @await Html.PartialAsync("~/Views/AdminLog/_LogTablePartial.cshtml", (IEnumerable<Group4_ReadingComicWeb.Models.Log>)ViewBag.RecentLogs)
+    </div>
+</div>
+
+<style>
+    @@keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.3;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .new-log-row {
+        animation: slideIn 0.5s ease-out;
+        background: rgba(124, 58, 237, 0.05);
+    }
+
+    @@keyframes slideIn {
+        from {
+            transform: translateX(-10px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
+<script>
+    const logConnection = new signalR.HubConnectionBuilder()
+        .withUrl("/logHub")
+        .build();
+
+    logConnection.on("ReceiveLog", function (log) {
+        const tbody = document.querySelector("#logTableDashboard tbody");
+        if (tbody) {
+            const rowHtml = `
+                <tr class="new-log-row">
+                    <td style="font-weight: 600; color: var(--text-primary);">${log.username}</td>
+                    <td>
+                        <span class="badge" style="background: rgba(124, 58, 237, 0.1); color: var(--color-primary); padding: 4px 8px; border-radius: 4px; font-size: 0.8rem;">
+                            ${log.action}
+                        </span>
+                    </td>
+                    <td style="text-align: right; color: var(--text-muted); font-size: 0.85rem;">${log.time.split(' ')[1]}</td>
+                </tr>
+            `;
+            // Chèn lên đầu
+            tbody.insertAdjacentHTML('afterbegin', rowHtml);
+
+            // Giữ lại tối đa 5 dòng cho đẹp Dashboard
+            if (tbody.children.length > 5) {
+                tbody.lastElementChild.remove();
+            }
+        }
+    });
+
+    logConnection.start().catch(err => console.error(err));
+</script>

@@ -1,0 +1,92 @@
+﻿/* Container & Table */
+.table-log {
+    border-collapse: separate;
+    border-spacing: 0 8px; /* Tạo khoảng cách giữa các hàng */
+}
+
+    .table-log thead th {
+        background-color: transparent;
+        color: #565674;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        border: none;
+        padding-bottom: 15px;
+    }
+
+    .table-log tbody tr {
+        background-color: rgba(255, 255, 255, 0.02);
+        transition: all 0.2s ease;
+    }
+
+        .table-log tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            transform: translateY(-2px);
+        }
+
+    .table-log tbody td {
+        border: none;
+        padding: 1rem 0.5rem;
+        vertical-align: middle;
+    }
+
+/* Định dạng Avatar */
+.log-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #7239ea 0%, #a4508b 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(114, 57, 234, 0.2);
+}
+
+/* Định dạng các loại Badge (Nhãn hành động) */
+.badge-log {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-log-success {
+    background: rgba(80, 205, 137, 0.1);
+    color: #50cd89;
+}
+
+.badge-log-danger {
+    background: rgba(241, 65, 108, 0.1);
+    color: #f1416c;
+}
+
+.badge-log-primary {
+    background: rgba(0, 158, 247, 0.1);
+    color: #009ef7;
+}
+
+.badge-log-info {
+    background: rgba(114, 57, 234, 0.1);
+    color: #7239ea;
+}
+
+.badge-log-secondary {
+    background: rgba(162, 163, 183, 0.1);
+    color: #a2a3b7;
+}
+
+/* Định dạng Thời gian */
+.time-main {
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: block;
+}
+
+.time-sub {
+    color: #565674;
+    font-size: 0.75rem;
+}

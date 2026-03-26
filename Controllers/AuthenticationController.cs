@@ -2,16 +2,19 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Group4_ReadingComicWeb.Services.Contracts;
 using Group4_ReadingComicWeb.ViewModels;
+using Group4_ReadingComicWeb.Services.Implementations;
 
 namespace Group4_ReadingComicWeb.Controllers;
 
 public class AuthenticationController : Controller
 {
     private readonly IAuthService _authService;
+    private readonly LogService _logService;
 
-    public AuthenticationController(IAuthService authService)
+    public AuthenticationController(IAuthService authService, LogService logService)
     {
         _authService = authService;
+        _logService = logService;
     }
 
     [HttpGet]
@@ -54,6 +57,7 @@ public class AuthenticationController : Controller
             ModelState.AddModelError(string.Empty, error ?? "Invalid email or password.");
             return View();
         }
+        await _logService.AddLogAsync(user.UserId, "Logged into the system");
 
         // Redirect to role-specific landing page
         return user.Role.RoleName switch
