@@ -1,4 +1,4 @@
-﻿using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models;
 
 namespace Group4_ReadingComicWeb.Services.Contracts
 {
@@ -81,6 +81,32 @@ namespace Group4_ReadingComicWeb.Services.Contracts
         /// <param name="reason">Lý do ẩn truyện (bắt buộc).</param>
         /// <returns>true nếu thành công, false nếu không tìm thấy bản ghi.</returns>
         Task<bool> HideComicAsync(int moderationId, int moderatorId, string reason);
+
+        /// <summary>
+        /// Bỏ ẩn truyện: cập nhật ModerationStatus = "Approved"
+        /// và đồng bộ Comic.Status = "OnWorking" để truyện hiển thị lại.
+        /// </summary>
+        /// <param name="moderationId">ID bản ghi ComicModeration cần unhide.</param>
+        /// <param name="moderatorId">UserId của moderator thực hiện hành động.</param>
+        /// <returns>true nếu thành công, false nếu không tìm thấy bản ghi.</returns>
+        Task<bool> UnhideComicAsync(int moderationId, int moderatorId);
+
+        /// <summary>
+        /// Lấy danh sách truyện phục vụ trang quản lý (Comic Management) kèm phân trang.
+        /// Lọc bỏ các truyện đang ở trạng thái Pending.
+        /// Hỗ trợ lọc theo uploader (UserId) và trạng thái.
+        /// </summary>
+        /// <param name="uploaderId">ID của user đăng tải (null nếu lấy tất cả).</param>
+        /// <param name="status">Trạng thái cần lọc (null nếu lấy tất cả).</param>
+        /// <param name="page">Số trang hiện tại.</param>
+        /// <param name="pageSize">Số bản ghi trên mỗi trang.</param>
+        Task<(List<ComicModeration> Items, int TotalCount)> GetComicsManagementAsync(int? uploaderId, string? status, int page, int pageSize);
+
+        /// <summary>
+        /// Lấy danh sách tất cả người dùng đã đăng truyện (Uploaders).
+        /// Dùng cho dropdown filter trong trang Comic Management.
+        /// </summary>
+        Task<List<User>> GetUploadersAsync();
 
         /// <summary>
         /// Lấy toàn bộ bản ghi kiểm duyệt (mọi trạng thái).

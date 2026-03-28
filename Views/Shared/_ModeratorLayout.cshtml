@@ -69,6 +69,12 @@
                 }
             </a>
 
+            <a href="@Url.Action("ComicManagement", "Moderation")"
+               class="nav-item @(currentController == "Moderation" && currentAction == "ComicManagement" ? "active" : "")">
+                <i class="ph ph-books"></i>
+                <span>Comic Management</span>
+            </a>
+
             <a href="@Url.Action("UserReports", "Report")"
                class="nav-item @(currentController == "Report" && (currentAction == "UserReports" || currentAction == "Details") ? "active" : "")">
                 <i class="ph ph-flag"></i>

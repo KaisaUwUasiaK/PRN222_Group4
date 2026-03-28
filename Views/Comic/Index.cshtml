@@ -179,12 +179,12 @@
             </h2>
             <p class="text-muted">
                 @(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "Discover the most complete comic book collection." :
-                $"Found {Model.Count()} results matching your search.")
+                $"Found {ViewBag.TotalCount} results matching your search.")
             </p>
         </div>
 
         <div class="flex gap-2">
-            <span class="tag">Total: @Model.Count()</span>
+            <span class="tag">Total: @ViewBag.TotalCount</span>
         </div>
     </div>
 

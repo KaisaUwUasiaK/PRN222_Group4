@@ -1,4 +1,4 @@
-﻿using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Services.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -48,6 +48,26 @@ namespace Group4_ReadingComicWeb.Controllers
             await SetSidebarBadgesAsync();
             var pendingModerations = await _moderationService.GetPendingComicsAsync();
             return View(pendingModerations);
+        }
+
+        [HttpGet("ComicManagement")]
+        public async Task<IActionResult> ComicManagement(int? uploaderId, string? status, int page = 1)
+        {
+            if (page < 1) page = 1;
+            int pageSize = 10;
+
+            await SetSidebarBadgesAsync();
+            var (moderations, totalCount) = await _moderationService.GetComicsManagementAsync(uploaderId, status, page, pageSize);
+            
+            ViewBag.Uploaders = await _moderationService.GetUploadersAsync();
+            ViewBag.SelectedUploaderId = uploaderId;
+            ViewBag.SelectedStatus = status;
+            
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+            ViewBag.TotalCount = totalCount;
+
+            return View(moderations);
         }
 
         [HttpGet("Review/{id}")]
@@ -180,7 +200,24 @@ namespace Group4_ReadingComicWeb.Controllers
                 reason);
 
             TempData["Success"] = "Comic hidden successfully!";
-            return RedirectToAction("Pending");
+            
+            // Redirect based on comic's previous state (managed vs pending)
+            // If it was already reviewed, it belongs to ComicManagement
+            return RedirectToAction("ComicManagement");
+        }
+
+        [HttpPost("Unhide")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Unhide(int id)
+        {
+            var moderatorId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (moderatorId == 0) return Unauthorized();
+
+            var result = await _moderationService.UnhideComicAsync(id, moderatorId);
+            if (!result) return NotFound();
+
+            TempData["Success"] = "Comic is now active again!";
+            return RedirectToAction("ComicManagement");
         }
     }
 }

@@ -62,7 +62,7 @@ public class AuthenticationController : Controller
         // Redirect to role-specific landing page
         return user.Role.RoleName switch
         {
-            "Admin" => RedirectToAction("Dashboard", "Admin"),
+            "Admin" => RedirectToAction("Users", "Admin"),
             "Moderator" => RedirectToAction("Dashboard", "Moderation"),
             _ => RedirectToAction("Index", "Home")
         };
@@ -78,6 +78,11 @@ public class AuthenticationController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
+        if (!string.IsNullOrEmpty(model.Email) && !model.Email.EndsWith("@gmail.com", StringComparison.OrdinalIgnoreCase))
+        {
+            ModelState.AddModelError(nameof(RegisterViewModel.Email), "Only @gmail.com addresses are allowed.");
+        }
+
         if (!ModelState.IsValid)
             return View(model);
 

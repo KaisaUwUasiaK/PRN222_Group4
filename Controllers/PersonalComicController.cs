@@ -1,4 +1,4 @@
-﻿using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Services;
 using Group4_ReadingComicWeb.Services.Contracts;
 using Group4_ReadingComicWeb.Services.Implementations;
@@ -142,6 +142,21 @@ namespace Group4_ReadingComicWeb.Controllers
             {
                 bool success = await _comicService.EditComicAsync(GetCurrentUserId(), id, comic, selectedTags, coverImage);
                 if (!success) return Forbid();
+
+                // Gửi thông báo cho TẤT CẢ Moderator khi có truyện được cập nhật chờ duyệt
+                var authorName = User.Identity?.Name ?? "Unknown";
+                var moderatorIds = await _db.Users
+                    .Where(u => u.Role.RoleName == "Moderator")
+                    .Select(u => u.UserId)
+                    .ToListAsync();
+
+                foreach (var modId in moderatorIds)
+                {
+                    await _notifService.NewComicPendingAsync(modId, comic.ComicId, comic.Title, authorName);
+                }
+
+                await _logService.AddLogAsync(GetCurrentUserId(), $"Updated comic: {comic.Title}");
+
                 return RedirectToAction(nameof(Index));
             }
 

@@ -1,4 +1,4 @@
-﻿using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Group4_ReadingComicWeb.Models

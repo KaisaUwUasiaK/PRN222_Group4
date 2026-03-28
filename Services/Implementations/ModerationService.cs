@@ -1,4 +1,4 @@
-﻿using Group4_ReadingComicWeb.Models;
+using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Models.Enum;
 using Group4_ReadingComicWeb.Services.Contracts;
 using Microsoft.EntityFrameworkCore;
@@ -157,6 +157,78 @@ namespace Group4_ReadingComicWeb.Services.Implementations
 
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        /// <summary>
+        /// Bỏ ẩn truyện.
+        /// - Đưa trạng thái moderation về Approved và Comic về OnWorking.
+        /// </summary>
+        public async Task<bool> UnhideComicAsync(int moderationId, int moderatorId)
+        {
+            var moderation = await _context.ComicModerations
+                .Include(cm => cm.Comic)
+                .FirstOrDefaultAsync(cm => cm.ComicModerationId == moderationId);
+
+            if (moderation == null)
+                return false;
+
+            moderation.ModerationStatus = nameof(ModerationStatus.Approved);
+            moderation.ModeratorId = moderatorId;
+            moderation.ProcessedAt = DateTime.Now;
+
+            moderation.Comic.Status = nameof(ComicStatus.OnWorking);
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        /// <summary>
+        /// Lấy danh sách truyện cho trang quản lý với phân trang.
+        /// Lọc bỏ các truyện đang Pending. Hỗ trợ lọc theo uploader và status.
+        /// </summary>
+        public async Task<(List<ComicModeration> Items, int TotalCount)> GetComicsManagementAsync(int? uploaderId, string? status, int page, int pageSize)
+        {
+            var query = _context.ComicModerations
+                .Include(cm => cm.Comic)
+                    .ThenInclude(c => c.Author)
+                .Include(cm => cm.Moderator)
+                .Where(cm => cm.Comic.Status != nameof(ComicStatus.Pending));
+
+            if (uploaderId.HasValue)
+            {
+                query = query.Where(cm => cm.Comic.AuthorId == uploaderId.Value);
+            }
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                if (status == "Hidden")
+                {
+                    query = query.Where(cm => cm.ModerationStatus == "Hidden");
+                }
+                else
+                {
+                    query = query.Where(cm => cm.Comic.Status == status);
+                }
+            }
+
+            var totalCount = await query.CountAsync();
+            var items = await query.OrderByDescending(cm => cm.Comic.CreatedAt)
+                                 .Skip((page - 1) * pageSize)
+                                 .Take(pageSize)
+                                 .ToListAsync();
+
+            return (items, totalCount);
+        }
+
+        /// <summary>
+        /// Lấy tất cả user có ít nhất một truyện trong hệ thống.
+        /// </summary>
+        public async Task<List<User>> GetUploadersAsync()
+        {
+            return await _context.Users
+                .Where(u => u.Comics.Any())
+                .OrderBy(u => u.Username)
+                .ToListAsync();
         }
 
         /// <summary>

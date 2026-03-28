@@ -28,7 +28,7 @@ namespace Group4_ReadingComicWeb.Services
                 .Include(c => c.Author)
                 .Include(c => c.Chapters)
                 .Where(c => c.AuthorId == userId)
-                .Where(c => c.Status != "Canceled" && c.Status != "Deleted")
+                .Where(c => c.Status != "Deleted")
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
         }
@@ -158,6 +158,24 @@ namespace Group4_ReadingComicWeb.Services
             existingComic.Title = comic.Title;
             existingComic.Description = comic.Description;
             existingComic.Status = "Pending";
+
+            // Update moderation status to Pending so moderators can see it
+            var moderation = await _context.ComicModerations.FirstOrDefaultAsync(cm => cm.ComicId == id);
+            if (moderation != null)
+            {
+                moderation.ModerationStatus = "Pending";
+                moderation.ModeratorId = null;
+                moderation.Note = null;
+                moderation.ProcessedAt = null;
+            }
+            else
+            {
+                _context.ComicModerations.Add(new ComicModeration
+                {
+                    ComicId = id,
+                    ModerationStatus = "Pending"
+                });
+            }
 
             if (coverImage != null)
             {

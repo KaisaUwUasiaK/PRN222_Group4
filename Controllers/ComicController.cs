@@ -35,7 +35,7 @@ namespace Group4_ReadingComicWeb.Controllers
         // List all public comics
         public async Task<IActionResult> Index(int page = 1, string? search = null, string[]? tags = null, string? status = null, string? sortBy = null, bool filterOpen = false)
         {
-            int pageSize = 12;
+            int pageSize = 15;
             var tagList = tags?.ToList();
 
             var (comics, totalCount) = await _comicService.GetPublicComicsPagedAsync(page, pageSize, search, tagList, status, sortBy);
@@ -43,6 +43,7 @@ namespace Group4_ReadingComicWeb.Controllers
 
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+            ViewBag.TotalCount = totalCount;
             ViewBag.PageSize = pageSize;
             ViewBag.SearchTerm = search;
             ViewBag.SelectedTags = tagList ?? new List<string>();
