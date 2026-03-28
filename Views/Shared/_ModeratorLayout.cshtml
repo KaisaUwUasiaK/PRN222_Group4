@@ -84,6 +84,12 @@
                 <i class="ph ph-tag"></i>
                 <span>Tag Management</span>
             </a>
+
+            <a href="@Url.Action("Index", "ModeratorUser")"
+               class="nav-item @(currentController == "ModeratorUser" ? "active" : "")">
+                <i class="ph ph-users"></i>
+                <span>User Management</span>
+            </a>
         </div>
 
         <div class="nav-spacer"></div>

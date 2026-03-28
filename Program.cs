@@ -45,6 +45,7 @@ namespace Group4_ReadingComicWeb
             builder.Services.AddScoped<ITagService, TagService>();
             builder.Services.AddScoped<INotificationService, NotificationService>();
             builder.Services.AddScoped<LogService>();
+            builder.Services.AddScoped<IModeratorUserService, ModeratorUserService>();
 
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSignalR();
