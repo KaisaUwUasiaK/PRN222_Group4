@@ -190,6 +190,11 @@ namespace Group4_ReadingComicWeb.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateChapter(int comicId, int chapterNumber, string title, List<IFormFile> pages)
         {
+            if (chapterNumber < 0)
+            {
+                TempData["ErrorMessage"] = "Chapter number cannot be negative (Số chương không được là số âm).";
+                return RedirectToAction("Chapters", new { id = comicId });
+            }
             var result = await _comicService.CreateChapterAsync(GetCurrentUserId(), comicId, chapterNumber, title, pages);
 
             if (!result.IsSuccess)
@@ -230,7 +235,11 @@ namespace Group4_ReadingComicWeb.Controllers
         {
             // 1. Check Id match
             if (id != model.ChapterId) return BadRequest();
-
+            if (model.ChapterNumber < 0)
+            {
+                ModelState.AddModelError("ChapterNumber", "Chapter number cannot be negative.");
+                return View(model);
+            }
             // 2. Validate form
             if (!ModelState.IsValid)
                 return View(model);
