@@ -6,6 +6,7 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +15,8 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@500;700&display=swap"
+          rel="stylesheet">
 
     <!-- Icons -->
     <script src="https://unpkg.com/%40phosphor-icons/web"></script>
@@ -26,38 +28,42 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" />
     <style>
         .validation-summary-errors {
-            display: none;
+        display: none;
         }
 
         /* Password toggle eye button */
         .input-wrapper {
-            position: relative;
+        position: relative;
         }
+
         .pwd-toggle {
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--text-muted);
-            display: flex;
-            align-items: center;
-            padding: 0;
-            font-size: 1.1rem;
-            transition: color 0.2s;
-            z-index: 2;
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        padding: 0;
+        font-size: 1.1rem;
+        transition: color 0.2s;
+        z-index: 2;
         }
+
         .pwd-toggle:hover {
-            color: var(--text-primary);
+        color: var(--text-primary);
         }
+
         /* Shift the input text so it doesn't overlap the eye icon */
         .has-pwd-toggle {
-            padding-right: 42px !important;
+        padding-right: 42px !important;
         }
     </style>
 </head>
+
 <body>
 
     <div class="auth-container">
@@ -101,10 +107,11 @@
                 <div class="form-group">
                     <label asp-for="Password" class="form-label">Password</label>
                     <div class="input-wrapper">
-                        <input asp-for="Password" id="passwordInput" type="password"
-                               class="form-input has-pwd-toggle" placeholder="••••••••" autocomplete="new-password">
+                        <input asp-for="Password" id="passwordInput" type="password" class="form-input has-pwd-toggle"
+                               placeholder="••••••••" autocomplete="new-password">
                         <i class="ph ph-lock-key input-icon"></i>
-                        <button type="button" class="pwd-toggle" id="togglePassword" tabindex="-1" aria-label="Toggle password visibility">
+                        <button type="button" class="pwd-toggle" id="togglePassword" tabindex="-1"
+                                aria-label="Toggle password visibility">
                             <i class="ph ph-eye" id="togglePasswordIcon"></i>
                         </button>
                     </div>
@@ -117,7 +124,8 @@
                         <input asp-for="ConfirmPassword" id="confirmPasswordInput" type="password"
                                class="form-input has-pwd-toggle" placeholder="••••••••" autocomplete="new-password">
                         <i class="ph ph-lock-key-open input-icon"></i>
-                        <button type="button" class="pwd-toggle" id="toggleConfirmPassword" tabindex="-1" aria-label="Toggle confirm password visibility">
+                        <button type="button" class="pwd-toggle" id="toggleConfirmPassword" tabindex="-1"
+                                aria-label="Toggle confirm password visibility">
                             <i class="ph ph-eye" id="toggleConfirmPasswordIcon"></i>
                         </button>
                     </div>
@@ -127,78 +135,81 @@
                 <div class="form-options">
                     <label class="checkbox-wrapper">
                         <input type="checkbox" name="terms" required>
-                        <span>I agree to the <a href="#" class="auth-link" style="margin: 0;">Terms & Conditions</a></span>
-                    </label>
+                        <span>I agree to the <a href="#" class="auth-link" style="margin: 0;">Terms &
+                            Conditions</a></span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+                </form>
+
+                <div class="auth-footer">
+                    Already have an account?
+                    <a href="@Url.Action("Login", "Authentication")" class="auth-link">Sign in</a>
                 </div>
-
-                <button type="submit" class="btn btn-primary btn-block">Create Account</button>
-            </form>
-
-            <div class="auth-footer">
-                Already have an account? 
-                <a href="@Url.Action("Login", "Authentication")" class="auth-link">Sign in</a>
             </div>
         </div>
-    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
-@await Html.PartialAsync("_ValidationScriptsPartial")
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const notyf = new Notyf({
+        <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+
+        @await Html.PartialAsync("_ValidationScriptsPartial")
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+            const notyf = new Notyf({
             duration: 4000,
             position: { x: 'right', y: 'top' },
             dismissible: true
-        });
-
-        // TempData-like notifications
-        @if (TempData["Success"] != null)
-        {
-            <text>notyf.success("@TempData["Success"]");</text>
-        }
-        @if (TempData["Error"] != null)
-        {
-            <text>notyf.error("@TempData["Error"]");</text>
-        }
-        @if (TempData["Warning"] != null)
-        {
-            <text>notyf.open({ type: 'warning', message: "@TempData["Warning"]" });</text>
-        }
-        @if (TempData["Info"] != null)
-        {
-            <text>notyf.open({ type: 'info', message: "@TempData["Info"]" });</text>
-        }
-
-        // Model validation errors
-        var errorItems = document.querySelectorAll('.validation-summary-errors li');
-        if (errorItems.length) {
-            errorItems.forEach(function (item) {
-                var msg = item.textContent.trim();
-                if (msg) {
-                    notyf.error(msg);
-                }
             });
-        }
 
-        // Password show/hide toggle
-        function setupPasswordToggle(inputId, toggleBtnId, iconId) {
-            var input  = document.getElementById(inputId);
-            var btn    = document.getElementById(toggleBtnId);
-            var icon   = document.getElementById(iconId);
+            // TempData-like notifications
+            @if (TempData["Success"] != null)
+            {
+                <text>notyf.success("@TempData["Success"]");</text>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <text>notyf.error("@TempData["Error"]");</text>
+            }
+            @if (TempData["Warning"] != null)
+            {
+                <text>notyf.open({type: 'warning', message: "@TempData["Warning"]" });</text>
+            }
+            @if (TempData["Info"] != null)
+            {
+                <text>notyf.open({type: 'info', message: "@TempData["Info"]" });</text>
+            }
+
+            // Model validation errors
+            var errorItems = document.querySelectorAll('.validation-summary-errors li');
+            if (errorItems.length) {
+            errorItems.forEach(function (item) {
+            var msg = item.textContent.trim();
+            if (msg) {
+            notyf.error(msg);
+            }
+            });
+            }
+
+            // Password show/hide toggle
+            function setupPasswordToggle(inputId, toggleBtnId, iconId) {
+            var input = document.getElementById(inputId);
+            var btn = document.getElementById(toggleBtnId);
+            var icon = document.getElementById(iconId);
             if (!input || !btn || !icon) return;
 
             btn.addEventListener('click', function () {
-                var isHidden = input.type === 'password';
-                input.type = isHidden ? 'text' : 'password';
-                // Switch between eye and eye-slash icons
-                icon.className = isHidden ? 'ph ph-eye-slash' : 'ph ph-eye';
+            var isHidden = input.type === 'password';
+            input.type = isHidden ? 'text' : 'password';
+            // Switch between eye and eye-slash icons
+            icon.className = isHidden ? 'ph ph-eye-slash' : 'ph ph-eye';
             });
-        }
+            }
 
-        setupPasswordToggle('passwordInput',        'togglePassword',        'togglePasswordIcon');
-        setupPasswordToggle('confirmPasswordInput', 'toggleConfirmPassword', 'toggleConfirmPasswordIcon');
-    });
-</script>
+            setupPasswordToggle('passwordInput', 'togglePassword', 'togglePasswordIcon');
+            setupPasswordToggle('confirmPasswordInput', 'toggleConfirmPassword', 'toggleConfirmPasswordIcon');
+            });
+        </script>
 
-</body>
+    </body>
+
 </html>

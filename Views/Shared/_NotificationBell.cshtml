@@ -1,0 +1,51 @@
+@model string
+
+@{
+    var role        = Model ?? "user";
+    var accentColor = role switch {
+        "admin"     => "#7C3AED",
+        "moderator" => "#8B5CF6",
+        _           => "#6366F1"
+    };
+}
+
+@if (role == "user")
+{
+    <div class="notif-bell-wrapper">
+        <div class="nav-icon-btn notif-bell-btn" style="cursor:pointer;" title="Notifications">
+            <i class="fa-regular fa-bell"></i>
+        </div>
+        <span class="notif-badge" id="notifBadge"></span>
+        <div class="notif-dropdown">
+            <div class="notif-header">
+                <span class="notif-header-title">
+                    <i class="fa-solid fa-bell" style="color:@accentColor; font-size:0.9rem;"></i>
+                    Notifications
+                </span>
+                <button class="notif-mark-all" style="color:@accentColor;">Mark all as read</button>
+            </div>
+            <div class="notif-list"></div>
+            <div class="notif-detail"></div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="notif-bell-wrapper">
+        <button class="btn btn-ghost notif-bell-btn" style="padding: 8px; position: relative;" title="Notifications">
+            <i class="ph ph-bell" style="font-size: 1.1rem;"></i>
+        </button>
+        <span class="notif-badge" id="notifBadge"></span>
+        <div class="notif-dropdown">
+            <div class="notif-header">
+                <span class="notif-header-title">
+                    <i class="ph-fill ph-bell" style="color:@accentColor;"></i>
+                    Notifications
+                </span>
+                <button class="notif-mark-all" style="color:@accentColor;">Mark all as read</button>
+            </div>
+            <div class="notif-list"></div>
+            <div class="notif-detail"></div>
+        </div>
+    </div>
+}

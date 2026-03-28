@@ -1,0 +1,169 @@
+@model IEnumerable<Group4_ReadingComicWeb.Models.User>
+@using Group4_ReadingComicWeb.Models.Enum
+
+@{
+    ViewData["Title"] = "User Management";
+    ViewData["Breadcrumb"] = "User Management";
+    Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
+
+    var users = Model.ToList();
+    var onlineCount = users.Count(u => u.Status == AccountStatus.Online);
+    var bannedCount = users.Count(u => u.Status == AccountStatus.Banned);
+}
+
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>User Management</h1>
+        <p>Manage user account statuses in real-time (User role only).</p>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem;">
+            <i class="ph ph-users" style="color: var(--color-primary);"></i>
+            <span id="totalUsersCount" style="font-weight: 700;">@users.Count</span>
+            <span style="color: var(--text-muted);">Total</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-accent); display: inline-block;"></span>
+            <span id="onlineCount" style="font-weight: 700;">@onlineCount</span>
+            <span style="color: var(--text-muted);">Online</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem;">
+            <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-danger); display: inline-block;"></span>
+            <span id="bannedCount" style="font-weight: 700;">@bannedCount</span>
+            <span style="color: var(--text-muted);">Banned</span>
+        </div>
+    </div>
+</div>
+
+<div class="data-card">
+    <div class="data-card-header">
+        <h3 class="data-card-title">
+            <i class="ph ph-user-list" style="margin-right: 6px; color: var(--color-primary);"></i>
+            User Accounts
+        </h3>
+    </div>
+
+    @if (!users.Any())
+    {
+        <div style="padding: 60px; text-align: center; color: var(--text-muted);">
+            <i class="ph ph-users-three" style="font-size: 3rem; display: block; margin-bottom: 12px; opacity: 0.4;"></i>
+            <p style="font-size: 0.95rem;">No users found.</p>
+        </div>
+    }
+    else
+    {
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in users)
+                    {
+                        var isOnline = user.Status == AccountStatus.Online;
+                        var isBanned = user.Status == AccountStatus.Banned;
+                        var dotColor = isBanned ? "var(--color-danger)" : isOnline ? "var(--color-accent)" : "var(--text-muted)";
+                        var badgeClass = isBanned ? "badge-banned" : isOnline ? "badge-online" : "badge-offline";
+                        var statusText = user.Status.ToString();
+                        var avatarUrl = !string.IsNullOrEmpty(user.AvatarUrl)
+                            ? user.AvatarUrl
+                            : "https://ui-avatars.com/api/?name=" + Uri.EscapeDataString(user.Username ?? "U") + "&background=8b5cf6&color=fff";
+
+                        <tr id="user-row-@user.UserId">
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div class="user-avatar-wrap">
+                                        <img src="@avatarUrl" alt="Avatar" class="user-avatar">
+                                        <div id="status-dot-@user.UserId" class="status-indicator" style="background: @dotColor;"></div>
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--text-primary); font-size: 0.9rem;">@user.Username</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">#@user.UserId</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="color: var(--text-secondary);">@user.Email</td>
+                            <td>
+                                <span id="status-badge-@user.UserId" class="badge @badgeClass">
+                                    <span id="status-color-dot-@user.UserId" class="badge-dot" style="background: @dotColor;"></span>
+                                    <span id="status-text-@user.UserId">@statusText</span>
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                @if (isBanned)
+                                {
+                                    <form asp-controller="ModeratorUser" asp-action="Unban" method="post" style="display: inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="userId" value="@user.UserId" />
+                                        <button type="submit" class="action-btn action-btn-unban">
+                                            <i class="ph ph-lock-open"></i> Unban
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span style="font-size: 0.8rem; color: var(--text-muted);">No action</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function updateStatus(userId, status) {
+            var dot = document.getElementById('status-dot-' + userId);
+            var badge = document.getElementById('status-badge-' + userId);
+            var colorDot = document.getElementById('status-color-dot-' + userId);
+            var text = document.getElementById('status-text-' + userId);
+
+            if (!dot || !badge || !text) return;
+
+            var cfgMap = {
+                'Online':  { color: 'var(--color-accent)', cls: 'badge badge-online' },
+                'Offline': { color: 'var(--text-muted)', cls: 'badge badge-offline' },
+                'Banned':  { color: 'var(--color-danger)', cls: 'badge badge-banned' }
+            };
+            var cfg = cfgMap[status] || cfgMap['Offline'];
+
+            dot.style.background = cfg.color;
+            if (colorDot) colorDot.style.background = cfg.color;
+            badge.className = cfg.cls;
+            text.textContent = status;
+
+            recalcCounters();
+        }
+
+        function recalcCounters() {
+            var online = 0;
+            var banned = 0;
+
+            document.querySelectorAll('[id^="status-text-"]').forEach(function (el) {
+                if (el.textContent === 'Online') online++;
+                if (el.textContent === 'Banned') banned++;
+            });
+
+            var onlineCountEl = document.getElementById('onlineCount');
+            var bannedCountEl = document.getElementById('bannedCount');
+
+            if (onlineCountEl) onlineCountEl.textContent = online;
+            if (bannedCountEl) bannedCountEl.textContent = banned;
+        }
+
+        if (typeof statusConnection !== 'undefined') {
+            statusConnection.on("UserOnline", function (userId) { updateStatus(userId, 'Online'); });
+            statusConnection.on("UserOffline", function (userId) { updateStatus(userId, 'Offline'); });
+            statusConnection.on("UserBanned", function (userId) { updateStatus(userId, 'Banned'); });
+            statusConnection.on("UserStatusChanged", function (userId, status) { updateStatus(userId, status); });
+        }
+    </script>
+}

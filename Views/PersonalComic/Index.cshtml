@@ -78,7 +78,7 @@
         .comic-card-horizontal:hover {
             border-color: rgba(99, 102, 241, 0.4);
             transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         }
 
         .comic-cover {
@@ -87,7 +87,7 @@
             aspect-ratio: 2/3;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             position: relative;
         }
 
@@ -106,7 +106,8 @@
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            min-width: 0; /* Important for text truncation */
+            min-width: 0;
+            /* Important for text truncation */
         }
 
         .comic-header {
@@ -155,20 +156,55 @@
             border-radius: 50%;
         }
 
-        .status-pending { background: rgba(245, 158, 11, 0.1); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.2); }
-        .status-pending .status-dot { background: #F59E0B; }
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: #F59E0B;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
 
-        .status-working { background: rgba(59, 130, 246, 0.1); color: #3B82F6; border: 1px solid rgba(59, 130, 246, 0.2); }
-        .status-working .status-dot { background: #3B82F6; }
+        .status-pending .status-dot {
+            background: #F59E0B;
+        }
 
-        .status-completed { background: rgba(16, 185, 129, 0.1); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.2); }
-        .status-completed .status-dot { background: #10B981; }
+        .status-working {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3B82F6;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
 
-        .status-rejected { background: rgba(239, 68, 68, 0.1); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.2); }
-        .status-rejected .status-dot { background: #EF4444; }
+        .status-working .status-dot {
+            background: #3B82F6;
+        }
 
-        .status-canceled { background: rgba(107, 114, 128, 0.1); color: #9CA3AF; border: 1px solid rgba(107, 114, 128, 0.2); }
-        .status-canceled .status-dot { background: #9CA3AF; }
+        .status-completed {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10B981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-completed .status-dot {
+            background: #10B981;
+        }
+
+        .status-rejected {
+            background: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .status-rejected .status-dot {
+            background: #EF4444;
+        }
+
+        .status-canceled {
+            background: rgba(107, 114, 128, 0.1);
+            color: #9CA3AF;
+            border: 1px solid rgba(107, 114, 128, 0.2);
+        }
+
+        .status-canceled .status-dot {
+            background: #9CA3AF;
+        }
 
         .comic-stats {
             display: flex;
@@ -199,7 +235,7 @@
             gap: 10px;
             flex-wrap: wrap;
         }
-        
+
         .comic-actions .btn {
             font-size: 13px;
             padding: 8px 16px;
@@ -220,7 +256,7 @@
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid transparent;
         }
-        
+
         .btn-delete-comic:hover {
             background: #EF4444;
             color: white;
@@ -271,8 +307,7 @@
                 <div class="comic-card-horizontal">
                     <div class="comic-cover">
                         <img src="@(string.IsNullOrEmpty(item.CoverImage) ? "https://via.placeholder.com/150x200?text=No+Cover" : item.CoverImage)"
-                             alt="@item.Title"
-                             onerror="this.src='https://via.placeholder.com/150x200?text=No+Cover'">
+                             alt="@item.Title" onerror="this.src='https://via.placeholder.com/150x200?text=No+Cover'">
                     </div>
 
                     <div class="comic-details">
@@ -283,30 +318,30 @@
                                 string statusClass = "status-canceled";
                                 string statusText = item.Status;
 
-                                if (item.Status == "Pending") 
-                                { 
-                                    statusClass = "status-pending"; 
-                                    statusText = "Pending"; 
+                                if (item.Status == "Pending")
+                                {
+                                    statusClass = "status-pending";
+                                    statusText = "Pending";
                                 }
-                                else if (item.Status == "OnWorking") 
-                                { 
-                                    statusClass = "status-working"; 
-                                    statusText = "Ongoing"; 
+                                else if (item.Status == "OnWorking")
+                                {
+                                    statusClass = "status-working";
+                                    statusText = "Ongoing";
                                 }
-                                else if (item.Status == "Completed") 
-                                { 
-                                    statusClass = "status-completed"; 
-                                    statusText = "Completed"; 
+                                else if (item.Status == "Completed")
+                                {
+                                    statusClass = "status-completed";
+                                    statusText = "Completed";
                                 }
-                                else if (item.Status == "Rejected") 
-                                { 
-                                    statusClass = "status-rejected"; 
-                                    statusText = "Rejected"; 
+                                else if (item.Status == "Rejected")
+                                {
+                                    statusClass = "status-rejected";
+                                    statusText = "Rejected";
                                 }
-                                else if (item.Status == "Canceled") 
-                                { 
-                                    statusClass = "status-canceled"; 
-                                    statusText = "Canceled"; 
+                                else if (item.Status == "Canceled")
+                                {
+                                    statusClass = "status-canceled";
+                                    statusText = "Canceled";
                                 }
                             }
 
@@ -315,54 +350,56 @@
                                 @statusText
                             </span>
                         </div>
-                        
-                        <p class="comic-desc">@(string.IsNullOrWhiteSpace(item.Description) ? "No description provided." : item.Description)</p>
 
-                        <div class="comic-stats">
-                            <div class="stat-item" title="Published Date">
-                                <i class="fa-solid fa-calendar-days"></i> @item.CreatedAt.ToString("MMM dd, yyyy")
-                            </div>
-                            <div class="stat-item" title="Total Chapters">
-                                <i class="fa-solid fa-layer-group"></i> @(item.Chapters?.Count ?? 0) Chapters
-                            </div>
-                            <div class="stat-item highlight" title="Total Views">
-                                <i class="fa-solid fa-eye"></i> @item.ViewCount.ToString("N0")
-                            </div>
-                        </div>
+                        <p class="comic-desc">@(string.IsNullOrWhiteSpace(item.Description) ? "No description provided." :
+                                                                            item.Description)</p>
 
-                        <div class="comic-actions">
-                            <a href="@Url.Action("Chapters", new { id = item.ComicId })" class="btn btn-outline">
-                                <i class="fa-solid fa-list"></i> Chapters
-                            </a>
-                           
-                            @if (item.Status != "Canceled")
-                            {
-                                <a href="@Url.Action("Edit", new { id = item.ComicId })" class="btn btn-action">
-                                    <i class="fa-solid fa-pen"></i> Edit
+                            <div class="comic-stats">
+                                <div class="stat-item" title="Published Date">
+                                    <i class="fa-solid fa-calendar-days"></i> @item.CreatedAt.ToString("MMM dd, yyyy")
+                                </div>
+                                <div class="stat-item" title="Total Chapters">
+                                    <i class="fa-solid fa-layer-group"></i> @(item.Chapters?.Count ?? 0) Chapters
+                                </div>
+                                <div class="stat-item highlight" title="Total Views">
+                                    <i class="fa-solid fa-eye"></i> @item.ViewCount.ToString("N0")
+                                </div>
+                            </div>
+
+                            <div class="comic-actions">
+                                <a href="@Url.Action("Chapters", new { id = item.ComicId })" class="btn btn-outline">
+                                    <i class="fa-solid fa-list"></i> Chapters
                                 </a>
-                            }
 
-                            <form asp-action="Delete" asp-route-id="@item.ComicId" method="post" style="display:inline-block; margin: 0;">
-                                @Html.AntiForgeryToken() 
-                                @if (item.Status == "Pending")
+                                @if (item.Status != "Rejected")
                                 {
-                                    <button type="submit" class="btn btn-cancel-comic"
-                                            onclick="return confirm('Are you sure you want to CANCEL this comic request? The status will be changed to Canceled.');">
-                                        <i class="fa-solid fa-ban"></i> Cancel
-                                    </button>
+                                    <a href="@Url.Action("Edit", new { id = item.ComicId })" class="btn btn-action">
+                                        <i class="fa-solid fa-pen"></i> Edit
+                                    </a>
                                 }
-                                else if (item.Status == "OnWorking" || item.Status == "Completed" || item.Status == "Rejected" || item.Status == "Canceled")
-                                {
-                                    <button type="submit" class="btn btn-delete-comic"
-                                            onclick="return confirm('WARNING: This action will PERMANENTLY DELETE the comic and all its chapters. This cannot be undone!');">
-                                        <i class="fa-solid fa-trash-can"></i> Delete
-                                    </button>
-                                }
-                            </form>
+
+                                <form asp-action="Delete" asp-route-id="@item.ComicId" method="post"
+                                      style="display:inline-block; margin: 0;">
+                                    @Html.AntiForgeryToken()
+                                    @if (item.Status == "Pending")
+                                    {
+                                        <button type="submit" class="btn btn-cancel-comic"
+                                                onclick="return confirm('Are you sure you want to CANCEL this comic request? The status will be changed to Canceled.');">
+                                            <i class="fa-solid fa-ban"></i> Cancel
+                                        </button>
+                                    }
+                                    else if (item.Status == "OnWorking" || item.Status == "Completed" || item.Status == "Rejected" || item.Status == "Canceled")
+                                    {
+                                        <button type="submit" class="btn btn-delete-comic"
+                                                onclick="return confirm('WARNING: This action will PERMANENTLY DELETE the comic and all its chapters. This cannot be undone!');">
+                                            <i class="fa-solid fa-trash-can"></i> Delete
+                                        </button>
+                                    }
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
-            }
-        </div>
-    }
-</div>
+                }
+            </div>
+        }
+    </div>

@@ -1,8 +1,10 @@
+using Group4_ReadingComicWeb.Hubs;
 using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Services;
 using Group4_ReadingComicWeb.Services.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Memory;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -17,29 +19,55 @@ namespace Group4_ReadingComicWeb.Controllers
 
         private readonly IMemoryCache _memoryCache;
         private readonly IFavoriteService _favoriteService;
-
-        public ComicController(IComicService comicService, ICommentService commentService, IMemoryCache memoryCache, IFavoriteService favoriteService)
+        private readonly ITagService _tagService;
+        private readonly IHubContext<CommentHub> _hubContext;
+        public ComicController(IComicService comicService, ICommentService commentService, IMemoryCache memoryCache, IFavoriteService favoriteService, ITagService tagService, IHubContext<CommentHub> hubContext)
         {
             _comicService = comicService;
             _commentService = commentService;
             _memoryCache = memoryCache;
             _favoriteService = favoriteService;
+            _tagService = tagService;
+            _hubContext = hubContext;
         }
 
 
         // List all public comics
-        public async Task<IActionResult> Index(int page = 1, string? search = null)
+        public async Task<IActionResult> Index(int page = 1, string? search = null, string[]? tags = null, string? status = null, string? sortBy = null, bool filterOpen = false)
         {
-            int pageSize = 12; 
+            int pageSize = 15;
+            var tagList = tags?.ToList();
 
-            var (comics, totalCount) = await _comicService.GetPublicComicsPagedAsync(page, pageSize, search);
+            var (comics, totalCount) = await _comicService.GetPublicComicsPagedAsync(page, pageSize, search, tagList, status, sortBy);
+            var allTags = await _tagService.GetAllWithUsageAsync();
 
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+            ViewBag.TotalCount = totalCount;
             ViewBag.PageSize = pageSize;
             ViewBag.SearchTerm = search;
+            ViewBag.SelectedTags = tagList ?? new List<string>();
+            ViewBag.SelectedStatus = status;
+            ViewBag.SelectedSortBy = sortBy;
+            ViewBag.AllTags = allTags;
+            ViewBag.FilterOpen = filterOpen || tagList?.Any() == true || !string.IsNullOrEmpty(status) || !string.IsNullOrEmpty(sortBy);
 
             return View(comics);
+        }
+
+        // Redirect to a random comic based on filters
+        public async Task<IActionResult> Lucky(string? search = null, string[]? tags = null, string? status = null)
+        {
+            var tagList = tags?.ToList();
+            var comic = await _comicService.GetRandomComicAsync(search, tagList, status);
+
+            if (comic == null)
+            {
+                TempData["Info"] = "No comics found matching your criteria.";
+                return RedirectToAction("Index", new { search, tags, status, filterOpen = true });
+            }
+
+            return RedirectToAction("Detail", new { id = comic.ComicId });
         }
 
 
@@ -127,34 +155,60 @@ namespace Group4_ReadingComicWeb.Controllers
                 }
 
                 await _commentService.AddCommentAsync(ChapterId, userId, Content);
+                var chapterData = await _comicService.GetChapterForReadingAsync(ChapterId);
+                var comicId = chapterData.CurrentChapter.ComicId;
+                var userName = User.Identity.Name;
+
+                var latestComment = chapterData.CurrentChapter.Comments?
+                    .Where(c => c.UserId == userId)
+                    .OrderByDescending(c => c.CreatedAt)
+                    .FirstOrDefault();
+
+                var commentPayload = new
+                {
+                    commentId = latestComment?.CommentId ?? 0,
+                    userId = userId,
+                    userName = userName,
+                    avatarUrl = $"https://ui-avatars.com/api/?name={userName}&background=4F46E5&color=fff",
+                    content = Content,
+                    chapterNumber = chapterData.CurrentChapter.ChapterNumber,
+                    createdAt = DateTime.Now.ToString("dd MMM, yyyy HH:mm")
+                };
+
+                await _hubContext.Clients.Group($"Chapter_{ChapterId}").SendAsync("ReceiveComment", commentPayload);
+                await _hubContext.Clients.Group($"Comic_{comicId}").SendAsync("ReceiveComicComment", commentPayload);
 
                 _memoryCache.Set(cacheKey, true, TimeSpan.FromSeconds(15));
 
-                TempData["SuccessMessage"] = "Đã gửi bình luận thành công!";
+                return Ok();
             }
 
             return RedirectToAction("Read", new { id = ChapterId });
         }
-        //Delete comment
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> DeleteComment(int commentId, int chapterId, string source, int? comicId)
         {
-            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (int.TryParse(userIdString, out int userId))
             {
                 await _commentService.DeleteCommentAsync(commentId, userId);
-            }
 
+                await _hubContext.Clients.Group($"Chapter_{chapterId}").SendAsync("RemoveComment", commentId);
+
+                if (comicId.HasValue)
+                {
+                    await _hubContext.Clients.Group($"Comic_{comicId.Value}").SendAsync("RemoveComment", commentId);
+                }
+            }
             if (source == "Detail" && comicId.HasValue)
             {
                 return RedirectToAction("Detail", new { id = comicId.Value });
             }
 
-            return RedirectToAction("Read", new { id = chapterId });
+            // Mặc định quay lại trang Read
+            return Ok();
         }
-       
         //Add/Delete Favorite
         [HttpPost]
         [Authorize]

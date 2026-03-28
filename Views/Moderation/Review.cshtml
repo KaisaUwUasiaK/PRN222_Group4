@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewData["Title"] = "Review Comic";
     ViewData["Breadcrumb"] = "Review Comic";
     Layout = "~/Views/Shared/_ModeratorLayout.cshtml";
@@ -12,7 +12,13 @@
         <h1>Review Comic</h1>
         <p>Review comic details and take moderation action</p>
     </div>
-    <a href="@Url.Action("Pending", "Moderation")" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem;">Back to Pending</a>
+    @{
+        var backUrl = Model?.Comic.Status == "Pending" 
+            ? Url.Action("Pending", "Moderation") 
+            : Url.Action("ComicManagement", "Moderation");
+        var backText = Model?.Comic.Status == "Pending" ? "Back to Pending" : "Back to Management";
+    }
+    <a href="@backUrl" class="btn btn-outline" style="padding: 6px 14px; font-size: 0.85rem;">@backText</a>
 </div>
 
 @if (Model != null)
@@ -154,18 +160,36 @@
             </h3>
         </div>
         <div style="padding: 1.25rem 1.5rem; display: flex; gap: 0.75rem; flex-wrap: wrap;">
-            <form action="@Url.Action("Approve", "Moderation", new { id = Model.ComicModerationId })" method="post" style="display: inline;">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="action-btn" style="color: var(--color-accent); border-color: rgba(16,185,129,0.3); padding: 8px 20px;">
-                    <i class="ph ph-check-circle"></i> Approve
+            @if (Model.Comic.Status == "Pending")
+            {
+                <form action="@Url.Action("Approve", "Moderation", new { id = Model.ComicModerationId })" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="action-btn" style="color: var(--color-accent); border-color: rgba(16,185,129,0.3); padding: 8px 20px;">
+                        <i class="ph ph-check-circle"></i> Approve
+                    </button>
+                </form>
+                <button type="button" class="action-btn" style="color: #FBBF24; border-color: rgba(245,158,11,0.3); padding: 8px 20px;" onclick="showRejectModal();">
+                    <i class="ph ph-x-circle"></i> Reject
                 </button>
-            </form>
-            <button type="button" class="action-btn" style="color: #FBBF24; border-color: rgba(245,158,11,0.3); padding: 8px 20px;" onclick="showRejectModal();">
-                <i class="ph ph-x-circle"></i> Reject
-            </button>
-            <button type="button" class="action-btn action-btn-ban" style="padding: 8px 20px;" onclick="showHideModal();">
-                <i class="ph ph-eye-slash"></i> Hide
-            </button>
+            }
+            else
+            {
+                if (Model.ModerationStatus == "Hidden")
+                {
+                    <form action="@Url.Action("Unhide", "Moderation", new { id = Model.ComicModerationId })" method="post" style="display: inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="action-btn" style="color: var(--color-accent); border-color: rgba(16,185,129,0.3); padding: 8px 20px;">
+                            <i class="ph ph-eye"></i> Unhide
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <button type="button" class="action-btn action-btn-ban" style="padding: 8px 20px;" onclick="showHideModal();">
+                        <i class="ph ph-eye-slash"></i> Hide
+                    </button>
+                }
+            }
         </div>
     </div>
 
