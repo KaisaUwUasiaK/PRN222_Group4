@@ -324,7 +324,7 @@
                                                 <input type="hidden" name="commentId" value="@comment.CommentId" />
                                                 <input type="hidden" name="chapterId" value="@comment.ChapterId" />
                                                 <input type="hidden" name="source" value="Read" />
-
+                                                <input type="hidden" name="comicId" value="@Model.ComicId" />
                                                 <button type="submit" class="text-gray-600 hover:text-red-500 transition-colors p-1" title="Delete">
                                                     <i class="ph ph-trash text-base md:text-lg"></i>
                                                 </button>
@@ -451,10 +451,12 @@
     <script>
         window.commentConfig = {
             chapterId: @Model.ChapterId,
+            comicId: @Model.ComicId,
             currentUserId: '@(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "")'
         };
     </script>
 
     <script src="~/js/comic-comment.js" asp-append-version="true"></script>
+
 </body>
 </html>

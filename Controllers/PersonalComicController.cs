@@ -1,9 +1,11 @@
-﻿using Group4_ReadingComicWeb.Models;
+﻿using Group4_ReadingComicWeb.Hubs;
+using Group4_ReadingComicWeb.Models;
 using Group4_ReadingComicWeb.Services;
 using Group4_ReadingComicWeb.Services.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,17 +21,18 @@ namespace Group4_ReadingComicWeb.Controllers
         private readonly IFavoriteService _favoriteService;
         private readonly INotificationService _notifService;
         private readonly AppDbContext _db;
-
+        private readonly IHubContext<ComicHub> _hubContext;
         public PersonalComicController(
             IPersonalComicService comicService,
             IFavoriteService favoriteService,
             INotificationService notifService,
-            AppDbContext db)
+            AppDbContext db, IHubContext<ComicHub> hubContext)
         {
             _comicService = comicService;
             _favoriteService = favoriteService;
             _notifService = notifService;
             _db = db;
+            _hubContext = hubContext;
         }
 
         // Get current user authorize to system
@@ -89,7 +92,6 @@ namespace Group4_ReadingComicWeb.Controllers
             if (ModelState.IsValid)
             {
                 await _comicService.CreateComicAsync(GetCurrentUserId(), comic, selectedTags ?? new int[0], coverImage);
-
                 // Gửi thông báo cho TẤT CẢ Moderator khi có truyện mới chờ duyệt
                 var authorName = User.Identity?.Name ?? "Unknown";
                 var moderatorIds = await _db.Users
@@ -99,7 +101,14 @@ namespace Group4_ReadingComicWeb.Controllers
 
                 foreach (var modId in moderatorIds)
                     await _notifService.NewComicPendingAsync(modId, comic.ComicId, comic.Title, authorName);
-
+                var newComicData = new
+                {
+                    id = comic.ComicId,
+                    title = comic.Title,
+                    author = authorName,
+                    status = "Pending"
+                };
+                await _hubContext.Clients.Group("ModeratorGroup").SendAsync("Moderator_NewComic", newComicData);
                 return RedirectToAction(nameof(Index));
             }
 
@@ -137,6 +146,8 @@ namespace Group4_ReadingComicWeb.Controllers
             {
                 bool success = await _comicService.EditComicAsync(GetCurrentUserId(), id, comic, selectedTags, coverImage);
                 if (!success) return Forbid();
+                var updatedData = new { id = comic.ComicId, title = comic.Title };
+                await _hubContext.Clients.Group("ModeratorGroup").SendAsync("Moderator_UpdateComic", updatedData);
                 return RedirectToAction(nameof(Index));
             }
 
@@ -152,6 +163,7 @@ namespace Group4_ReadingComicWeb.Controllers
         {
             bool success = await _comicService.DeleteComicAsync(GetCurrentUserId(), id);
             if (!success) return NotFound();
+            await _hubContext.Clients.Group("ModeratorGroup").SendAsync("Moderator_DeleteComic", id);
             return RedirectToAction(nameof(Index));
         }
 
@@ -247,7 +259,6 @@ namespace Group4_ReadingComicWeb.Controllers
             // 4. Call service
             bool success = await _comicService.EditChapterAsync(GetCurrentUserId(), id, model, newPages ?? new List<IFormFile>());
             if (!success) return NotFound();
-
             return RedirectToAction("Chapters", new { id = model.ComicId });
         }
 

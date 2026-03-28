@@ -28,12 +28,13 @@ namespace Group4_ReadingComicWeb.Services.Implementations
         public async Task<List<ComicModeration>> GetPendingComicsAsync()
         {
             return await _context.ComicModerations
-                .Where(cm => cm.ModerationStatus == nameof(ModerationStatus.Pending))
-                .Include(cm => cm.Comic)
+                    .Where(cm => cm.ModerationStatus == nameof(ModerationStatus.Pending)
+                     && cm.Comic.Status != "Canceled")
+                     .Include(cm => cm.Comic)
                     .ThenInclude(c => c.Author)
-                .Include(cm => cm.Moderator)
-                .OrderBy(cm => cm.Comic.CreatedAt)
-                .ToListAsync();
+                    .Include(cm => cm.Moderator)
+                    .OrderBy(cm => cm.Comic.CreatedAt)
+                    .ToListAsync();
         }
 
         /// <summary>

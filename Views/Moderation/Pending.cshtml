@@ -41,9 +41,14 @@
                 <tbody>
                     @foreach (var moderation in Model)
                     {
-                        <tr>
-                            <td style="font-weight: 600; color: var(--text-primary);">@moderation.Comic.Title</td>
+                        <tr id="comic-row-@moderation.Comic.ComicId">
+
+                            <td class="comic-title" style="font-weight: 600; color: var(--text-primary);">
+                                @moderation.Comic.Title
+                            </td>
+
                             <td>@(moderation.Comic.Author?.Username ?? "Unknown Author")</td>
+
                             <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                                 @{
                                     var desc = moderation.Comic.Description ?? "";
@@ -51,13 +56,16 @@
                                 }
                                 @truncated
                             </td>
+
                             <td>@moderation.Comic.CreatedAt.ToString("MMM dd, yyyy")</td>
+
                             <td>
                                 <span class="badge badge-warning">
                                     <span class="badge-dot" style="background: #FBBF24;"></span>
                                     Pending
                                 </span>
                             </td>
+
                             <td>
                                 <a href="@Url.Action("Review", "Moderation", new { id = moderation.ComicModerationId })"
                                    class="action-btn" style="color: var(--color-primary); border-color: rgba(124,58,237,0.3);">
@@ -79,7 +87,66 @@
         </div>
     }
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/comicHub")
+        .build();
 
+    connection.on("Moderator_NewComic", function (comic) {
+        const tbody = document.getElementById("comic-list-body");
+
+        const newRow = `
+            <tr id="comic-row-${comic.id}">
+                <td class="comic-title" style="font-weight: 600; color: var(--text-primary);">
+                    ${comic.title}
+                </td>
+                <td>${comic.author}</td>
+                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    </td>
+                <td>Vừa xong</td>
+                <td>
+                    <span class="badge badge-warning">
+                        <span class="badge-dot" style="background: #FBBF24;"></span>
+                        Pending
+                    </span>
+                </td>
+                <td>
+                    <a href="/Moderator/Review/${comic.id}" class="action-btn" style="color: var(--color-primary); border-color: rgba(124,58,237,0.3);">
+                        Review
+                    </a>
+                </td>
+            </tr>
+        `;
+
+        if (tbody) {
+            tbody.insertAdjacentHTML('afterbegin', newRow);
+        }
+    });
+
+    connection.on("Moderator_UpdateComic", function (comic) {
+        const row = document.getElementById(`comic-row-${comic.id}`);
+        if (row) {
+            const titleCell = row.querySelector(".comic-title");
+            if (titleCell) {
+                titleCell.innerText = comic.title;
+            }
+        }
+    });
+
+    connection.on("Moderator_DeleteComic", function (comicId) {
+        const row = document.getElementById(`comic-row-${comicId}`);
+        if (row) {
+            row.remove();
+        }
+    });
+
+    connection.start().then(function () {
+        connection.invoke("JoinModeratorGroup");
+    }).catch(function (err) {
+        console.error(err.toString());
+    });
+</script>
 @section Styles {
     <style>
         .page-header {

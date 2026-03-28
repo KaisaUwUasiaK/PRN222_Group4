@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <input type="hidden" name="commentId" value="${comment.commentId}" />
                 <input type="hidden" name="chapterId" value="${currentChapterId}" />
                 <input type="hidden" name="source" value="Read" />
+                <input type="hidden" name="comicId" value="${config.comicId}" />
                 <button type="submit" class="text-gray-600 hover:text-red-500 transition-colors p-1" title="Delete">
                     <i class="ph ph-trash text-base md:text-lg"></i>
                 </button>
